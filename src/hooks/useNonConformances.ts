@@ -21,11 +21,12 @@ export type NonConformance = {
   status: 'pending' | 'in-progress' | 'completed' | 'critical';
   created_at: string;
   updated_at: string;
+  department?: { name: string; group_type: string } | null; // Adicionando um campo opcional para os dados do departamento
 };
 
 export type NonConformanceInput = Omit<
   NonConformance, 
-  'id' | 'code' | 'created_at' | 'updated_at'
+  'id' | 'code' | 'created_at' | 'updated_at' | 'department'
 >;
 
 export const useNonConformances = () => {
@@ -41,7 +42,7 @@ export const useNonConformances = () => {
         .from("non_conformances")
         .select(`
           *,
-          departments(name, group_type)
+          department:departments(name, group_type)
         `)
         .order("created_at", { ascending: false });
 
@@ -50,7 +51,15 @@ export const useNonConformances = () => {
         throw new Error("Erro ao carregar não conformidades");
       }
 
-      return data || [];
+      // Converter os dados brutos para o formato NonConformance[]
+      return (data || []).map(item => {
+        const { department, ...rest } = item;
+        return {
+          ...rest,
+          status: rest.status as 'pending' | 'in-progress' | 'completed' | 'critical', // Garantir que o status tenha o tipo correto
+          department: department
+        } as NonConformance;
+      });
     },
     enabled: !!user, // Só executa quando o usuário está autenticado
   });
@@ -67,6 +76,7 @@ export const useNonConformances = () => {
         ? new Date(nonConformance.deadline_date).toISOString() 
         : null;
       
+      // Criar o objeto de inserção sem o campo 'code' que é gerado pelo trigger
       const newNonConformance = {
         ...nonConformance,
         occurrence_date: formattedOccurrenceDate,

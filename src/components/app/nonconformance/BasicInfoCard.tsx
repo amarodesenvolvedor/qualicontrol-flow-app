@@ -15,7 +15,7 @@ interface BasicInfoCardProps {
   title: string;
   description: string;
   location: string;
-  auditorName: string;
+  auditorName: string; // Manteremos esta prop como auditorName para manter compatibilidade
   selectedDate: Date | undefined;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onDateChange: (date: Date | undefined) => void;
@@ -105,10 +105,10 @@ const BasicInfoCard = ({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="auditorName">Nome do Auditor <span className="text-red-500">*</span></Label>
+            <Label htmlFor="auditor_name">Nome do Auditor <span className="text-red-500">*</span></Label>
             <Input
-              id="auditorName"
-              name="auditorName"
+              id="auditor_name"
+              name="auditor_name"
               placeholder="Nome completo do auditor"
               value={auditorName}
               onChange={onInputChange}

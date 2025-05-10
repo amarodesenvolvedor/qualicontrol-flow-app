@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -251,7 +250,7 @@ const NonConformanceList = () => {
                     <div className="flex flex-col md:items-end justify-between text-sm">
                       <div className="space-y-1">
                         <div className="text-muted-foreground">
-                          Departamento: {item.departments?.name || "Não especificado"}
+                          Departamento: {item.department?.name || "Não especificado"}
                         </div>
                         <div className="text-muted-foreground">
                           Responsável: {item.responsible_name}

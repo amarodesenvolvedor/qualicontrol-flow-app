@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isAuthenticated: boolean; // Adicionando propriedade isAuthenticated
   signOut: () => Promise<void>;
 }
 
@@ -45,6 +46,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     isLoading,
+    isAuthenticated: !!user, // Definindo isAuthenticated com base na existência do usuário
     signOut
   };
   

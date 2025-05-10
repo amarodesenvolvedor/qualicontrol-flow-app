@@ -24,11 +24,11 @@ const NonConformanceForm = () => {
     title: "",
     description: "",
     location: "",
-    department_id: "",  // Alterado de department para department_id
+    department_id: "",
     category: "",
     immediate_actions: "",
     responsible_name: "",
-    auditor_name: "",
+    auditor_name: "", // Corrigido para auditor_name
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -64,7 +64,7 @@ const NonConformanceForm = () => {
     
     // Verificar se os campos obrigatórios estão preenchidos
     if (!formData.title || !formData.description || !formData.department_id || 
-        !formData.category || !formData.location || !formData.auditorName ||
+        !formData.category || !formData.location || !formData.auditor_name || // Corrigido para auditor_name
         !formData.responsible_name || !selectedDate) {
       toast({
         title: "Campos obrigatórios",
@@ -130,7 +130,7 @@ const NonConformanceForm = () => {
             title={formData.title}
             description={formData.description}
             location={formData.location}
-            auditorName={formData.auditorName}
+            auditorName={formData.auditor_name} // Corrigido para auditor_name
             selectedDate={selectedDate}
             onInputChange={handleInputChange}
             onDateChange={setSelectedDate}
@@ -138,7 +138,7 @@ const NonConformanceForm = () => {
 
           {/* Categorização */}
           <CategoryCard
-            department={formData.department_id} // Usamos o ID do departamento
+            department={formData.department_id}
             category={formData.category}
             onDepartmentChange={handleDepartmentChange}
             onCategoryChange={handleCategoryChange}
