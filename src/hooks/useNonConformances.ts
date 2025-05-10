@@ -21,7 +21,7 @@ export type NonConformance = {
   status: 'pending' | 'in-progress' | 'completed' | 'critical';
   created_at: string;
   updated_at: string;
-  department?: { name: string; group_type: string } | null; // Adicionando um campo opcional para os dados do departamento
+  department?: { name: string; group_type: string } | null;
 };
 
 export type NonConformanceInput = Omit<
@@ -56,7 +56,7 @@ export const useNonConformances = () => {
         const { department, ...rest } = item;
         return {
           ...rest,
-          status: rest.status as 'pending' | 'in-progress' | 'completed' | 'critical', // Garantir que o status tenha o tipo correto
+          status: rest.status as 'pending' | 'in-progress' | 'completed' | 'critical',
           department: department
         } as NonConformance;
       });
@@ -77,11 +77,20 @@ export const useNonConformances = () => {
         : null;
       
       // Criar o objeto de inserção sem o campo 'code' que é gerado pelo trigger
+      // Importante: não devemos incluir o campo 'code' aqui pois ele é gerado automaticamente pelo trigger
       const newNonConformance = {
-        ...nonConformance,
+        title: nonConformance.title,
+        description: nonConformance.description,
+        location: nonConformance.location,
+        department_id: nonConformance.department_id,
+        category: nonConformance.category,
+        immediate_actions: nonConformance.immediate_actions,
+        responsible_name: nonConformance.responsible_name,
+        auditor_name: nonConformance.auditor_name,
         occurrence_date: formattedOccurrenceDate,
         deadline_date: formattedDeadlineDate,
-        created_by: user?.id || null
+        status: nonConformance.status,
+        created_by: user?.id
       };
 
       const { data, error } = await supabase

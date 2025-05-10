@@ -28,7 +28,7 @@ const NonConformanceForm = () => {
     category: "",
     immediate_actions: "",
     responsible_name: "",
-    auditor_name: "", // Corrigido para auditor_name
+    auditor_name: "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -64,7 +64,7 @@ const NonConformanceForm = () => {
     
     // Verificar se os campos obrigatórios estão preenchidos
     if (!formData.title || !formData.description || !formData.department_id || 
-        !formData.category || !formData.location || !formData.auditor_name || // Corrigido para auditor_name
+        !formData.category || !formData.location || !formData.auditor_name || 
         !formData.responsible_name || !selectedDate) {
       toast({
         title: "Campos obrigatórios",
@@ -130,7 +130,7 @@ const NonConformanceForm = () => {
             title={formData.title}
             description={formData.description}
             location={formData.location}
-            auditorName={formData.auditor_name} // Corrigido para auditor_name
+            auditorName={formData.auditor_name}
             selectedDate={selectedDate}
             onInputChange={handleInputChange}
             onDateChange={setSelectedDate}

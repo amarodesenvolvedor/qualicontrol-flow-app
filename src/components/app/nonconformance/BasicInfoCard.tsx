@@ -15,7 +15,7 @@ interface BasicInfoCardProps {
   title: string;
   description: string;
   location: string;
-  auditorName: string; // Manteremos esta prop como auditorName para manter compatibilidade
+  auditorName: string;
   selectedDate: Date | undefined;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onDateChange: (date: Date | undefined) => void;
