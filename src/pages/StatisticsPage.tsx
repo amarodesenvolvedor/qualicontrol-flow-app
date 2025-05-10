@@ -1,71 +1,205 @@
 
+import { useState } from "react";
 import Layout from "@/components/app/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { PieChart as RechartsSimplePieChart, BarChart, Bar, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-
-const departmentData = [
-  { name: 'Produção', value: 35 },
-  { name: 'Qualidade', value: 20 },
-  { name: 'Logística', value: 15 },
-  { name: 'Manutenção', value: 25 },
-  { name: 'Administrativo', value: 5 },
-];
-
-const statusData = [
-  { name: 'Abertas', value: 45 },
-  { name: 'Em análise', value: 30 },
-  { name: 'Concluídas', value: 25 },
-];
-
-const monthlyData = [
-  { month: 'Jan', quantidade: 12 },
-  { month: 'Fev', quantidade: 19 },
-  { month: 'Mar', quantidade: 8 },
-  { month: 'Abr', quantidade: 15 },
-  { month: 'Mai', quantidade: 22 },
-  { month: 'Jun', quantidade: 14 },
-  { month: 'Jul', quantidade: 7 },
-  { month: 'Ago', quantidade: 10 },
-  { month: 'Set', quantidade: 13 },
-  { month: 'Out', quantidade: 17 },
-  { month: 'Nov', quantidade: 9 },
-  { month: 'Dez', quantidade: 11 },
-];
-
-const chartConfig = {
-  primary: {
-    theme: {
-      light: "#0088FE",
-      dark: "#0088FE"
-    }
-  },
-  secondary: {
-    theme: {
-      light: "#00C49F",
-      dark: "#00C49F"
-    }
-  },
-  tertiary: {
-    theme: {
-      light: "#FFBB28",
-      dark: "#FFBB28"
-    }
-  },
-};
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useNonConformances } from "@/hooks/useNonConformances";
+import { useNavigate } from "react-router-dom";
+import { InteractiveChart } from "@/components/reports/InteractiveChart";
 
 const StatisticsPage = () => {
+  const navigate = useNavigate();
+  const { getNonConformances } = useNonConformances();
+  const { data: nonConformances = [], isLoading, refetch } = getNonConformances;
+  
+  const [selectedYear, setSelectedYear] = useState("2025");
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const viewNonConformance = (id: string) => {
+    navigate(`/nao-conformidades/${id}`);
+    setDetailOpen(false);
+  };
+
+  // Generate data for department chart from actual data
+  const generateDepartmentData = () => {
+    const departmentMap = new Map();
+    const departmentIds = new Map();
+    const departmentDescriptions = new Map();
+    
+    nonConformances.forEach(nc => {
+      const deptName = nc.department?.name || "Não especificado";
+      if (!departmentMap.has(deptName)) {
+        departmentMap.set(deptName, 0);
+        departmentIds.set(deptName, []);
+        departmentDescriptions.set(deptName, []);
+      }
+      departmentMap.set(deptName, departmentMap.get(deptName) + 1);
+      departmentIds.get(deptName).push(nc.id);
+      departmentDescriptions.get(deptName).push(nc.title);
+    });
+    
+    return Array.from(departmentMap.entries()).map(([name, value]) => ({
+      name,
+      value,
+      id: departmentIds.get(name),
+      descriptions: departmentDescriptions.get(name)
+    }));
+  };
+
+  // Generate data for status chart
+  const generateStatusData = () => {
+    const statusMap = new Map();
+    const statusIds = new Map();
+    const statusDescriptions = new Map();
+    const statusColors = {
+      'pending': '#3B82F6',
+      'in-progress': '#FBBF24',
+      'completed': '#10B981',
+      'critical': '#EF4444'
+    };
+    
+    nonConformances.forEach(nc => {
+      const statusName = nc.status === 'pending' ? 'Pendente' :
+                         nc.status === 'in-progress' ? 'Em Andamento' :
+                         nc.status === 'completed' ? 'Concluído' :
+                         nc.status === 'critical' ? 'Crítico' : nc.status;
+      
+      if (!statusMap.has(statusName)) {
+        statusMap.set(statusName, 0);
+        statusIds.set(statusName, []);
+        statusDescriptions.set(statusName, []);
+      }
+      statusMap.set(statusName, statusMap.get(statusName) + 1);
+      statusIds.get(statusName).push(nc.id);
+      statusDescriptions.get(statusName).push(nc.title);
+    });
+    
+    return Array.from(statusMap.entries()).map(([name, value]) => {
+      const statusKey = name === 'Pendente' ? 'pending' :
+                        name === 'Em Andamento' ? 'in-progress' :
+                        name === 'Concluído' ? 'completed' :
+                        name === 'Crítico' ? 'critical' : '';
+                        
+      return {
+        name,
+        value,
+        id: statusIds.get(name),
+        descriptions: statusDescriptions.get(name),
+        color: statusColors[statusKey as keyof typeof statusColors]
+      };
+    });
+  };
+
+  // Generate monthly data
+  const generateMonthlyData = () => {
+    // Use real data if available, otherwise fall back to mock data
+    if (!nonConformances.length) {
+      return monthlyData;
+    }
+    
+    const monthlyMap = new Map();
+    const monthlyIds = new Map();
+    const monthlyDescriptions = new Map();
+    
+    // Initialize all months
+    const months = [
+      "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", 
+      "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+    ];
+    
+    months.forEach(month => {
+      monthlyMap.set(month, 0);
+      monthlyIds.set(month, []);
+      monthlyDescriptions.set(month, []);
+    });
+    
+    // Count non-conformances by month
+    nonConformances.forEach(nc => {
+      const date = new Date(nc.occurrence_date);
+      const month = months[date.getMonth()];
+      
+      monthlyMap.set(month, monthlyMap.get(month) + 1);
+      monthlyIds.get(month).push(nc.id);
+      monthlyDescriptions.get(month).push(nc.title);
+    });
+    
+    return Array.from(monthlyMap.entries()).map(([month, quantidade]) => ({
+      month,
+      quantidade,
+      id: monthlyIds.get(month),
+      descriptions: monthlyDescriptions.get(month)
+    }));
+  };
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
+  // Mock data if no real data is available
+  const departmentData = [
+    { name: 'Produção', value: 35 },
+    { name: 'Qualidade', value: 20 },
+    { name: 'Logística', value: 15 },
+    { name: 'Manutenção', value: 25 },
+    { name: 'Administrativo', value: 5 },
+  ];
+
+  const statusData = [
+    { name: 'Abertas', value: 45 },
+    { name: 'Em análise', value: 30 },
+    { name: 'Concluídas', value: 25 },
+  ];
+
+  const monthlyData = [
+    { month: 'Jan', quantidade: 12 },
+    { month: 'Fev', quantidade: 19 },
+    { month: 'Mar', quantidade: 8 },
+    { month: 'Abr', quantidade: 15 },
+    { month: 'Mai', quantidade: 22 },
+    { month: 'Jun', quantidade: 14 },
+    { month: 'Jul', quantidade: 7 },
+    { month: 'Ago', quantidade: 10 },
+    { month: 'Set', quantidade: 13 },
+    { month: 'Out', quantidade: 17 },
+    { month: 'Nov', quantidade: 9 },
+    { month: 'Dez', quantidade: 11 },
+  ];
+
+  const chartConfig = {
+    primary: {
+      theme: {
+        light: "#0088FE",
+        dark: "#0088FE"
+      }
+    },
+    secondary: {
+      theme: {
+        light: "#00C49F",
+        dark: "#00C49F"
+      }
+    },
+    tertiary: {
+      theme: {
+        light: "#FFBB28",
+        dark: "#FFBB28"
+      }
+    },
+  };
+
+  const handleYearChange = (year: string) => {
+    setSelectedYear(year);
+    // In a real app, we'd fetch data for the selected year
+  };
+
   return (
     <Layout>
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Gráficos e Estatísticas</h1>
           <div className="flex items-center gap-2">
-            <Select defaultValue="2025">
+            <Select value={selectedYear} onValueChange={handleYearChange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Selecione o ano" />
               </SelectTrigger>
@@ -75,6 +209,9 @@ const StatisticsPage = () => {
                 <SelectItem value="2023">2023</SelectItem>
               </SelectContent>
             </Select>
+            <Button variant="outline" size="sm" className="h-9" onClick={() => refetch()}>
+              Atualizar
+            </Button>
           </div>
         </div>
         
@@ -93,26 +230,12 @@ const StatisticsPage = () => {
                   <CardDescription>Distribuição atual por área</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-2">
-                  <ChartContainer config={chartConfig} className="h-[300px]">
-                    <RechartsSimplePieChart data={departmentData}>
-                      <Pie
-                        data={departmentData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        paddingAngle={2}
-                        dataKey="value"
-                        label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {departmentData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip />
-                    </RechartsSimplePieChart>
-                  </ChartContainer>
+                  <InteractiveChart
+                    title=""
+                    data={nonConformances.length > 0 ? generateDepartmentData() : departmentData}
+                    type="pie"
+                    height={300}
+                  />
                 </CardContent>
               </Card>
               
@@ -122,26 +245,12 @@ const StatisticsPage = () => {
                   <CardDescription>Distribuição por status atual</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-2">
-                  <ChartContainer config={chartConfig} className="h-[300px]">
-                    <RechartsSimplePieChart data={statusData}>
-                      <Pie
-                        data={statusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        paddingAngle={2}
-                        dataKey="value"
-                        label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {statusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip />
-                    </RechartsSimplePieChart>
-                  </ChartContainer>
+                  <InteractiveChart
+                    title=""
+                    data={nonConformances.length > 0 ? generateStatusData() : statusData}
+                    type="pie"
+                    height={300}
+                  />
                 </CardContent>
               </Card>
               
@@ -151,24 +260,13 @@ const StatisticsPage = () => {
                   <CardDescription>Quantidade registrada por mês</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-2">
-                  <ChartContainer config={chartConfig} className="h-[300px]">
-                    <BarChart
-                      data={monthlyData}
-                      margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="quantidade" name="Quantidade" fill="#0088FE" />
-                    </BarChart>
-                  </ChartContainer>
+                  <InteractiveChart
+                    title=""
+                    data={generateMonthlyData()}
+                    type="bar"
+                    dataKey="quantidade"
+                    height={300}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -183,9 +281,20 @@ const StatisticsPage = () => {
                 </CardHeader>
                 <CardContent className="pt-2">
                   <div className="h-[400px]">
-                    <p className="text-center text-muted-foreground py-8">
-                      Selecione um período específico para visualizar a tendência de não conformidades.
-                    </p>
+                    <InteractiveChart
+                      title=""
+                      data={[
+                        { name: "Jan", Críticas: 4, Normais: 8 },
+                        { name: "Fev", Críticas: 3, Normais: 16 },
+                        { name: "Mar", Críticas: 2, Normais: 6 },
+                        { name: "Abr", Críticas: 5, Normais: 10 },
+                        { name: "Mai", Críticas: 6, Normais: 16 },
+                        { name: "Jun", Críticas: 2, Normais: 12 }
+                      ]}
+                      type="line"
+                      dataKey="Críticas"
+                      height={400}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -200,10 +309,46 @@ const StatisticsPage = () => {
                   <CardDescription>Análise comparativa de não conformidades</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-2">
+                  <div className="flex items-center justify-center space-x-4 mb-4">
+                    <div>
+                      <Select defaultValue="2025-1">
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Período 1" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="2025-1">2025 - 1º Semestre</SelectItem>
+                          <SelectItem value="2024-2">2024 - 2º Semestre</SelectItem>
+                          <SelectItem value="2024-1">2024 - 1º Semestre</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Select defaultValue="2024-2">
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Período 2" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="2025-1">2025 - 1º Semestre</SelectItem>
+                          <SelectItem value="2024-2">2024 - 2º Semestre</SelectItem>
+                          <SelectItem value="2024-1">2024 - 1º Semestre</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button>Comparar</Button>
+                  </div>
                   <div className="h-[400px]">
-                    <p className="text-center text-muted-foreground py-8">
-                      Selecione dois períodos para gerar um comparativo de não conformidades.
-                    </p>
+                    <InteractiveChart
+                      title=""
+                      data={[
+                        { name: "Produção", "2025-1": 25, "2024-2": 18 },
+                        { name: "Qualidade", "2025-1": 14, "2024-2": 12 },
+                        { name: "Logística", "2025-1": 9, "2024-2": 11 },
+                        { name: "Manutenção", "2025-1": 16, "2024-2": 15 }
+                      ]}
+                      type="bar"
+                      dataKey="2025-1"
+                      height={400}
+                    />
                   </div>
                 </CardContent>
               </Card>

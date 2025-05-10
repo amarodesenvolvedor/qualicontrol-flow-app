@@ -77,7 +77,6 @@ export const useNonConformances = () => {
         : null;
       
       // Criar o objeto de inserção sem o campo 'code' que é gerado pelo trigger
-      // Importante: não devemos incluir o campo 'code' aqui pois ele é gerado automaticamente pelo trigger
       const newNonConformance = {
         title: nonConformance.title,
         description: nonConformance.description,
@@ -90,9 +89,9 @@ export const useNonConformances = () => {
         occurrence_date: formattedOccurrenceDate,
         deadline_date: formattedDeadlineDate,
         status: nonConformance.status,
-        created_by: user?.id
       };
 
+      // O campo 'code' é gerado automaticamente pelo trigger no banco de dados
       const { data, error } = await supabase
         .from("non_conformances")
         .insert(newNonConformance)
