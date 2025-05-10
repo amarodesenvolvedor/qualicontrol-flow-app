@@ -166,7 +166,7 @@ export function NewAuditForm({
                     </FormControl>
                     <SelectContent>
                       {departments.map((department) => (
-                        <SelectItem key={department.id} value={department.id}>
+                        <SelectItem key={department.id} value={department.id || "placeholder-id"}>
                           {department.name}
                         </SelectItem>
                       ))}
@@ -231,6 +231,7 @@ export function NewAuditForm({
                           }
                           initialFocus
                           locale={ptBR}
+                          className={cn("p-3 pointer-events-auto")}
                         />
                       </PopoverContent>
                     </Popover>
