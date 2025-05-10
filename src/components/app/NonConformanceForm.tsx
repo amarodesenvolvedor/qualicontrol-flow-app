@@ -29,6 +29,9 @@ const NonConformanceForm = () => {
     immediate_actions: "",
     responsible_name: "",
     auditor_name: "",
+    root_cause: "", // Added missing fields
+    corrective_actions: "",
+    preventive_actions: ""
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -79,7 +82,7 @@ const NonConformanceForm = () => {
       // 1. Criar a não conformidade
       const nonConformanceData = {
         ...formData,
-        occurrence_date: format(selectedDate!, 'yyyy-MM-dd'),
+        occurrence_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
         deadline_date: deadlineDate ? format(deadlineDate, 'yyyy-MM-dd') : null,
         status: 'pending' as const
       };
@@ -88,7 +91,7 @@ const NonConformanceForm = () => {
       
       // 2. Se tiver arquivos, fazer o upload
       if (files.length > 0 && result) {
-        await uploadFiles(result.id, files);
+        await uploadFiles(result.id);
       }
       
       // 3. Mostrar mensagem de sucesso e redirecionar
