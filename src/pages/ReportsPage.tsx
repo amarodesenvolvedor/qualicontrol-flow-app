@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Layout from "@/components/app/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +17,6 @@ const ReportsPage = () => {
   const [customReportData, setCustomReportData] = useState<DataItem[]>([]);
   const [reportConfig, setReportConfig] = useState<ReportConfig | null>(null);
 
-  // For demo purposes - transform nonConformances into chart data
   const generateDepartmentData = () => {
     const departmentMap = new Map();
     const departmentIds = new Map();

@@ -1,11 +1,9 @@
-
 import { useState } from "react";
 import Layout from "@/components/app/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { useNavigate } from "react-router-dom";
 import { InteractiveChart, DataItem } from "@/components/reports/InteractiveChart";
@@ -16,13 +14,6 @@ const StatisticsPage = () => {
   const { data: nonConformances = [], isLoading, refetch } = getNonConformances;
   
   const [selectedYear, setSelectedYear] = useState("2025");
-  const [selectedItem, setSelectedItem] = useState<any | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
-
-  const viewNonConformance = (id: string) => {
-    navigate(`/nao-conformidades/${id}`);
-    setDetailOpen(false);
-  };
 
   // Generate data for department chart from actual data
   const generateDepartmentData = () => {
@@ -138,8 +129,6 @@ const StatisticsPage = () => {
     }));
   };
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-
   // Mock data if no real data is available
   const departmentData: DataItem[] = [
     { name: 'Produção', value: 35 },
@@ -169,27 +158,6 @@ const StatisticsPage = () => {
     { month: 'Nov', quantidade: 9 },
     { month: 'Dez', quantidade: 11 },
   ];
-
-  const chartConfig = {
-    primary: {
-      theme: {
-        light: "#0088FE",
-        dark: "#0088FE"
-      }
-    },
-    secondary: {
-      theme: {
-        light: "#00C49F",
-        dark: "#00C49F"
-      }
-    },
-    tertiary: {
-      theme: {
-        light: "#FFBB28",
-        dark: "#FFBB28"
-      }
-    },
-  };
   
   // Convert multi-series data format for trend charts
   const generateTrendData = (): DataItem[] => {
