@@ -1,0 +1,99 @@
+
+/* Dashboard specific styles */
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Status badge colors */
+.status-badge {
+  border-radius: 9999px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-completed {
+  background-color: #DCFCE7;
+  color: #166534;
+  border-color: #BBF7D0;
+}
+
+.status-in-progress {
+  background-color: #FEF3C7;
+  color: #854D0E;
+  border-color: #FDE68A;
+}
+
+.status-critical {
+  background-color: #FEE2E2;
+  color: #991B1B;
+  border-color: #FECACA;
+}
+
+.status-pending {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+  border-color: #BFDBFE;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Progress bar animation */
+@keyframes progressAnimation {
+  from { width: 0; }
+}
+
+.animate-progress {
+  animation: progressAnimation 1s ease-out forwards;
+}
+
+/* Dark mode styles */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #0F172A;
+  color: #F8FAFC;
+}
+
+.dark .bg-muted {
+  background-color: #1E293B;
+}
+
+.dark .bg-muted\/60 {
+  background-color: rgba(30, 41, 59, 0.6);
+}
+
+.dark .bg-muted\/30 {
+  background-color: rgba(30, 41, 59, 0.3);
+}
+
+.dark .text-muted-foreground {
+  color: #94A3B8;
+}
+
+.dark .border-b {
+  border-color: #334155;
+}

@@ -23,18 +23,16 @@ export const generateTrendData = (nonConformances: NonConformance[]): DataItem[]
     statusCount[nc.status] = (statusCount[nc.status] || 0) + 1;
   });
   
-  const result = Array.from(monthStatusMap.entries()).map(([month, counts]) => {
-    // Create a DataItem compatible object
+  // Convert to DataItem format with proper types
+  return Array.from(monthStatusMap.entries()).map(([month, counts]: [string, any]) => {
     return {
       name: month,
       value: Object.values(counts).reduce((acc: number, curr: number) => acc + curr, 0),
       "Pendentes": counts.pending || 0,
       "Em Andamento": counts['in-progress'] || 0,
       "Resolvidas": (counts.resolved || 0) + (counts.closed || 0)
-    };
+    } as DataItem;
   });
-
-  return result;
 };
 
 export const generateComparisonData = (): DataItem[] => {
