@@ -2,7 +2,7 @@
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import {
   BarChart, Bar, Cell, PieChart, Pie, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from "recharts";
 import { DataItem } from "./types";
 
@@ -14,106 +14,166 @@ interface ChartProps {
   onItemClick: (data: DataItem) => void;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ff7300', '#a4de6c'];
+// Paleta de cores moderna
+const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
 const chartConfig = {
-  primary: { theme: { light: "#0088FE", dark: "#0088FE" } },
-  secondary: { theme: { light: "#00C49F", dark: "#00C49F" } },
-  tertiary: { theme: { light: "#FFBB28", dark: "#FFBB28" } },
+  primary: { theme: { light: "#0ea5e9", dark: "#0ea5e9" } },
+  secondary: { theme: { light: "#10b981", dark: "#10b981" } },
+  tertiary: { theme: { light: "#f59e0b", dark: "#f59e0b" } },
 };
 
-// Pie Chart Component
+// Componente de Gráfico de Pizza
 export const PieChartComponent = ({ data, dataKey = "value", height, onItemClick }: ChartProps) => (
-  <ChartContainer config={chartConfig} className={`h-[${height}px]`}>
+  <ResponsiveContainer width="100%" height={height}>
     <PieChart>
       <Pie
         data={data}
         cx="50%"
         cy="50%"
         innerRadius={60}
-        outerRadius={80}
+        outerRadius={90}
         fill="#8884d8"
-        paddingAngle={2}
+        paddingAngle={3}
         dataKey={dataKey}
         onClick={onItemClick}
-        label={({ name, percent }: { name: string; percent: number }) => 
-          `${name}: ${(percent * 100).toFixed(0)}%`
+        label={({ name, value }: { name: string; value: number }) => 
+          `${name}: ${value}`
         }
         cursor="pointer"
+        animationBegin={0}
+        animationDuration={1000}
       >
         {data.map((entry, index) => (
           <Cell 
             key={`cell-${index}`} 
             fill={entry.color || COLORS[index % COLORS.length]} 
+            stroke="#ffffff"
+            strokeWidth={2}
           />
         ))}
       </Pie>
-      <ChartTooltip />
-      <Legend />
+      <Tooltip formatter={(value: any) => [`${value}`, 'Quantidade']} />
+      <Legend verticalAlign="bottom" height={36} />
     </PieChart>
-  </ChartContainer>
+  </ResponsiveContainer>
 );
 
-// Line Chart Component
+// Componente de Gráfico de Linha
 export const LineChartComponent = ({ data, dataKey = "value", height, onItemClick }: ChartProps) => {
-  // For LineChart activeDot handling
+  // Para LineChart, tratamento do activeDot
   const handleActiveDotClick = (props: any) => {
     if (props && props.payload) {
       onItemClick(props.payload);
     }
   };
   
+  // Encontrar todas as chaves de dados exceto "name" para criar múltiplas linhas
+  const dataKeys = data.length > 0 
+    ? Object.keys(data[0]).filter(key => key !== 'name' && key !== 'id' && key !== 'descriptions')
+    : [dataKey];
+  
   return (
-    <ChartContainer config={chartConfig} className={`h-[${height}px]`}>
+    <ResponsiveContainer width="100%" height={height}>
       <LineChart
         data={data}
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line
-          type="monotone"
-          dataKey={dataKey}
-          stroke="#0088FE"
-          activeDot={{ 
-            onClick: handleActiveDotClick, 
-            r: 8, 
-            cursor: "pointer" 
-          }}
-        />
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <XAxis dataKey="name" stroke="#6b7280" />
+        <YAxis stroke="#6b7280" />
+        <Tooltip formatter={(value: any) => [`${value}`, 'Quantidade']} />
+        <Legend verticalAlign="bottom" height={36} />
+        
+        {dataKeys.map((key, index) => (
+          <Line
+            key={key}
+            type="monotone"
+            dataKey={key}
+            stroke={COLORS[index % COLORS.length]}
+            activeDot={{ 
+              onClick: handleActiveDotClick, 
+              r: 8, 
+              cursor: "pointer",
+              stroke: "#fff",
+              strokeWidth: 2
+            }}
+            strokeWidth={2}
+            animationDuration={1000}
+            animationBegin={index * 150}
+          />
+        ))}
       </LineChart>
-    </ChartContainer>
+    </ResponsiveContainer>
   );
 };
 
-// Bar Chart Component
-export const BarChartComponent = ({ data, dataKey = "value", height, onItemClick }: ChartProps) => (
-  <ChartContainer config={chartConfig} className={`h-[${height}px]`}>
-    <BarChart
-      data={data}
-      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      <Bar 
-        dataKey={dataKey} 
-        fill="#0088FE" 
-        onClick={onItemClick}
-        cursor="pointer"
+// Componente de Gráfico de Barras
+export const BarChartComponent = ({ data, dataKey = "value", height, onItemClick }: ChartProps) => {
+  // Encontrar todas as chaves de dados exceto "name" para criar múltiplas barras
+  const dataKeys = data.length > 0 
+    ? Object.keys(data[0]).filter(key => key !== 'name' && key !== 'id' && key !== 'descriptions')
+    : [dataKey];
+  
+  // Se tivermos mais de uma série de dados, renderizamos barras agrupadas
+  if (dataKeys.length > 1) {
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <BarChart
+          data={data}
+          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <XAxis dataKey="name" stroke="#6b7280" />
+          <YAxis stroke="#6b7280" />
+          <Tooltip formatter={(value: any) => [`${value}`, 'Quantidade']} />
+          <Legend verticalAlign="bottom" height={36} />
+          
+          {dataKeys.map((key, index) => (
+            <Bar 
+              key={key}
+              dataKey={key} 
+              fill={COLORS[index % COLORS.length]} 
+              onClick={onItemClick}
+              cursor="pointer"
+              radius={[4, 4, 0, 0]}
+              animationDuration={1000}
+              animationBegin={index * 150}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  }
+  
+  // Para uma única série de dados, renderizamos barras com cores individuais
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart
+        data={data}
+        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
       >
-        {data.map((entry, index) => (
-          <Cell 
-            key={`cell-${index}`} 
-            fill={entry.color || COLORS[index % COLORS.length]} 
-          />
-        ))}
-      </Bar>
-    </BarChart>
-  </ChartContainer>
-);
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <XAxis dataKey="name" stroke="#6b7280" />
+        <YAxis stroke="#6b7280" />
+        <Tooltip formatter={(value: any) => [`${value}`, 'Quantidade']} />
+        <Legend verticalAlign="bottom" height={36} />
+        <Bar 
+          dataKey={dataKey} 
+          fill={COLORS[0]} 
+          onClick={onItemClick}
+          cursor="pointer"
+          radius={[4, 4, 0, 0]}
+          animationDuration={1000}
+        >
+          {data.map((entry, index) => (
+            <Cell 
+              key={`cell-${index}`} 
+              fill={entry.color || COLORS[index % COLORS.length]} 
+            />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Layout from "@/components/app/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { useNavigate } from "react-router-dom";
-import { InteractiveChart, DataItem } from "@/components/reports/InteractiveChart";
+import { InteractiveChart } from "@/components/reports/InteractiveChart";
+import { generateDepartmentData, generateStatusData, generateMonthlyData } from "@/components/reports/DataUtils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const StatisticsPage = () => {
   const navigate = useNavigate();
@@ -14,175 +17,133 @@ const StatisticsPage = () => {
   
   const [selectedYear, setSelectedYear] = useState("2025");
 
-  // Generate data for department chart from actual data
-  const generateDepartmentData = () => {
-    const departmentMap = new Map();
-    const departmentIds = new Map();
-    const departmentDescriptions = new Map();
-    
-    nonConformances.forEach(nc => {
-      const deptName = nc.department?.name || "Não especificado";
-      if (!departmentMap.has(deptName)) {
-        departmentMap.set(deptName, 0);
-        departmentIds.set(deptName, []);
-        departmentDescriptions.set(deptName, []);
-      }
-      departmentMap.set(deptName, departmentMap.get(deptName) + 1);
-      departmentIds.get(deptName).push(nc.id);
-      departmentDescriptions.get(deptName).push(nc.title);
-    });
-    
-    return Array.from(departmentMap.entries()).map(([name, value]) => ({
-      name,
-      value,
-      id: departmentIds.get(name),
-      descriptions: departmentDescriptions.get(name)
-    }));
-  };
+  // Gerar dados para os gráficos usando os dados reais
+  const departmentStats = nonConformances.length > 0 
+    ? generateDepartmentData(nonConformances)
+    : [];
 
-  // Generate data for status chart
-  const generateStatusData = () => {
-    const statusMap = new Map();
-    const statusIds = new Map();
-    const statusDescriptions = new Map();
-    const statusColors = {
-      'pending': '#3B82F6',
-      'in-progress': '#FBBF24',
-      'completed': '#10B981',
-      'critical': '#EF4444'
-    };
-    
-    nonConformances.forEach(nc => {
-      const statusName = nc.status === 'pending' ? 'Pendente' :
-                         nc.status === 'in-progress' ? 'Em Andamento' :
-                         nc.status === 'completed' ? 'Concluído' :
-                         nc.status === 'critical' ? 'Crítico' : nc.status;
-      
-      if (!statusMap.has(statusName)) {
-        statusMap.set(statusName, 0);
-        statusIds.set(statusName, []);
-        statusDescriptions.set(statusName, []);
-      }
-      statusMap.set(statusName, statusMap.get(statusName) + 1);
-      statusIds.get(statusName).push(nc.id);
-      statusDescriptions.get(statusName).push(nc.title);
-    });
-    
-    return Array.from(statusMap.entries()).map(([name, value]) => {
-      const statusKey = name === 'Pendente' ? 'pending' :
-                        name === 'Em Andamento' ? 'in-progress' :
-                        name === 'Concluído' ? 'completed' :
-                        name === 'Crítico' ? 'critical' : '';
-                        
-      return {
-        name,
-        value,
-        id: statusIds.get(name),
-        descriptions: statusDescriptions.get(name),
-        color: statusColors[statusKey as keyof typeof statusColors]
-      };
-    });
-  };
+  const statusStats = nonConformances.length > 0 
+    ? generateStatusData(nonConformances)
+    : [];
 
-  // Generate monthly data
-  const generateMonthlyData = () => {
-    // Use real data if available, otherwise fall back to mock data
-    if (!nonConformances.length) {
-      return monthlyData.map(item => ({
-        name: item.month,
-        value: item.quantidade
-      }));
-    }
+  const monthlyStats = nonConformances.length > 0 
+    ? generateMonthlyData(nonConformances)
+    : [];
+
+  // Converter os dados para o formato multi-série para gráficos de tendência
+  const generateTrendData = () => {
+    // Agrupar por mês e por status
+    const monthStatusMap = new Map();
     
-    const monthlyMap = new Map();
-    const monthlyIds = new Map();
-    const monthlyDescriptions = new Map();
-    
-    // Initialize all months
-    const months = [
-      "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", 
-      "Jul", "Ago", "Set", "Out", "Nov", "Dez"
-    ];
-    
-    months.forEach(month => {
-      monthlyMap.set(month, 0);
-      monthlyIds.set(month, []);
-      monthlyDescriptions.set(month, []);
-    });
-    
-    // Count non-conformances by month
     nonConformances.forEach(nc => {
       const date = new Date(nc.occurrence_date);
-      const month = months[date.getMonth()];
+      const month = date.toLocaleString('pt-BR', { month: 'short' });
       
-      monthlyMap.set(month, monthlyMap.get(month) + 1);
-      monthlyIds.get(month).push(nc.id);
-      monthlyDescriptions.get(month).push(nc.title);
+      if (!monthStatusMap.has(month)) {
+        monthStatusMap.set(month, {
+          pending: 0,
+          'in-progress': 0,
+          resolved: 0,
+          closed: 0
+        });
+      }
+      
+      const statusCount = monthStatusMap.get(month);
+      statusCount[nc.status] = (statusCount[nc.status] || 0) + 1;
     });
     
-    return Array.from(monthlyMap.entries()).map(([month, quantidade]) => ({
+    return Array.from(monthStatusMap.entries()).map(([month, counts]) => ({
       name: month,
-      value: quantidade,
-      id: monthlyIds.get(month),
-      descriptions: monthlyDescriptions.get(month)
+      "Pendentes": counts.pending || 0,
+      "Em Andamento": counts['in-progress'] || 0,
+      "Resolvidas": (counts.resolved || 0) + (counts.closed || 0)
     }));
-  };
-
-  // Mock data if no real data is available
-  const departmentData: DataItem[] = [
-    { name: 'Produção', value: 35 },
-    { name: 'Qualidade', value: 20 },
-    { name: 'Logística', value: 15 },
-    { name: 'Manutenção', value: 25 },
-    { name: 'Administrativo', value: 5 },
-  ];
-
-  const statusData: DataItem[] = [
-    { name: 'Abertas', value: 45 },
-    { name: 'Em análise', value: 30 },
-    { name: 'Concluídas', value: 25 },
-  ];
-
-  const monthlyData = [
-    { month: 'Jan', quantidade: 12 },
-    { month: 'Fev', quantidade: 19 },
-    { month: 'Mar', quantidade: 8 },
-    { month: 'Abr', quantidade: 15 },
-    { month: 'Mai', quantidade: 22 },
-    { month: 'Jun', quantidade: 14 },
-    { month: 'Jul', quantidade: 7 },
-    { month: 'Ago', quantidade: 10 },
-    { month: 'Set', quantidade: 13 },
-    { month: 'Out', quantidade: 17 },
-    { month: 'Nov', quantidade: 9 },
-    { month: 'Dez', quantidade: 11 },
-  ];
-  
-  // Convert multi-series data format for trend charts
-  const generateTrendData = (): DataItem[] => {
-    return [
-      { name: "Jan", value: 4, Críticas: 4, Normais: 8 },
-      { name: "Fev", value: 3, Críticas: 3, Normais: 16 },
-      { name: "Mar", value: 2, Críticas: 2, Normais: 6 },
-      { name: "Abr", value: 5, Críticas: 5, Normais: 10 },
-      { name: "Mai", value: 6, Críticas: 6, Normais: 16 },
-      { name: "Jun", value: 2, Críticas: 2, Normais: 12 }
-    ];
-  };
-
-  // Convert multi-series data format for comparison charts
-  const generateComparisonData = (): DataItem[] => {
-    return [
-      { name: "Produção", value: 25, "2025-1": 25, "2024-2": 18 },
-      { name: "Qualidade", value: 14, "2025-1": 14, "2024-2": 12 },
-      { name: "Logística", value: 9, "2025-1": 9, "2024-2": 11 },
-      { name: "Manutenção", value: 16, "2025-1": 16, "2024-2": 15 }
-    ];
   };
 
   const handleYearChange = (year: string) => {
     setSelectedYear(year);
-    // In a real app, we'd fetch data for the selected year
+    // Em um aplicativo real, buscaríamos dados para o ano selecionado
+  };
+
+  const renderChartContent = () => {
+    if (isLoading) {
+      return <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map(i => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-6 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>;
+    }
+    
+    if (nonConformances.length === 0) {
+      return (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <p className="mb-4 text-muted-foreground">Nenhuma não conformidade cadastrada ainda.</p>
+            <Button onClick={() => navigate("/nao-conformidades/nova")}>
+              Cadastrar Não Conformidade
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+    
+    return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Não Conformidades por Departamento</CardTitle>
+            <CardDescription>Distribuição atual por área</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <InteractiveChart
+              title=""
+              data={departmentStats}
+              type="pie"
+              height={300}
+            />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Status das Não Conformidades</CardTitle>
+            <CardDescription>Distribuição por status atual</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <InteractiveChart
+              title=""
+              data={statusStats}
+              type="pie"
+              height={300}
+            />
+          </CardContent>
+        </Card>
+        
+        <Card className="md:col-span-2 lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Não Conformidades Mensais</CardTitle>
+            <CardDescription>Quantidade registrada por mês</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <InteractiveChart
+              title=""
+              data={monthlyStats}
+              type="bar"
+              dataKey="value"
+              height={300}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
   };
 
   return (
@@ -215,53 +176,7 @@ const StatisticsPage = () => {
           </TabsList>
           
           <TabsContent value="overview">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Não Conformidades por Departamento</CardTitle>
-                  <CardDescription>Distribuição atual por área</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-2">
-                  <InteractiveChart
-                    title=""
-                    data={nonConformances.length > 0 ? generateDepartmentData() : departmentData}
-                    type="pie"
-                    height={300}
-                  />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status das Não Conformidades</CardTitle>
-                  <CardDescription>Distribuição por status atual</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-2">
-                  <InteractiveChart
-                    title=""
-                    data={nonConformances.length > 0 ? generateStatusData() : statusData}
-                    type="pie"
-                    height={300}
-                  />
-                </CardContent>
-              </Card>
-              
-              <Card className="md:col-span-2 lg:col-span-1">
-                <CardHeader>
-                  <CardTitle>Não Conformidades Mensais</CardTitle>
-                  <CardDescription>Quantidade registrada por mês</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-2">
-                  <InteractiveChart
-                    title=""
-                    data={generateMonthlyData()}
-                    type="bar"
-                    dataKey="value"
-                    height={300}
-                  />
-                </CardContent>
-              </Card>
-            </div>
+            {renderChartContent()}
           </TabsContent>
           
           <TabsContent value="trends">
@@ -269,15 +184,15 @@ const StatisticsPage = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Tendência de Não Conformidades</CardTitle>
-                  <CardDescription>Evolução anual por categoria</CardDescription>
+                  <CardDescription>Evolução mensal por status</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-2">
                   <div className="h-[400px]">
                     <InteractiveChart
                       title=""
-                      data={generateTrendData()}
+                      data={nonConformances.length > 0 ? generateTrendData() : []}
                       type="line"
-                      dataKey="Críticas"
+                      dataKey="Pendentes"
                       height={400}
                     />
                   </div>
@@ -321,15 +236,26 @@ const StatisticsPage = () => {
                     </div>
                     <Button>Comparar</Button>
                   </div>
-                  <div className="h-[400px]">
-                    <InteractiveChart
-                      title=""
-                      data={generateComparisonData()}
-                      type="bar"
-                      dataKey="2025-1"
-                      height={400}
-                    />
-                  </div>
+                  {nonConformances.length > 0 ? (
+                    <div className="h-[400px]">
+                      <InteractiveChart
+                        title=""
+                        data={[
+                          { name: "Produção", "2025-1": 25, "2024-2": 18 },
+                          { name: "Qualidade", "2025-1": 14, "2024-2": 12 },
+                          { name: "Logística", "2025-1": 9, "2024-2": 11 },
+                          { name: "Manutenção", "2025-1": 16, "2024-2": 15 }
+                        ]}
+                        type="bar"
+                        dataKey="2025-1"
+                        height={400}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex justify-center items-center h-[400px] text-muted-foreground">
+                      Sem dados suficientes para comparação
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
