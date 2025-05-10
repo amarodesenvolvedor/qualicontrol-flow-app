@@ -19,6 +19,7 @@ import {
   Settings,
   Home,
   FileText,
+  FileSearch,
 } from "lucide-react";
 
 export function AppSidebar() {
@@ -63,6 +64,15 @@ export function AppSidebar() {
                   <NavLink to="/nao-conformidades" className={getNavCls}>
                     <ClipboardList className="mr-2 h-5 w-5" />
                     {!collapsed && <span>Não Conformidades</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/auditorias" className={getNavCls}>
+                    <FileSearch className="mr-2 h-5 w-5" />
+                    {!collapsed && <span>Auditorias</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

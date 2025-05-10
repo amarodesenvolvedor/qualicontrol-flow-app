@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/app/ProtectedRoute";
 import Index from "./pages/Index";
 import NonConformancesPage from "./pages/NonConformancesPage";
 import NewNonConformancePage from "./pages/NewNonConformancePage";
+import AuditsPage from "./pages/AuditsPage";
 import ReportsPage from "./pages/ReportsPage";
 import StatisticsPage from "./pages/StatisticsPage";
 import ExportPage from "./pages/ExportPage";
@@ -40,6 +41,11 @@ const App = () => (
             <Route path="/nao-conformidades/nova" element={
               <ProtectedRoute>
                 <NewNonConformancePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/auditorias" element={
+              <ProtectedRoute>
+                <AuditsPage />
               </ProtectedRoute>
             } />
             <Route path="/relatorios" element={
