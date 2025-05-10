@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Upload, Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { ptBR } from "date-fns/locale";
+import { useAuth } from "@/contexts/AuthContext";
 
 const departmentOptions = [
   { value: "production", label: "Produção" },
@@ -40,8 +41,10 @@ const categoryOptions = [
 
 const NonConformanceForm = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
   const [files, setFiles] = useState<File[]>([]);
   
   const [formData, setFormData] = useState({
@@ -51,7 +54,8 @@ const NonConformanceForm = () => {
     department: "",
     category: "",
     immediateActions: "",
-    responsibleName: ""
+    responsibleName: "",
+    auditorName: "", // Novo campo para o nome do auditor
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -171,10 +175,23 @@ const NonConformanceForm = () => {
                           selected={selectedDate}
                           onSelect={setSelectedDate}
                           locale={ptBR}
+                          className="p-3 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>
                   </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="auditorName">Nome do Auditor <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="auditorName"
+                    name="auditorName"
+                    placeholder="Nome completo do auditor"
+                    value={formData.auditorName}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
               </div>
             </CardContent>
@@ -261,6 +278,36 @@ const NonConformanceForm = () => {
                     onChange={handleInputChange}
                     required
                   />
+                </div>
+
+                {/* Novo campo para prazo da ação */}
+                <div className="grid gap-2">
+                  <Label>Prazo para Ação Corretiva <span className="text-red-500">*</span></Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {deadlineDate ? (
+                          format(deadlineDate, "dd/MM/yyyy")
+                        ) : (
+                          <span>Selecione o prazo</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={deadlineDate}
+                        onSelect={setDeadlineDate}
+                        locale={ptBR}
+                        disabled={(date) => date < new Date()}
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </CardContent>
