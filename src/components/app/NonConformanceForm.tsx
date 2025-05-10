@@ -28,10 +28,7 @@ const NonConformanceForm = () => {
     category: "",
     immediate_actions: "",
     responsible_name: "",
-    auditor_name: "",
-    root_cause: "",
-    corrective_actions: "",
-    preventive_actions: ""
+    auditor_name: ""
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
