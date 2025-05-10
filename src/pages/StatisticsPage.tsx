@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { useNavigate } from "react-router-dom";
-import { InteractiveChart } from "@/components/reports/InteractiveChart";
+import { InteractiveChart, DataItem } from "@/components/reports/InteractiveChart";
 
 const StatisticsPage = () => {
   const navigate = useNavigate();
@@ -98,7 +98,10 @@ const StatisticsPage = () => {
   const generateMonthlyData = () => {
     // Use real data if available, otherwise fall back to mock data
     if (!nonConformances.length) {
-      return monthlyData;
+      return monthlyData.map(item => ({
+        name: item.month,
+        value: item.quantidade
+      }));
     }
     
     const monthlyMap = new Map();
@@ -128,8 +131,8 @@ const StatisticsPage = () => {
     });
     
     return Array.from(monthlyMap.entries()).map(([month, quantidade]) => ({
-      month,
-      quantidade,
+      name: month,
+      value: quantidade,
       id: monthlyIds.get(month),
       descriptions: monthlyDescriptions.get(month)
     }));
@@ -138,7 +141,7 @@ const StatisticsPage = () => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
   // Mock data if no real data is available
-  const departmentData = [
+  const departmentData: DataItem[] = [
     { name: 'Produção', value: 35 },
     { name: 'Qualidade', value: 20 },
     { name: 'Logística', value: 15 },
@@ -146,7 +149,7 @@ const StatisticsPage = () => {
     { name: 'Administrativo', value: 5 },
   ];
 
-  const statusData = [
+  const statusData: DataItem[] = [
     { name: 'Abertas', value: 45 },
     { name: 'Em análise', value: 30 },
     { name: 'Concluídas', value: 25 },
@@ -186,6 +189,28 @@ const StatisticsPage = () => {
         dark: "#FFBB28"
       }
     },
+  };
+  
+  // Convert multi-series data format for trend charts
+  const generateTrendData = (): DataItem[] => {
+    return [
+      { name: "Jan", value: 4, Críticas: 4, Normais: 8 },
+      { name: "Fev", value: 3, Críticas: 3, Normais: 16 },
+      { name: "Mar", value: 2, Críticas: 2, Normais: 6 },
+      { name: "Abr", value: 5, Críticas: 5, Normais: 10 },
+      { name: "Mai", value: 6, Críticas: 6, Normais: 16 },
+      { name: "Jun", value: 2, Críticas: 2, Normais: 12 }
+    ];
+  };
+
+  // Convert multi-series data format for comparison charts
+  const generateComparisonData = (): DataItem[] => {
+    return [
+      { name: "Produção", value: 25, "2025-1": 25, "2024-2": 18 },
+      { name: "Qualidade", value: 14, "2025-1": 14, "2024-2": 12 },
+      { name: "Logística", value: 9, "2025-1": 9, "2024-2": 11 },
+      { name: "Manutenção", value: 16, "2025-1": 16, "2024-2": 15 }
+    ];
   };
 
   const handleYearChange = (year: string) => {
@@ -264,7 +289,7 @@ const StatisticsPage = () => {
                     title=""
                     data={generateMonthlyData()}
                     type="bar"
-                    dataKey="quantidade"
+                    dataKey="value"
                     height={300}
                   />
                 </CardContent>
@@ -283,14 +308,7 @@ const StatisticsPage = () => {
                   <div className="h-[400px]">
                     <InteractiveChart
                       title=""
-                      data={[
-                        { name: "Jan", Críticas: 4, Normais: 8 },
-                        { name: "Fev", Críticas: 3, Normais: 16 },
-                        { name: "Mar", Críticas: 2, Normais: 6 },
-                        { name: "Abr", Críticas: 5, Normais: 10 },
-                        { name: "Mai", Críticas: 6, Normais: 16 },
-                        { name: "Jun", Críticas: 2, Normais: 12 }
-                      ]}
+                      data={generateTrendData()}
                       type="line"
                       dataKey="Críticas"
                       height={400}
@@ -339,12 +357,7 @@ const StatisticsPage = () => {
                   <div className="h-[400px]">
                     <InteractiveChart
                       title=""
-                      data={[
-                        { name: "Produção", "2025-1": 25, "2024-2": 18 },
-                        { name: "Qualidade", "2025-1": 14, "2024-2": 12 },
-                        { name: "Logística", "2025-1": 9, "2024-2": 11 },
-                        { name: "Manutenção", "2025-1": 16, "2024-2": 15 }
-                      ]}
+                      data={generateComparisonData()}
                       type="bar"
                       dataKey="2025-1"
                       height={400}

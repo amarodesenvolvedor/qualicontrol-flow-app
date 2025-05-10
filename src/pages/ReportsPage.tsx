@@ -8,14 +8,14 @@ import { DownloadIcon, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { CustomReportBuilder, ReportConfig } from "@/components/reports/CustomReportBuilder";
-import { InteractiveChart } from "@/components/reports/InteractiveChart";
+import { InteractiveChart, DataItem } from "@/components/reports/InteractiveChart";
 import { ScheduledReports } from "@/components/reports/ScheduledReports";
 
 const ReportsPage = () => {
   const { getNonConformances } = useNonConformances();
   const { data: nonConformances = [], isLoading, refetch } = getNonConformances;
   const [activeTab, setActiveTab] = useState("standard");
-  const [customReportData, setCustomReportData] = useState<any[]>([]);
+  const [customReportData, setCustomReportData] = useState<DataItem[]>([]);
   const [reportConfig, setReportConfig] = useState<ReportConfig | null>(null);
 
   // For demo purposes - transform nonConformances into chart data

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface DataItem {
+export interface DataItem {
   name: string;
   value: number;
   id?: string[];
@@ -47,6 +47,13 @@ export const InteractiveChart = ({
   const handleChartClick = (data: DataItem) => {
     setSelectedItem(data);
     setDetailOpen(true);
+  };
+  
+  // For LineChart activeDot handling
+  const handleActiveDotClick = (props: any) => {
+    if (props && props.payload) {
+      handleChartClick(props.payload);
+    }
   };
 
   const handleViewNonConformance = (id: string) => {
@@ -112,7 +119,11 @@ export const InteractiveChart = ({
                 type="monotone"
                 dataKey={dataKey}
                 stroke="#0088FE"
-                activeDot={{ onClick: handleChartClick, r: 8, cursor: "pointer" }}
+                activeDot={{ 
+                  onClick: handleActiveDotClick, 
+                  r: 8, 
+                  cursor: "pointer" 
+                }}
               />
             </LineChart>
           </ChartContainer>
