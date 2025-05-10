@@ -10,7 +10,7 @@ interface DepartmentAnalysisTabProps {
 
 const DepartmentAnalysisTab = ({ departmentData, nonConformances }: DepartmentAnalysisTabProps) => {
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card className="card-glow transition-all hover:shadow-lg duration-300">
       <CardHeader>
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <CardTitle>Análise por Departamento</CardTitle>
@@ -48,7 +48,7 @@ const DepartmentAnalysisTab = ({ departmentData, nonConformances }: DepartmentAn
                 const resolutionRate = deptTotal ? Math.round((deptClosed / deptTotal) * 100) : 0;
                 
                 return (
-                  <tr key={index} className="border-b hover:bg-muted/30">
+                  <tr key={index} className="border-b hover:bg-muted/30 transition-all duration-150">
                     <td className="p-2 font-medium">{deptName}</td>
                     <td className="p-2">{deptTotal}</td>
                     <td className="p-2">{deptOpen}</td>
@@ -57,7 +57,7 @@ const DepartmentAnalysisTab = ({ departmentData, nonConformances }: DepartmentAn
                       <div className="flex items-center">
                         <div className="w-full bg-muted h-2 rounded-full mr-2">
                           <div 
-                            className={`h-2 rounded-full ${
+                            className={`h-2 rounded-full transition-all duration-500 ${
                               resolutionRate > 66 ? 'bg-green-500' : 
                               resolutionRate > 33 ? 'bg-amber-500' : 'bg-red-500'
                             }`}

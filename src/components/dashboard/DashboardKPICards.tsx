@@ -19,7 +19,7 @@ const DashboardKPICards = ({
 }: KPICardsProps) => {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card className="card-hover transition-all hover:shadow-md hover:-translate-y-1 duration-300">
+      <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Total</CardTitle>
           <FileText className="h-4 w-4 text-muted-foreground" />
@@ -34,7 +34,7 @@ const DashboardKPICards = ({
           </div>
         </CardContent>
       </Card>
-      <Card className="card-hover transition-all hover:shadow-md hover:-translate-y-1 duration-300">
+      <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Em Aberto</CardTitle>
           <AlertCircle className="h-4 w-4 text-amber-500" />
@@ -49,7 +49,7 @@ const DashboardKPICards = ({
           </div>
         </CardContent>
       </Card>
-      <Card className="card-hover transition-all hover:shadow-md hover:-translate-y-1 duration-300">
+      <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Críticas</CardTitle>
           <AlertCircle className="h-4 w-4 text-destructive" />
@@ -64,7 +64,7 @@ const DashboardKPICards = ({
           </div>
         </CardContent>
       </Card>
-      <Card className="card-hover transition-all hover:shadow-md hover:-translate-y-1 duration-300">
+      <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">A Vencer</CardTitle>
           <Clock className="h-4 w-4 text-blue-500" />

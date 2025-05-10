@@ -6,14 +6,14 @@ import { FileText, Plus } from "lucide-react";
 
 const DashboardEmptyState = () => {
   return (
-    <Card>
+    <Card className="card-glow transition-all hover:shadow-lg duration-300">
       <CardContent className="flex flex-col items-center justify-center p-8">
-        <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
+        <FileText className="mb-4 h-12 w-12 text-muted-foreground animate-pulse-subtle" />
         <h3 className="text-lg font-medium">Nenhuma não conformidade registrada</h3>
         <p className="mt-2 text-sm text-muted-foreground">
           Registre uma nova não conformidade para visualizar os dados.
         </p>
-        <Button className="mt-4" asChild>
+        <Button className="mt-4 transition-all hover:-translate-y-1 duration-200" asChild>
           <Link to="/nao-conformidades/nova">
             <Plus className="mr-2 h-4 w-4" /> Nova Não Conformidade
           </Link>

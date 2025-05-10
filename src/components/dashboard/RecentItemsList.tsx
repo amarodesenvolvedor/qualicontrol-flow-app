@@ -12,7 +12,7 @@ interface RecentItemsListProps {
 
 const RecentItemsList = ({ recentItems, isUrgent }: RecentItemsListProps) => {
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card className="card-scale transition-all hover:shadow-lg duration-300">
       <CardHeader>
         <CardTitle>Não Conformidades Recentes</CardTitle>
       </CardHeader>
@@ -40,7 +40,7 @@ const RecentItemsList = ({ recentItems, isUrgent }: RecentItemsListProps) => {
                 const isItemCritical = item.status === "pending" && isUrgent(item);
 
                 return (
-                  <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors">
+                  <tr key={item.id} className="border-b hover:bg-muted/30 transition-colors duration-200">
                     <td className="p-2">{item.code}</td>
                     <td className="p-2 font-medium">
                       <Link to={`/nao-conformidades/${item.id}`} className="hover:text-primary transition-colors">
@@ -54,7 +54,7 @@ const RecentItemsList = ({ recentItems, isUrgent }: RecentItemsListProps) => {
                     </td>
                     <td className="p-2">{item.department?.name}</td>
                     <td className="p-2">
-                      <Badge variant="outline" className={`${itemStatus.class}`}>
+                      <Badge variant="outline" className={`${itemStatus.class} transition-colors duration-200`}>
                         {itemStatus.label}
                       </Badge>
                     </td>
@@ -67,7 +67,7 @@ const RecentItemsList = ({ recentItems, isUrgent }: RecentItemsListProps) => {
           </table>
         </div>
         <div className="mt-4 flex justify-end">
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="transition-all hover:-translate-y-1 duration-200">
             <Link to="/nao-conformidades">Ver todas</Link>
           </Button>
         </div>

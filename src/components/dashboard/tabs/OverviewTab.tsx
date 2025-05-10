@@ -14,7 +14,7 @@ const OverviewTab = ({ statusData, departmentData, COLORS }: OverviewTabProps) =
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Status Distribution */}
-      <Card className="col-span-1 transition-shadow hover:shadow-md">
+      <Card className="col-span-1 card-scale transition-shadow hover:shadow-md">
         <CardHeader>
           <CardTitle>Distribuição por Status</CardTitle>
         </CardHeader>
@@ -59,7 +59,7 @@ const OverviewTab = ({ statusData, departmentData, COLORS }: OverviewTabProps) =
       </Card>
 
       {/* Department Distribution */}
-      <Card className="col-span-1 transition-shadow hover:shadow-md">
+      <Card className="col-span-1 card-scale transition-shadow hover:shadow-md">
         <CardHeader>
           <CardTitle>Não Conformidades por Departamento</CardTitle>
         </CardHeader>

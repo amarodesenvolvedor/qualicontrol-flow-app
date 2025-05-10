@@ -17,7 +17,7 @@ interface TrendsTabProps {
 
 const TrendsTab = ({ monthlyData, COLORS }: TrendsTabProps) => {
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card className="card-scale transition-all hover:shadow-lg duration-300">
       <CardHeader>
         <CardTitle>Evolução Mensal de Não Conformidades</CardTitle>
       </CardHeader>
