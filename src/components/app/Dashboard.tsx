@@ -43,7 +43,7 @@ const Dashboard = () => {
   ];
 
   // Group by department
-  const departmentsMap = {};
+  const departmentsMap: Record<string, number> = {};
   nonConformances.forEach(nc => {
     const deptName = nc.department?.name || "Sem departamento";
     departmentsMap[deptName] = (departmentsMap[deptName] || 0) + 1;
@@ -73,27 +73,27 @@ const Dashboard = () => {
   }, []);
 
   // Helper function to check if a non-conformance is urgent (created in the last 7 days)
-  function isUrgent(nc) {
+  function isUrgent(nc: any) {
     const createdDate = new Date(nc.occurrence_date);
     const now = new Date();
-    const diffTime = Math.abs(now - createdDate);
+    const diffTime = Math.abs(now.getTime() - createdDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays < 7;
   }
 
   // Helper function to check if a non-conformance is approaching deadline (within next 7 days)
-  function isApproachingDeadline(nc) {
+  function isApproachingDeadline(nc: any) {
     if (!nc.deadline_date) return false;
     const deadlineDate = new Date(nc.deadline_date);
     const now = new Date();
-    const diffTime = deadlineDate - now;
+    const diffTime = deadlineDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays >= 0 && diffDays <= 7;
   }
 
   // Helper function to prepare monthly data
-  function prepareMonthlyData(data) {
-    const months = {};
+  function prepareMonthlyData(data: any[]) {
+    const months: Record<string, { name: string; pending: number; inProgress: number; completed: number; total: number }> = {};
     const now = new Date();
     // Initialize with last 6 months
     for (let i = 5; i >= 0; i--) {
