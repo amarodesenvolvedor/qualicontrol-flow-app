@@ -1,7 +1,8 @@
 
 import { NonConformance } from "@/hooks/useNonConformances";
+import { DataItem } from "@/components/charts/types";
 
-export const generateDepartmentData = (nonConformances: NonConformance[]) => {
+export const generateDepartmentData = (nonConformances: NonConformance[]): DataItem[] => {
   const departmentMap = new Map();
   const departmentIds = new Map();
   const departmentDescriptions = new Map();
@@ -26,7 +27,7 @@ export const generateDepartmentData = (nonConformances: NonConformance[]) => {
   }));
 };
 
-export const generateStatusData = (nonConformances: NonConformance[]) => {
+export const generateStatusData = (nonConformances: NonConformance[]): DataItem[] => {
   const statusMap = new Map();
   const statusIds = new Map();
   const statusDescriptions = new Map();
@@ -69,7 +70,7 @@ export const generateStatusData = (nonConformances: NonConformance[]) => {
   });
 };
 
-export const generateMonthlyData = (nonConformances: NonConformance[]) => {
+export const generateMonthlyData = (nonConformances: NonConformance[]): DataItem[] => {
   const monthlyMap = new Map();
   const monthlyIds = new Map();
   const monthlyDescriptions = new Map();
