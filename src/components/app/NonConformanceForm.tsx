@@ -29,7 +29,7 @@ const NonConformanceForm = () => {
     immediate_actions: "",
     responsible_name: "",
     auditor_name: "",
-    root_cause: "", // Added missing fields
+    root_cause: "",
     corrective_actions: "",
     preventive_actions: ""
   });
@@ -61,13 +61,32 @@ const NonConformanceForm = () => {
     setFormData({...formData, category: value});
   };
 
-  // Mock function for uploading files - this fixes one of the TypeScript errors
+  // Mock function for uploading files
   const uploadFiles = async (nonConformanceId: string) => {
     if (files.length === 0) return [];
     
     // Implementation would go here in a real app
     console.log(`Uploading ${files.length} files for non-conformance ${nonConformanceId}`);
     return [];
+  };
+
+  // Mock function to send email notification to department responsible
+  const sendNotificationEmail = async (nonConformanceId: string, departmentId: string, responsibleName: string) => {
+    try {
+      // In a real implementation, this would call an API endpoint or edge function
+      console.log(`Sending notification email for NC ${nonConformanceId} to responsible: ${responsibleName} of department: ${departmentId}`);
+      
+      // Simulate successful email sending
+      toast({
+        title: "Notificação enviada",
+        description: `Uma notificação foi enviada para ${responsibleName} para preencher as ações imediatas.`
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao enviar notificação:", error);
+      return false;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,7 +96,7 @@ const NonConformanceForm = () => {
     // Verificar se os campos obrigatórios estão preenchidos
     if (!formData.title || !formData.description || !formData.department_id || 
         !formData.category || !formData.location || !formData.auditor_name || 
-        !formData.responsible_name || !selectedDate) {
+        !formData.responsible_name || !selectedDate || !deadlineDate) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -88,9 +107,10 @@ const NonConformanceForm = () => {
     }
 
     try {
-      // 1. Criar a não conformidade
+      // 1. Criar a não conformidade - Observe que o campo immediate_actions estará vazio inicialmente
       const nonConformanceData = {
         ...formData,
+        immediate_actions: "", // Este campo será preenchido posteriormente pelo responsável
         occurrence_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
         deadline_date: deadlineDate ? format(deadlineDate, 'yyyy-MM-dd') : null,
         status: 'pending' as const
@@ -103,7 +123,12 @@ const NonConformanceForm = () => {
         await uploadFiles(result.id);
       }
       
-      // 3. Mostrar mensagem de sucesso e redirecionar
+      // 3. Enviar notificação para o responsável pelo departamento
+      if (result) {
+        await sendNotificationEmail(result.id, formData.department_id, formData.responsible_name);
+      }
+      
+      // 4. Mostrar mensagem de sucesso e redirecionar
       toast({
         title: "Não Conformidade Registrada",
         description: `Sua não conformidade foi registrada com sucesso! ID: ${result?.code}`
@@ -163,6 +188,7 @@ const NonConformanceForm = () => {
             deadlineDate={deadlineDate}
             onInputChange={handleInputChange}
             onDeadlineChange={setDeadlineDate}
+            isReadOnly={true} // Desabilita a edição do campo de ações imediatas
           />
 
           {/* Evidências */}

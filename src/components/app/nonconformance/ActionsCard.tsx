@@ -6,9 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Info } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ActionsCardProps {
   immediateActions: string;
@@ -16,6 +22,7 @@ interface ActionsCardProps {
   deadlineDate: Date | undefined;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onDeadlineChange: (date: Date | undefined) => void;
+  isReadOnly?: boolean;
 }
 
 const ActionsCard = ({
@@ -23,7 +30,8 @@ const ActionsCard = ({
   responsibleName,
   deadlineDate,
   onInputChange,
-  onDeadlineChange
+  onDeadlineChange,
+  isReadOnly = false
 }: ActionsCardProps) => {
   return (
     <Card>
@@ -33,23 +41,39 @@ const ActionsCard = ({
       <CardContent>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="immediateActions">Ações Imediatas Tomadas</Label>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="immediateActions">Ações Imediatas Tomadas</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Este campo será preenchido pelo responsável do departamento após receber uma notificação.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <Textarea
               id="immediateActions"
-              name="immediateActions"
-              placeholder="Descreva as ações tomadas para minimizar o impacto"
+              name="immediate_actions"
+              placeholder={isReadOnly ? 
+                "Este campo será preenchido pelo responsável do departamento após a criação do registro" : 
+                "Descreva as ações tomadas para minimizar o impacto"}
               rows={3}
               value={immediateActions}
               onChange={onInputChange}
+              disabled={isReadOnly}
+              className={isReadOnly ? "bg-muted text-muted-foreground" : ""}
             />
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="responsibleName">Responsável pelo Registro <span className="text-red-500">*</span></Label>
+            <Label htmlFor="responsibleName">Responsável pela Ação <span className="text-red-500">*</span></Label>
             <Input
               id="responsibleName"
-              name="responsibleName"
-              placeholder="Nome do responsável pelo registro"
+              name="responsible_name"
+              placeholder="Nome do responsável pela ação"
               value={responsibleName}
               onChange={onInputChange}
               required
