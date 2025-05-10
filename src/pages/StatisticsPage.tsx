@@ -10,8 +10,7 @@ import { InteractiveChart, DataItem } from "@/components/reports/InteractiveChar
 
 const StatisticsPage = () => {
   const navigate = useNavigate();
-  const { getNonConformances } = useNonConformances();
-  const { data: nonConformances = [], isLoading, refetch } = getNonConformances;
+  const { nonConformances, isLoading, refetch } = useNonConformances();
   
   const [selectedYear, setSelectedYear] = useState("2025");
 

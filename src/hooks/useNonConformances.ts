@@ -22,7 +22,7 @@ export type NonConformance = {
   occurrence_date: string;
   deadline_date: string;
   created_at: string;
-  status: 'open' | 'pending' | 'resolved' | 'closed';
+  status: 'pending' | 'in-progress' | 'resolved' | 'closed';
   evidences?: string[] | null;
   department?: Department;
   created_by?: string | null;
@@ -98,11 +98,31 @@ export const useNonConformances = () => {
     return data as unknown as NonConformance[];
   };
 
-  // Query to fetch all non conformances
-  const nonConformancesQuery = useQuery({
+  // Use the useQuery hook to fetch non-conformances
+  const { data = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['nonConformances', filters],
     queryFn: fetchNonConformances,
   });
+
+  // Upload files to Supabase storage
+  const uploadFiles = async (files: File[]): Promise<string[]> => {
+    const uploadPromises = files.map(async (file) => {
+      const fileName = `${Date.now()}_${file.name}`;
+      const filePath = `evidences/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('non_conformance_files')
+        .upload(filePath, file);
+
+      if (error) {
+        throw error;
+      }
+
+      return filePath;
+    });
+
+    return Promise.all(uploadPromises);
+  };
 
   const createNonConformance = useMutation({
     mutationFn: async (data: NonConformanceCreateData) => {
@@ -217,13 +237,16 @@ export const useNonConformances = () => {
     },
   });
 
+  // Return the necessary data and functions
   return {
-    nonConformances: nonConformancesQuery.data || [],
-    isLoading: nonConformancesQuery.isLoading,
-    isError: nonConformancesQuery.isError,
+    nonConformances: data,
+    isLoading,
+    isError,
+    refetch,
     createNonConformance,
     updateNonConformance,
     deleteNonConformance,
+    uploadFiles,
     filters,
     setFilters,
   };

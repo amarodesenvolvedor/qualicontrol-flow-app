@@ -1,11 +1,11 @@
 
 import Layout from "@/components/app/Layout";
-import NonConformanceList from "@/components/app/NonConformanceList";
+import NonConformanceListWrapper from "@/components/app/NonConformanceListWrapper";
 
 const NonConformancesPage = () => {
   return (
     <Layout>
-      <NonConformanceList />
+      <NonConformanceListWrapper />
     </Layout>
   );
 };

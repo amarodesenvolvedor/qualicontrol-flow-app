@@ -10,8 +10,7 @@ import { CustomReportTab } from "@/components/reports/CustomReportTab";
 import { ScheduledReportsTab } from "@/components/reports/ScheduledReportsTab";
 
 const ReportsPage = () => {
-  const { getNonConformances } = useNonConformances();
-  const { data: nonConformances = [], isLoading, refetch } = getNonConformances;
+  const { nonConformances, isLoading, refetch } = useNonConformances();
   const [activeTab, setActiveTab] = useState("standard");
 
   const handleRefresh = () => {
