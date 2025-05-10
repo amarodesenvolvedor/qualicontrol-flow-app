@@ -1,0 +1,86 @@
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { FileText, AlertCircle, Clock } from "lucide-react";
+
+interface KPICardsProps {
+  totalCount: number;
+  openCount: number;
+  criticalCount: number;
+  dueCount: number;
+  animateValues: boolean;
+}
+
+const DashboardKPICards = ({ 
+  totalCount, 
+  openCount, 
+  criticalCount, 
+  dueCount, 
+  animateValues 
+}: KPICardsProps) => {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <Card className="card-hover transition-all hover:shadow-md hover:-translate-y-1 duration-300">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">Total</CardTitle>
+          <FileText className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
+            {totalCount}
+          </div>
+          <p className="text-xs text-muted-foreground">Não conformidades registradas</p>
+          <div className="mt-2 h-1 w-full bg-muted">
+            <div className="h-1 bg-primary" style={{ width: `100%` }}></div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="card-hover transition-all hover:shadow-md hover:-translate-y-1 duration-300">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">Em Aberto</CardTitle>
+          <AlertCircle className="h-4 w-4 text-amber-500" />
+        </CardHeader>
+        <CardContent>
+          <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
+            {openCount}
+          </div>
+          <p className="text-xs text-muted-foreground">Não conformidades em análise</p>
+          <div className="mt-2 h-1 w-full bg-muted">
+            <div className="h-1 bg-amber-500" style={{ width: `${totalCount ? (openCount / totalCount) * 100 : 0}%` }}></div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="card-hover transition-all hover:shadow-md hover:-translate-y-1 duration-300">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">Críticas</CardTitle>
+          <AlertCircle className="h-4 w-4 text-destructive" />
+        </CardHeader>
+        <CardContent>
+          <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
+            {criticalCount}
+          </div>
+          <p className="text-xs text-muted-foreground">Requerem ação imediata</p>
+          <div className="mt-2 h-1 w-full bg-muted">
+            <div className="h-1 bg-destructive" style={{ width: `${totalCount ? (criticalCount / totalCount) * 100 : 0}%` }}></div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="card-hover transition-all hover:shadow-md hover:-translate-y-1 duration-300">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">A Vencer</CardTitle>
+          <Clock className="h-4 w-4 text-blue-500" />
+        </CardHeader>
+        <CardContent>
+          <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
+            {dueCount}
+          </div>
+          <p className="text-xs text-muted-foreground">Prazos próximos</p>
+          <div className="mt-2 h-1 w-full bg-muted">
+            <div className="h-1 bg-blue-500" style={{ width: `${totalCount ? (dueCount / totalCount) * 100 : 0}%` }}></div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default DashboardKPICards;
