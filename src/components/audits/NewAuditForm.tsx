@@ -110,8 +110,11 @@ export function NewAuditForm({
     }
 
     const data: AuditReportInput = {
-      ...values,
+      title: values.title,
+      description: values.description,
+      department_id: values.department_id,
       audit_date: format(values.audit_date, 'yyyy-MM-dd'),
+      status: values.status,
       file_name: selectedFile.name,
       file_size: selectedFile.size,
       file_type: selectedFile.type,

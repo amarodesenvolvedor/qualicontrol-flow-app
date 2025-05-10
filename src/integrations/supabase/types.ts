@@ -9,6 +9,59 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_reports: {
+        Row: {
+          audit_date: string
+          created_at: string
+          created_by: string | null
+          department_id: string
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          status: string
+          title: string
+        }
+        Insert: {
+          audit_date: string
+          created_at?: string
+          created_by?: string | null
+          department_id: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          status?: string
+          title: string
+        }
+        Update: {
+          audit_date?: string
+          created_at?: string
+          created_by?: string | null
+          department_id?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_reports_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string

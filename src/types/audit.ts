@@ -24,10 +24,10 @@ export interface AuditReportInput {
   department_id: string;
   audit_date: string;
   status: 'pending' | 'in_progress' | 'completed';
+  file_path?: string;
   file_name: string;
   file_size: number;
   file_type: string;
-  file_path?: string;
 }
 
 export type AuditFilter = {

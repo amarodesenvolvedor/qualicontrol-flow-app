@@ -45,7 +45,7 @@ export const useAuditReports = () => {
       throw new Error('Error fetching audit reports');
     }
 
-    return data || [];
+    return data as AuditReport[];
   };
 
   // Query to fetch all audit reports
