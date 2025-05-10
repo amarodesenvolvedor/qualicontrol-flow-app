@@ -6,77 +6,34 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
 import { Logo } from "@/components/app/Logo";
+import { useUserAuth } from "@/hooks/useUserAuth";
+import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const { signIn, signUp, isLoading, error } = useUserAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
+  useEffect(() => {
+    // Redirecionar para a página principal se já estiver autenticado
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo de volta ao sistema.",
-      });
-      
-      navigate("/");
-    } catch (error: any) {
-      toast({
-        title: "Erro ao fazer login",
-        description: error.message || "Verifique suas credenciais e tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    await signIn(email, password);
   };
   
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Cadastro realizado com sucesso",
-        description: "Verifique seu e-mail para confirmar sua conta.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao criar conta",
-        description: error.message || "Ocorreu um erro ao processar seu cadastro.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    await signUp(email, password);
   };
   
   return (
@@ -106,6 +63,7 @@ const AuthPage = () => {
                     placeholder="seu.email@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
                     required
                   />
                 </div>
@@ -116,15 +74,28 @@ const AuthPage = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
                     required
                   />
                 </div>
+                {error && (
+                  <div className="text-sm text-destructive pt-1">
+                    {error}
+                  </div>
+                )}
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  {loading ? "Autenticando..." : "Entrar"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Autenticando...
+                    </>
+                  ) : (
+                    "Entrar"
+                  )}
                 </Button>
               </form>
             </TabsContent>
@@ -139,6 +110,7 @@ const AuthPage = () => {
                     placeholder="seu.email@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
                     required
                   />
                 </div>
@@ -149,15 +121,28 @@ const AuthPage = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
                     required
                   />
                 </div>
+                {error && (
+                  <div className="text-sm text-destructive pt-1">
+                    {error}
+                  </div>
+                )}
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  {loading ? "Criando conta..." : "Criar conta"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Criando conta...
+                    </>
+                  ) : (
+                    "Criar conta"
+                  )}
                 </Button>
               </form>
             </TabsContent>

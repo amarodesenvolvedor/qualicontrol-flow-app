@@ -1,48 +1,56 @@
 
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserAuth } from "@/hooks/useUserAuth";
+import { LogOut, Settings, User } from "lucide-react";
 
-export function UserDropdown() {
-  const { user, signOut } = useAuth();
+export const UserDropdown = () => {
+  const { user } = useAuth();
+  const { signOut } = useUserAuth();
   
-  const handleLogout = async () => {
-    await signOut();
+  // Gerar iniciais do email para o avatar
+  const getInitials = () => {
+    if (!user?.email) return "U";
+    return user.email.substring(0, 2).toUpperCase();
   };
-  
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
-            {user?.email?.charAt(0).toUpperCase() || "U"}
-          </div>
-        </Button>
+      <DropdownMenuTrigger className="flex items-center">
+        <Avatar className="h-8 w-8">
+          <AvatarFallback>{getInitials()}</AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 bg-white" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.email}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user?.email}
-            </p>
+      <DropdownMenuContent align="end">
+        <div className="flex items-center justify-start gap-2 p-2">
+          <div className="flex flex-col space-y-1 leading-none">
+            {user?.email && (
+              <p className="font-medium">{user.email}</p>
+            )}
           </div>
-        </DropdownMenuLabel>
+        </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="cursor-pointer"
-          onClick={handleLogout}
-        >
-          Sair
+        <DropdownMenuItem>
+          <User className="mr-2 h-4 w-4" />
+          <span>Perfil</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Configurações</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => signOut()}>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Sair</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

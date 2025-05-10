@@ -33,6 +33,150 @@ export type Database = {
         }
         Relationships: []
       }
+      non_conformance_files: {
+        Row: {
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          non_conformance_id: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          non_conformance_id: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          non_conformance_id?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "non_conformance_files_non_conformance_id_fkey"
+            columns: ["non_conformance_id"]
+            isOneToOne: false
+            referencedRelation: "non_conformances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      non_conformance_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          field_name: string
+          id: string
+          new_value: string | null
+          non_conformance_id: string
+          old_value: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          field_name: string
+          id?: string
+          new_value?: string | null
+          non_conformance_id: string
+          old_value?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          non_conformance_id?: string
+          old_value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "non_conformance_history_non_conformance_id_fkey"
+            columns: ["non_conformance_id"]
+            isOneToOne: false
+            referencedRelation: "non_conformances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      non_conformances: {
+        Row: {
+          auditor_name: string
+          category: string
+          code: string
+          created_at: string
+          created_by: string | null
+          deadline_date: string | null
+          department_id: string
+          description: string
+          id: string
+          immediate_actions: string | null
+          location: string
+          occurrence_date: string
+          responsible_name: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          auditor_name: string
+          category: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          deadline_date?: string | null
+          department_id: string
+          description: string
+          id?: string
+          immediate_actions?: string | null
+          location: string
+          occurrence_date: string
+          responsible_name: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          auditor_name?: string
+          category?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          deadline_date?: string | null
+          department_id?: string
+          description?: string
+          id?: string
+          immediate_actions?: string | null
+          location?: string
+          occurrence_date?: string
+          responsible_name?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "non_conformances_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

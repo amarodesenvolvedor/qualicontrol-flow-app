@@ -17,6 +17,10 @@ import {
   FileX, Clock, AlertTriangle, 
   Search, SlidersHorizontal, Plus 
 } from "lucide-react";
+import { useNonConformances, NonConformance } from "@/hooks/useNonConformances";
+import { useDepartments } from "@/hooks/useDepartments";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const statusOptions = [
   { value: "all", label: "Todos os Status" },
@@ -26,112 +30,91 @@ const statusOptions = [
   { value: "pending", label: "Pendente" }
 ];
 
-const departmentOptions = [
-  { value: "all", label: "Todos os Departamentos" },
-  { value: "production", label: "Produção" },
-  { value: "maintenance", label: "Manutenção" },
-  { value: "quality", label: "Qualidade" },
-  { value: "safety", label: "Segurança" },
-  { value: "logistics", label: "Logística" },
-  { value: "purchasing", label: "Compras" }
-];
-
-// Mock data for non-conformances
-const mockNonConformances = [
-  {
-    id: "NC-2023-045",
-    title: "Falha no sistema de refrigeração",
-    description: "Sistema apresentou oscilação de temperatura fora dos limites estabelecidos",
-    status: "critical",
-    department: "Manutenção",
-    date: "10/05/2023",
-    dueDate: "20/05/2023",
-    responsible: "Carlos Silva"
-  },
-  {
-    id: "NC-2023-044",
-    title: "Produto fora de especificação",
-    description: "Lote XYZ123 apresentou variação dimensional acima do limite",
-    status: "in-progress",
-    department: "Qualidade",
-    date: "09/05/2023",
-    dueDate: "18/05/2023",
-    responsible: "Ana Torres"
-  },
-  {
-    id: "NC-2023-043",
-    title: "Falta de EPI no setor de produção",
-    description: "Colaboradores sem proteção auditiva durante operação de maquinário",
-    status: "in-progress",
-    department: "Segurança",
-    date: "08/05/2023",
-    dueDate: "15/05/2023",
-    responsible: "Marcos Oliveira"
-  },
-  {
-    id: "NC-2023-042",
-    title: "Documentação incompleta",
-    description: "Registros de calibração incompletos para equipamentos do setor A",
-    status: "completed",
-    department: "Qualidade",
-    date: "07/05/2023",
-    dueDate: "14/05/2023",
-    responsible: "Juliana Mendes"
-  },
-  {
-    id: "NC-2023-041",
-    title: "Fornecedor não enviou certificados",
-    description: "Material recebido sem a documentação completa conforme exigido",
-    status: "pending",
-    department: "Compras",
-    date: "05/05/2023",
-    dueDate: "12/05/2023",
-    responsible: "Paulo Gomes"
-  },
-  {
-    id: "NC-2023-040",
-    title: "Erro no processo de embalagem",
-    description: "Produtos embalados com filme incorreto para o tipo específico",
-    status: "completed",
-    department: "Produção",
-    date: "03/05/2023",
-    dueDate: "10/05/2023",
-    responsible: "Rafaela Santos"
-  },
-  {
-    id: "NC-2023-039",
-    title: "Atraso na entrega de matéria-prima",
-    description: "Fornecedor não entregou no prazo acordado, causando atraso na produção",
-    status: "pending",
-    department: "Logística",
-    date: "02/05/2023",
-    dueDate: "09/05/2023",
-    responsible: "Ricardo Alves"
-  },
-];
-
 const NonConformanceList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
+  
+  const { getNonConformances } = useNonConformances();
+  const { data: departments } = useDepartments();
+  
+  const { data: nonConformances = [], isLoading, error } = getNonConformances;
 
-  // Filter non-conformances based on filters
-  const filteredItems = mockNonConformances.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         item.id.toLowerCase().includes(searchTerm.toLowerCase());
+  // Construir opções de departamento dinamicamente
+  const departmentOptions = [
+    { value: "all", label: "Todos os Departamentos" },
+    ...(departments?.map(dept => ({ 
+      value: dept.id,
+      label: dept.name
+    })) || [])
+  ];
+
+  // Filtrar não conformidades baseado nos filtros
+  const filteredItems = nonConformances.filter((item: NonConformance) => {
+    const matchesSearch = 
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    
     const matchesDepartment = departmentFilter === "all" || 
-                             item.department.toLowerCase() === departmentFilter;
+                             item.department_id === departmentFilter;
+    
     return matchesSearch && matchesStatus && matchesDepartment;
   });
 
   const handleSearch = () => {
-    setIsLoading(true);
-    // Simulate search delay
+    setIsFiltering(true);
+    // Simulando delay de pesquisa
     setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+      setIsFiltering(false);
+    }, 300);
+  };
+
+  // Formatação de datas
+  const formatDate = (dateString: string) => {
+    try {
+      return format(parseISO(dateString), "dd/MM/yyyy", { locale: ptBR });
+    } catch (e) {
+      return "Data inválida";
+    }
+  };
+
+  // Função para renderizar o icon do status
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case "completed":
+        return (
+          <Badge variant="outline" className="status-badge status-completed">
+            <Check className="mr-1 h-3 w-3" />
+            Concluído
+          </Badge>
+        );
+      case "in-progress":
+        return (
+          <Badge variant="outline" className="status-badge status-in-progress">
+            <Loader2 className="mr-1 h-3 w-3" />
+            Em Andamento
+          </Badge>
+        );
+      case "critical":
+        return (
+          <Badge variant="outline" className="status-badge status-critical">
+            <AlertTriangle className="mr-1 h-3 w-3" />
+            Crítico
+          </Badge>
+        );
+      case "pending":
+      default:
+        return (
+          <Badge variant="outline" className="status-badge status-pending">
+            <Clock className="mr-1 h-3 w-3" />
+            Pendente
+          </Badge>
+        );
+    }
   };
 
   return (
@@ -161,7 +144,7 @@ const NonConformanceList = () => {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Buscar por ID ou título..."
+                  placeholder="Buscar por ID, título ou descrição..."
                   className="pl-8"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -197,11 +180,11 @@ const NonConformanceList = () => {
                 <SlidersHorizontal className="h-4 w-4" />
                 Filtros Avançados
               </Button>
-              <Button onClick={handleSearch} disabled={isLoading}>
-                {isLoading ? (
+              <Button onClick={handleSearch} disabled={isFiltering || isLoading}>
+                {isFiltering || isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Buscando
+                    {isLoading ? "Carregando" : "Filtrando"}
                   </>
                 ) : (
                   <>
@@ -216,8 +199,27 @@ const NonConformanceList = () => {
       </Card>
 
       <div className="space-y-4">
-        <h2 className="text-lg font-medium">Resultados ({filteredItems.length})</h2>
-        {filteredItems.length === 0 ? (
+        <h2 className="text-lg font-medium">
+          {isLoading ? "Carregando dados..." : `Resultados (${filteredItems.length})`}
+        </h2>
+        
+        {error ? (
+          <div className="p-8 text-center">
+            <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
+            <h3 className="mt-2 text-lg font-medium">Erro ao carregar dados</h3>
+            <p className="text-muted-foreground">
+              Ocorreu um erro ao buscar as não conformidades. Tente novamente mais tarde.
+            </p>
+          </div>
+        ) : isLoading ? (
+          <div className="p-8 text-center">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-muted-foreground" />
+            <h3 className="mt-2 text-lg font-medium">Carregando dados</h3>
+            <p className="text-muted-foreground">
+              Por favor, aguarde enquanto carregamos as não conformidades.
+            </p>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="p-8 text-center">
             <FileX className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-2 text-lg font-medium">Nenhuma não conformidade encontrada</h3>
@@ -227,7 +229,7 @@ const NonConformanceList = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {filteredItems.map(item => (
+            {filteredItems.map((item: NonConformance) => (
               <Card key={item.id} className="card-hover">
                 <CardContent className="p-0">
                   <div className="p-4 flex flex-col md:flex-row justify-between gap-4">
@@ -237,34 +239,9 @@ const NonConformanceList = () => {
                           to={`/nao-conformidades/${item.id}`}
                           className="font-medium hover:underline"
                         >
-                          {item.id}
+                          {item.code}
                         </Link>
-                        <Badge variant="outline" className={`status-badge status-${item.status}`}>
-                          {item.status === "completed" && (
-                            <span className="flex items-center">
-                              <Check className="mr-1 h-3 w-3" />
-                              Concluído
-                            </span>
-                          )}
-                          {item.status === "in-progress" && (
-                            <span className="flex items-center">
-                              <Loader2 className="mr-1 h-3 w-3" />
-                              Em Andamento
-                            </span>
-                          )}
-                          {item.status === "critical" && (
-                            <span className="flex items-center">
-                              <AlertTriangle className="mr-1 h-3 w-3" />
-                              Crítico
-                            </span>
-                          )}
-                          {item.status === "pending" && (
-                            <span className="flex items-center">
-                              <Clock className="mr-1 h-3 w-3" />
-                              Pendente
-                            </span>
-                          )}
-                        </Badge>
+                        {renderStatusBadge(item.status)}
                       </div>
                       <h3 className="font-medium">{item.title}</h3>
                       <p className="text-sm text-muted-foreground">
@@ -273,13 +250,25 @@ const NonConformanceList = () => {
                     </div>
                     <div className="flex flex-col md:items-end justify-between text-sm">
                       <div className="space-y-1">
-                        <div className="text-muted-foreground">Departamento: {item.department}</div>
-                        <div className="text-muted-foreground">Responsável: {item.responsible}</div>
+                        <div className="text-muted-foreground">
+                          Departamento: {item.departments?.name || "Não especificado"}
+                        </div>
+                        <div className="text-muted-foreground">
+                          Responsável: {item.responsible_name}
+                        </div>
                       </div>
                       <div className="flex gap-2 items-center mt-2">
-                        <span className="text-muted-foreground">{item.date}</span>
-                        <span>→</span>
-                        <span className="text-muted-foreground font-medium">{item.dueDate}</span>
+                        <span className="text-muted-foreground">
+                          {formatDate(item.occurrence_date)}
+                        </span>
+                        {item.deadline_date && (
+                          <>
+                            <span>→</span>
+                            <span className="text-muted-foreground font-medium">
+                              {formatDate(item.deadline_date)}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
