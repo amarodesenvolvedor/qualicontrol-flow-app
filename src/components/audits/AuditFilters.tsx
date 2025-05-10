@@ -26,14 +26,14 @@ export const AuditFilters = ({
   const handleYearChange = (value: string) => {
     onFilterChange({
       ...filters,
-      year: value,
+      year: value === "all" ? undefined : value,
     });
   };
 
   const handleDepartmentChange = (value: string) => {
     onFilterChange({
       ...filters,
-      departmentId: value,
+      departmentId: value === "all" ? undefined : value,
     });
   };
 
@@ -51,14 +51,14 @@ export const AuditFilters = ({
           Ano
         </label>
         <Select 
-          value={filters.year || ""} 
+          value={filters.year || "all"} 
           onValueChange={handleYearChange}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Todos os anos" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os anos</SelectItem>
+            <SelectItem value="all">Todos os anos</SelectItem>
             {years.map(year => (
               <SelectItem key={year} value={year}>
                 {year}
@@ -73,14 +73,14 @@ export const AuditFilters = ({
           Departamento
         </label>
         <Select 
-          value={filters.departmentId || ""} 
+          value={filters.departmentId || "all"} 
           onValueChange={handleDepartmentChange}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Todos os departamentos" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os departamentos</SelectItem>
+            <SelectItem value="all">Todos os departamentos</SelectItem>
             {departments.map(dept => (
               <SelectItem key={dept.id} value={dept.id || "placeholder-id"}>
                 {dept.name}

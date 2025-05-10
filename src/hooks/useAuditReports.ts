@@ -45,7 +45,8 @@ export const useAuditReports = () => {
       throw new Error('Error fetching audit reports');
     }
 
-    return data as AuditReport[];
+    // Type assertion to satisfy TypeScript
+    return data as unknown as AuditReport[];
   };
 
   // Query to fetch all audit reports

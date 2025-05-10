@@ -111,7 +111,7 @@ export function NewAuditForm({
 
     const data: AuditReportInput = {
       title: values.title,
-      description: values.description,
+      description: values.description || null,
       department_id: values.department_id,
       audit_date: format(values.audit_date, 'yyyy-MM-dd'),
       status: values.status,
@@ -166,7 +166,10 @@ export function NewAuditForm({
                     </FormControl>
                     <SelectContent>
                       {departments.map((department) => (
-                        <SelectItem key={department.id} value={department.id || "placeholder-id"}>
+                        <SelectItem 
+                          key={department.id} 
+                          value={department.id || "placeholder-id"}
+                        >
                           {department.name}
                         </SelectItem>
                       ))}
@@ -231,7 +234,7 @@ export function NewAuditForm({
                           }
                           initialFocus
                           locale={ptBR}
-                          className={cn("p-3 pointer-events-auto")}
+                          className="p-3"
                         />
                       </PopoverContent>
                     </Popover>
