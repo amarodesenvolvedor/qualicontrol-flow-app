@@ -8,6 +8,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import DepartmentSelect from "./DepartmentSelect";
 
 interface CategoryCardProps {
   department: string;
@@ -15,15 +16,6 @@ interface CategoryCardProps {
   onDepartmentChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
 }
-
-const departmentOptions = [
-  { value: "production", label: "Produção" },
-  { value: "maintenance", label: "Manutenção" },
-  { value: "quality", label: "Qualidade" },
-  { value: "safety", label: "Segurança" },
-  { value: "logistics", label: "Logística" },
-  { value: "purchasing", label: "Compras" }
-];
 
 const categoryOptions = [
   { value: "quality", label: "Qualidade" },
@@ -49,21 +41,10 @@ const CategoryCard = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label htmlFor="department">Departamento <span className="text-red-500">*</span></Label>
-            <Select 
+            <DepartmentSelect 
               value={department} 
               onValueChange={onDepartmentChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o departamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {departmentOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
           </div>
           
           <div className="grid gap-2">

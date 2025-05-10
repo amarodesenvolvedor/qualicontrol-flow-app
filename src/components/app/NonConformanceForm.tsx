@@ -8,6 +8,7 @@ import CategoryCard from "./nonconformance/CategoryCard";
 import ActionsCard from "./nonconformance/ActionsCard";
 import EvidenceCard from "./nonconformance/EvidenceCard";
 import FormActions from "./nonconformance/FormActions";
+import { QueryClient } from "@tanstack/react-query";
 
 const NonConformanceForm = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const NonConformanceForm = () => {
     title: "",
     description: "",
     location: "",
-    department: "",
+    department: "",  // Agora armazenamos o ID do departamento
     category: "",
     immediateActions: "",
     responsibleName: "",
@@ -59,6 +60,19 @@ const NonConformanceForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    // Verificar se os campos obrigatórios estão preenchidos
+    if (!formData.title || !formData.description || !formData.department || 
+        !formData.category || !formData.location || !formData.auditorName ||
+        !formData.responsibleName || !selectedDate || !deadlineDate) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     // Simulate form submission
     setTimeout(() => {
       setIsSubmitting(false);
@@ -67,6 +81,10 @@ const NonConformanceForm = () => {
         description: "Sua não conformidade foi registrada com sucesso! ID: NC-2023-046"
       });
       
+      // Revalidar a consulta de não conformidades ao navegar de volta
+      const queryClient = new QueryClient();
+      queryClient.invalidateQueries({ queryKey: ["nonconformances"] });
+
       navigate("/nao-conformidades");
     }, 1500);
   };
