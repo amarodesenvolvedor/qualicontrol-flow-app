@@ -3,9 +3,10 @@ import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DownloadIcon } from "lucide-react";
-import { CustomReportBuilder, ReportConfig } from "@/components/reports/CustomReportBuilder";
+import { CustomReportBuilder } from "@/components/reports/CustomReportBuilder";
 import { InteractiveChart } from "@/components/reports/InteractiveChart";
 import type { DataItem } from "@/components/charts/types";
+import { ReportConfig } from "@/components/reports/types";
 
 interface CustomReportTabProps {
   nonConformances: any[];
