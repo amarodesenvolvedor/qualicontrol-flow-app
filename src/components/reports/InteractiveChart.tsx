@@ -16,7 +16,8 @@ interface InteractiveChartProps {
   height?: number;
 }
 
-export { DataItem };
+// Change this to 'export type' to fix the TS1205 error
+export type { DataItem };
 
 export const InteractiveChart = ({
   title,
