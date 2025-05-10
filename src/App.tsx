@@ -9,6 +9,10 @@ import ProtectedRoute from "@/components/app/ProtectedRoute";
 import Index from "./pages/Index";
 import NonConformancesPage from "./pages/NonConformancesPage";
 import NewNonConformancePage from "./pages/NewNonConformancePage";
+import ReportsPage from "./pages/ReportsPage";
+import StatisticsPage from "./pages/StatisticsPage";
+import ExportPage from "./pages/ExportPage";
+import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +40,26 @@ const App = () => (
             <Route path="/nao-conformidades/nova" element={
               <ProtectedRoute>
                 <NewNonConformancePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/relatorios" element={
+              <ProtectedRoute>
+                <ReportsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/estatisticas" element={
+              <ProtectedRoute>
+                <StatisticsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/exportar" element={
+              <ProtectedRoute>
+                <ExportPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/configuracoes" element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

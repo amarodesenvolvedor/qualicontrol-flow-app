@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -33,7 +34,7 @@ export function AppSidebar() {
   return (
     <Sidebar
       className={collapsed ? "w-16" : "w-64"}
-      collapsible
+      collapsible="icon"
     >
       <div className="flex items-center justify-between p-4">
         {!collapsed && (
