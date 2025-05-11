@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,6 +79,7 @@ const BasicInfoCard = ({
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
+                    type="button"
                     variant="outline"
                     className="w-full justify-start text-left font-normal"
                   >
@@ -97,7 +97,6 @@ const BasicInfoCard = ({
                     selected={selectedDate}
                     onSelect={onDateChange}
                     locale={ptBR}
-                    className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>

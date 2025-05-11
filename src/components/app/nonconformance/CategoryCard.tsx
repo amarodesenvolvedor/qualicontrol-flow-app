@@ -1,7 +1,7 @@
 
-import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useDepartments } from "@/hooks/useDepartments";
 
 interface CategoryCardProps {
@@ -44,14 +44,12 @@ const CategoryCard = ({
         <CardTitle>Categorização</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <FormItem>
-          <FormLabel>Departamento</FormLabel>
+        <div>
+          <Label htmlFor="department">Departamento</Label>
           <Select value={department} onValueChange={onDepartmentChange}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um departamento" />
-              </SelectTrigger>
-            </FormControl>
+            <SelectTrigger id="department" className="mt-1.5">
+              <SelectValue placeholder="Selecione um departamento" />
+            </SelectTrigger>
             <SelectContent>
               {departments.map((dept) => (
                 <SelectItem key={dept.id} value={dept.id}>
@@ -60,16 +58,14 @@ const CategoryCard = ({
               ))}
             </SelectContent>
           </Select>
-        </FormItem>
+        </div>
         
-        <FormItem>
-          <FormLabel>Categoria</FormLabel>
+        <div>
+          <Label htmlFor="category">Categoria</Label>
           <Select value={category} onValueChange={onCategoryChange}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-            </FormControl>
+            <SelectTrigger id="category" className="mt-1.5">
+              <SelectValue placeholder="Selecione uma categoria" />
+            </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (
                 <SelectItem key={cat} value={cat}>
@@ -78,16 +74,14 @@ const CategoryCard = ({
               ))}
             </SelectContent>
           </Select>
-        </FormItem>
+        </div>
 
-        <FormItem>
-          <FormLabel>Status</FormLabel>
+        <div>
+          <Label htmlFor="status">Status</Label>
           <Select value={status} onValueChange={onStatusChange}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um status" />
-              </SelectTrigger>
-            </FormControl>
+            <SelectTrigger id="status" className="mt-1.5">
+              <SelectValue placeholder="Selecione um status" />
+            </SelectTrigger>
             <SelectContent>
               {statusOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
@@ -96,7 +90,7 @@ const CategoryCard = ({
               ))}
             </SelectContent>
           </Select>
-        </FormItem>
+        </div>
       </CardContent>
     </Card>
   );

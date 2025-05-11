@@ -42,7 +42,7 @@ const ActionsCard = ({
         <div className="grid gap-4">
           <div className="grid gap-2">
             <div className="flex items-center gap-2">
-              <Label htmlFor="immediateActions">Ações Imediatas Tomadas</Label>
+              <Label htmlFor="immediate_actions">Ações Imediatas Tomadas</Label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -55,7 +55,7 @@ const ActionsCard = ({
               </TooltipProvider>
             </div>
             <Textarea
-              id="immediateActions"
+              id="immediate_actions"
               name="immediate_actions"
               placeholder={isReadOnly ? 
                 "Este campo será preenchido pelo responsável do departamento após a criação do registro" : 
@@ -69,9 +69,9 @@ const ActionsCard = ({
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="responsibleName">Responsável pela Ação <span className="text-red-500">*</span></Label>
+            <Label htmlFor="responsible_name">Responsável pela Ação <span className="text-red-500">*</span></Label>
             <Input
-              id="responsibleName"
+              id="responsible_name"
               name="responsible_name"
               placeholder="Nome do responsável pela ação"
               value={responsibleName}
@@ -85,6 +85,7 @@ const ActionsCard = ({
             <Popover>
               <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
                   className="w-full justify-start text-left font-normal"
                 >
@@ -103,7 +104,6 @@ const ActionsCard = ({
                   onSelect={onDeadlineChange}
                   locale={ptBR}
                   disabled={(date) => date < new Date()}
-                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>

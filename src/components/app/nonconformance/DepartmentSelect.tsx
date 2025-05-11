@@ -1,95 +1,36 @@
 
-import { useEffect, useMemo, useState } from "react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectGroup,
-  SelectItem, 
-  SelectLabel,
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { useDepartments, Department } from "@/hooks/useDepartments";
+import { useDepartments } from "@/hooks/useDepartments";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FormControl } from "@/components/ui/form";
 
 interface DepartmentSelectProps {
   value: string;
   onValueChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
-export const DepartmentSelect = ({ value, onValueChange }: DepartmentSelectProps) => {
-  const { data: departments, isLoading, error } = useDepartments();
-  const [selectedDept, setSelectedDept] = useState<string>(value);
-
-  useEffect(() => {
-    setSelectedDept(value);
-  }, [value]);
-
-  // Agrupar departamentos por tipo
-  const groupedDepartments = useMemo(() => {
-    if (!departments) return { corporate: [], regional: [] };
-    
-    return departments.reduce((acc: Record<string, Department[]>, dept) => {
-      if (!acc[dept.group_type]) {
-        acc[dept.group_type] = [];
-      }
-      acc[dept.group_type].push(dept);
-      return acc;
-    }, { corporate: [], regional: [] });
-  }, [departments]);
-
-  const handleValueChange = (newValue: string) => {
-    setSelectedDept(newValue);
-    onValueChange(newValue);
-  };
-
-  if (error) {
-    console.error("Erro ao carregar departamentos:", error);
-    return (
-      <Select disabled>
-        <SelectTrigger>
-          <SelectValue placeholder="Erro ao carregar departamentos" />
-        </SelectTrigger>
-      </Select>
-    );
-  }
+const DepartmentSelect = ({
+  value,
+  onValueChange,
+  placeholder = "Selecione um departamento",
+  disabled = false
+}: DepartmentSelectProps) => {
+  const { departments, isLoading } = useDepartments();
 
   return (
-    <Select 
-      value={selectedDept} 
-      onValueChange={handleValueChange}
-      disabled={isLoading}
-    >
-      <SelectTrigger>
-        <SelectValue placeholder={isLoading ? "Carregando..." : "Selecione o departamento"} />
-      </SelectTrigger>
+    <Select value={value} onValueChange={onValueChange} disabled={disabled || isLoading}>
+      <FormControl>
+        <SelectTrigger>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+      </FormControl>
       <SelectContent>
-        {isLoading ? (
-          <SelectItem value="loading" disabled>Carregando departamentos...</SelectItem>
-        ) : (
-          <>
-            {groupedDepartments.corporate && groupedDepartments.corporate.length > 0 && (
-              <SelectGroup>
-                <SelectLabel>Corporativo</SelectLabel>
-                {groupedDepartments.corporate.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            )}
-            
-            {groupedDepartments.regional && groupedDepartments.regional.length > 0 && (
-              <SelectGroup>
-                <SelectLabel>Regional</SelectLabel>
-                {groupedDepartments.regional.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            )}
-          </>
-        )}
+        {departments.map((department) => (
+          <SelectItem key={department.id} value={department.id}>
+            {department.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
