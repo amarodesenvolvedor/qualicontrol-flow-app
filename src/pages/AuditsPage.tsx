@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useDepartments } from "@/hooks/useDepartments";
 import { useAuditReports } from "@/hooks/useAuditReports";
 import Layout from "@/components/app/Layout";
-import AuditFilters from "@/components/audits/AuditFilters";
-import AuditReportList from "@/components/audits/AuditReportList";
-import NewAuditForm from "@/components/audits/NewAuditForm";
+import { AuditFilters } from "@/components/audits/AuditFilters";
+import { AuditReportList } from "@/components/audits/AuditReportList";
+import { NewAuditForm } from "@/components/audits/NewAuditForm";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,11 +17,11 @@ const AuditsPage = () => {
   const { departments } = useDepartments();
   
   const {
-    audits,
+    auditReports,
     isLoading,
     filters,
     setFilters,
-    createAudit,
+    createAuditReport,
   } = useAuditReports();
 
   const handleFiltersChange = (newFilters: any) => {
@@ -56,7 +56,7 @@ const AuditsPage = () => {
                 onFiltersChange={handleFiltersChange}
               />
               <AuditReportList 
-                audits={audits}
+                auditReports={auditReports}
                 isLoading={isLoading}
               />
             </div>
@@ -65,8 +65,8 @@ const AuditsPage = () => {
           <TabsContent value="new">
             <NewAuditForm 
               departments={departments}
-              onSubmit={(data) => createAudit.mutate(data)}
-              isSubmitting={createAudit.isPending}
+              onSubmit={(data) => createAuditReport.mutate(data)}
+              isSubmitting={createAuditReport.isPending}
               onCancel={() => {
                 setShowNewAuditForm(false);
                 setSelectedTab("list");

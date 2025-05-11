@@ -5,8 +5,7 @@ import CategoryCard from "./CategoryCard";
 import ActionsCard from "./ActionsCard";
 import EvidenceCard from "./EvidenceCard";
 import FormActions from "./FormActions";
-import { Form } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import { FormProvider } from "react-hook-form";
 
 const FormContainer = () => {
   const {
@@ -15,6 +14,7 @@ const FormContainer = () => {
     deadlineDate,
     files,
     isSubmitting,
+    form, // Obter a instância do form do hook
     handleInputChange,
     handleFileChange,
     removeFile,
@@ -27,17 +27,9 @@ const FormContainer = () => {
     handleCancel
   } = useNonConformanceForm();
 
-  // Add this form instance to provide the FormProvider context
-  const form = useForm();
-
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSubmit(e);
-  };
-
   return (
-    <Form {...form}>
-      <form onSubmit={onSubmit}>
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <div className="space-y-6">
           {/* Informações Básicas */}
           <BasicInfoCard
@@ -67,7 +59,7 @@ const FormContainer = () => {
             deadlineDate={deadlineDate}
             onInputChange={handleInputChange}
             onDeadlineChange={setDeadlineDate}
-            isReadOnly={true} // Disable immediate actions field
+            isReadOnly={false}
           />
 
           {/* Evidências */}
@@ -84,7 +76,7 @@ const FormContainer = () => {
           />
         </div>
       </form>
-    </Form>
+    </FormProvider>
   );
 };
 

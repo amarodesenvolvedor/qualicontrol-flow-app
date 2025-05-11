@@ -7,6 +7,7 @@ import { useNonConformances } from "@/hooks/useNonConformances";
 import { validateNonConformanceForm } from "@/utils/formValidation";
 import { sendNonConformanceNotification } from "@/services/notificationService";
 import { NonConformance } from "@/types/nonConformance";
+import { useForm } from "react-hook-form";
 
 export const useNonConformanceForm = () => {
   const navigate = useNavigate();
@@ -15,6 +16,9 @@ export const useNonConformanceForm = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
   const [files, setFiles] = useState<File[]>([]);
+  
+  // Cria uma instância de form para o FormProvider
+  const form = useForm();
   
   const [formData, setFormData] = useState({
     title: "",
@@ -55,15 +59,14 @@ export const useNonConformanceForm = () => {
     setFormData({...formData, category: value});
   };
   
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = (value: NonConformance["status"]) => {
     setFormData({
       ...formData, 
-      status: value as NonConformance["status"]
+      status: value
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     
     // Use the validation utility
@@ -76,7 +79,6 @@ export const useNonConformanceForm = () => {
       // Create the non-conformance record
       const nonConformanceData = {
         ...formData,
-        immediate_actions: "", // Will be filled later by the responsible person
         occurrence_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
         deadline_date: deadlineDate ? format(deadlineDate, 'yyyy-MM-dd') : null,
       };
@@ -122,6 +124,7 @@ export const useNonConformanceForm = () => {
     deadlineDate,
     files,
     isSubmitting,
+    form, // Retornar a instância do form
     handleInputChange,
     handleFileChange,
     removeFile,
