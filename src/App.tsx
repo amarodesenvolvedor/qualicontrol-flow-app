@@ -8,6 +8,8 @@ import ProtectedRoute from "@/components/app/ProtectedRoute";
 import Index from "./pages/Index";
 import NonConformancesPage from "./pages/NonConformancesPage";
 import NewNonConformancePage from "./pages/NewNonConformancePage";
+import NonConformanceDetailsPage from "./pages/NonConformanceDetailsPage";
+import NonConformanceEditPage from "./pages/NonConformanceEditPage";
 import AuditsPage from "./pages/AuditsPage";
 import ReportsPage from "./pages/ReportsPage";
 import StatisticsPage from "./pages/StatisticsPage";
@@ -36,6 +38,16 @@ const App = () => (
         <Route path="/nao-conformidades/nova" element={
           <ProtectedRoute>
             <NewNonConformancePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/nao-conformidades/:id" element={
+          <ProtectedRoute>
+            <NonConformanceDetailsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/nao-conformidades/:id/editar" element={
+          <ProtectedRoute>
+            <NonConformanceEditPage />
           </ProtectedRoute>
         } />
         <Route path="/auditorias" element={

@@ -1,71 +1,102 @@
 
+import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import DepartmentSelect from "./DepartmentSelect";
+import { useDepartments } from "@/hooks/useDepartments";
 
 interface CategoryCardProps {
   department: string;
   category: string;
+  status: string;
   onDepartmentChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
+  onStatusChange: (value: string) => void;
 }
 
-const categoryOptions = [
-  { value: "quality", label: "Qualidade" },
-  { value: "safety", label: "Segurança" },
-  { value: "process", label: "Processo" },
-  { value: "documentation", label: "Documentação" },
-  { value: "environmental", label: "Ambiental" },
-  { value: "training", label: "Treinamento" }
-];
-
-const CategoryCard = ({
-  department,
-  category,
-  onDepartmentChange,
-  onCategoryChange
+const CategoryCard = ({ 
+  department, 
+  category, 
+  status,
+  onDepartmentChange, 
+  onCategoryChange,
+  onStatusChange
 }: CategoryCardProps) => {
+  const { departments } = useDepartments();
+  
+  const categories = [
+    "quality",
+    "safety",
+    "environment",
+    "maintenance",
+    "operation"
+  ];
+
+  const statusOptions = [
+    { value: 'pending', label: 'Pendente' },
+    { value: 'in-progress', label: 'Em Andamento' },
+    { value: 'resolved', label: 'Resolvido' },
+    { value: 'closed', label: 'Encerrado' }
+  ];
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Categorização</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="department">Departamento <span className="text-red-500">*</span></Label>
-            <DepartmentSelect 
-              value={department} 
-              onValueChange={onDepartmentChange}
-            />
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="category">Categoria <span className="text-red-500">*</span></Label>
-            <Select 
-              value={category} 
-              onValueChange={onCategoryChange}
-            >
+      <CardContent className="space-y-4">
+        <FormItem>
+          <FormLabel>Departamento</FormLabel>
+          <Select value={department} onValueChange={onDepartmentChange}>
+            <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione a categoria" />
+                <SelectValue placeholder="Selecione um departamento" />
               </SelectTrigger>
-              <SelectContent>
-                {categoryOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+            </FormControl>
+            <SelectContent>
+              {departments.map((dept) => (
+                <SelectItem key={dept.id} value={dept.id}>
+                  {dept.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormItem>
+        
+        <FormItem>
+          <FormLabel>Categoria</FormLabel>
+          <Select value={category} onValueChange={onCategoryChange}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormItem>
+
+        <FormItem>
+          <FormLabel>Status</FormLabel>
+          <Select value={status} onValueChange={onStatusChange}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um status" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {statusOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormItem>
       </CardContent>
     </Card>
   );

@@ -18,6 +18,7 @@ const FormContainer = () => {
     removeFile,
     handleDepartmentChange,
     handleCategoryChange,
+    handleStatusChange,
     setSelectedDate,
     setDeadlineDate,
     handleSubmit,
@@ -42,8 +43,10 @@ const FormContainer = () => {
         <CategoryCard
           department={formData.department_id}
           category={formData.category}
+          status={formData.status}
           onDepartmentChange={handleDepartmentChange}
           onCategoryChange={handleCategoryChange}
+          onStatusChange={handleStatusChange}
         />
 
         {/* Ações e Responsabilidades */}

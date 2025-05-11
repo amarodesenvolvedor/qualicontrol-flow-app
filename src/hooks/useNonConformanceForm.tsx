@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -22,7 +23,8 @@ export const useNonConformanceForm = () => {
     category: "",
     immediate_actions: "",
     responsible_name: "",
-    auditor_name: ""
+    auditor_name: "",
+    status: "pending" as const
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -51,6 +53,13 @@ export const useNonConformanceForm = () => {
   const handleCategoryChange = (value: string) => {
     setFormData({...formData, category: value});
   };
+  
+  const handleStatusChange = (value: string) => {
+    setFormData({
+      ...formData, 
+      status: value as "pending" | "in-progress" | "resolved" | "closed"
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +78,6 @@ export const useNonConformanceForm = () => {
         immediate_actions: "", // Will be filled later by the responsible person
         occurrence_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
         deadline_date: deadlineDate ? format(deadlineDate, 'yyyy-MM-dd') : null,
-        status: 'pending' as const
       };
       
       const result = await createNonConformance.mutateAsync(nonConformanceData);
@@ -118,6 +126,7 @@ export const useNonConformanceForm = () => {
     removeFile,
     handleDepartmentChange,
     handleCategoryChange,
+    handleStatusChange,
     setSelectedDate,
     setDeadlineDate,
     handleSubmit,

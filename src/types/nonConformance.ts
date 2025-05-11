@@ -13,7 +13,7 @@ export type NonConformance = {
   responsible_name: string;
   auditor_name: string;
   occurrence_date: string;
-  deadline_date: string;
+  deadline_date: string | null;
   created_at: string;
   status: 'pending' | 'in-progress' | 'resolved' | 'closed';
   department?: Department;
