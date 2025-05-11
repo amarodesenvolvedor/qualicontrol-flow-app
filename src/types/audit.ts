@@ -16,6 +16,7 @@ export interface AuditReport {
   file_size: number;
   file_type: string;
   created_by: string | null;
+  responsible_auditor: string | null;
 }
 
 export interface AuditReportInput {
@@ -28,6 +29,7 @@ export interface AuditReportInput {
   file_name: string;
   file_size: number;
   file_type: string;
+  responsible_auditor: string;
 }
 
 export type AuditFilter = {

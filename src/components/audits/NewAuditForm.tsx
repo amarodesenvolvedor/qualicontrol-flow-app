@@ -51,6 +51,7 @@ const formSchema = z.object({
     required_error: 'A data da auditoria é obrigatória',
   }),
   status: z.enum(['pending', 'in_progress', 'completed']),
+  responsible_auditor: z.string().min(3, 'O nome do auditor deve ter pelo menos 3 caracteres'),
 });
 
 interface NewAuditFormProps {
@@ -77,6 +78,7 @@ export function NewAuditForm({
       title: '',
       description: '',
       status: 'pending',
+      responsible_auditor: '',
     },
   });
 
@@ -115,6 +117,7 @@ export function NewAuditForm({
       department_id: values.department_id,
       audit_date: format(values.audit_date, 'yyyy-MM-dd'),
       status: values.status,
+      responsible_auditor: values.responsible_auditor,
       file_name: selectedFile.name,
       file_size: selectedFile.size,
       file_type: selectedFile.type,
@@ -182,6 +185,23 @@ export function NewAuditForm({
 
             <FormField
               control={form.control}
+              name="responsible_auditor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Auditor Responsável</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Nome do auditor responsável" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -234,7 +254,7 @@ export function NewAuditForm({
                           }
                           initialFocus
                           locale={ptBR}
-                          className="p-3"
+                          className="p-3 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>

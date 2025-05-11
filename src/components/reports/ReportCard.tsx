@@ -22,12 +22,30 @@ export const ReportCard = ({ title, description, type, updatedAt }: ReportCardPr
   const handleDownload = (format: "pdf" | "excel") => {
     toast.success(`Iniciando download: ${title} em formato ${format.toUpperCase()}`);
     
-    // Simulando o tempo de download
+    // Criar um arquivo fictício para download
     setTimeout(() => {
+      // Criar um conteúdo de exemplo
+      const content = `Relatório: ${title}\nDescrição: ${description}\nTipo: ${type}\nData: ${updatedAt}`;
+      // Criar um blob com o conteúdo
+      const blob = new Blob(
+        [content], 
+        { type: format === "pdf" ? "application/pdf" : "application/vnd.ms-excel" }
+      );
+      // Criar URL para o blob
+      const url = URL.createObjectURL(blob);
+      // Criar um elemento de âncora para download
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.${format}`;
+      // Anexar, clicar e remover o elemento
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      // Limpar a URL criada
+      URL.revokeObjectURL(url);
+      
       toast.success(`${title} baixado com sucesso!`);
     }, 1500);
-
-    // Em uma implementação real, aqui seria feita uma chamada para um endpoint para gerar e baixar o relatório
   };
 
   return (
