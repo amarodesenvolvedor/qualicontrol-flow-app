@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -19,10 +18,11 @@ import {
 
 interface AuditReportListProps {
   auditReports: AuditReport[];
+  isLoading?: boolean;
   onDelete: (id: string) => void;
 }
 
-export function AuditReportList({ auditReports, onDelete }: AuditReportListProps) {
+export function AuditReportList({ auditReports, isLoading, onDelete }: AuditReportListProps) {
   const [reportToDelete, setReportToDelete] = useState<string | null>(null);
   
   const handleDownload = async (report: AuditReport) => {
@@ -76,6 +76,14 @@ export function AuditReportList({ auditReports, onDelete }: AuditReportListProps
         return status;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -12,17 +12,19 @@ import type { AuditFilter } from '@/types/audit';
 
 interface AuditFiltersProps {
   departments: Department[];
-  years: string[];
   filters: AuditFilter;
   onFilterChange: (filters: AuditFilter) => void;
 }
 
 export const AuditFilters = ({ 
   departments, 
-  years, 
   filters, 
   onFilterChange 
 }: AuditFiltersProps) => {
+  // Generate years for the select dropdown
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
+
   const handleYearChange = (value: string) => {
     onFilterChange({
       ...filters,

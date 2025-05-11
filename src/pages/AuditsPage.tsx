@@ -22,6 +22,7 @@ const AuditsPage = () => {
     filters,
     setFilters,
     createAuditReport,
+    deleteAuditReport,
   } = useAuditReports();
 
   const handleFiltersChange = (newFilters: any) => {
@@ -53,11 +54,12 @@ const AuditsPage = () => {
               <AuditFilters 
                 departments={departments}
                 filters={filters}
-                onFiltersChange={handleFiltersChange}
+                onFilterChange={handleFiltersChange}
               />
               <AuditReportList 
                 auditReports={auditReports}
                 isLoading={isLoading}
+                onDelete={(id) => deleteAuditReport.mutate(id)}
               />
             </div>
           </TabsContent>
