@@ -10,7 +10,7 @@ export type Department = {
 };
 
 export const useDepartments = () => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["departments"],
     queryFn: async (): Promise<Department[]> => {
       const { data, error } = await supabase
@@ -26,4 +26,11 @@ export const useDepartments = () => {
       return data || [];
     },
   });
+  
+  return {
+    departments: query.data || [],
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error
+  };
 };

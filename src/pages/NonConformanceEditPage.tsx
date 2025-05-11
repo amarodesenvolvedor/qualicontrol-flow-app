@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +28,7 @@ import { ArrowLeft, Save } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useDepartments } from "@/hooks/useDepartments";
@@ -52,6 +52,8 @@ const formSchema = z.object({
   }),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 const NonConformanceEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -74,7 +76,7 @@ const NonConformanceEditPage = () => {
     { value: 'closed', label: 'Encerrado' }
   ];
 
-  const form = useForm({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
@@ -115,21 +117,21 @@ const NonConformanceEditPage = () => {
     if (ncData) {
       form.reset({
         title: ncData.title,
-        description: ncData.description,
-        location: ncData.location,
+        description: ncData.description || "",
+        location: ncData.location || "",
         department_id: ncData.department_id,
         category: ncData.category,
         immediate_actions: ncData.immediate_actions || "",
         responsible_name: ncData.responsible_name,
         auditor_name: ncData.auditor_name,
-        occurrence_date: new Date(ncData.occurrence_date),
+        occurrence_date: ncData.occurrence_date ? new Date(ncData.occurrence_date) : new Date(),
         deadline_date: ncData.deadline_date ? new Date(ncData.deadline_date) : undefined,
-        status: ncData.status as 'pending' | 'in-progress' | 'resolved' | 'closed',
+        status: ncData.status,
       });
     }
   }, [ncData, form]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: FormValues) => {
     if (!id) return;
 
     try {
@@ -326,7 +328,6 @@ const NonConformanceEditPage = () => {
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
-                          className="p-3 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>
@@ -365,7 +366,6 @@ const NonConformanceEditPage = () => {
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
-                          className="p-3 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>

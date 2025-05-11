@@ -6,6 +6,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { validateNonConformanceForm } from "@/utils/formValidation";
 import { sendNonConformanceNotification } from "@/services/notificationService";
+import { NonConformance } from "@/types/nonConformance";
 
 export const useNonConformanceForm = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export const useNonConformanceForm = () => {
     immediate_actions: "",
     responsible_name: "",
     auditor_name: "",
-    status: "pending" as const
+    status: "pending" as NonConformance["status"]
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -57,7 +58,7 @@ export const useNonConformanceForm = () => {
   const handleStatusChange = (value: string) => {
     setFormData({
       ...formData, 
-      status: value as "pending" | "in-progress" | "resolved" | "closed"
+      status: value as NonConformance["status"]
     });
   };
 
