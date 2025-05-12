@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/app/Logo";
 import { useUserAuth } from "@/hooks/useUserAuth";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const AuthPage = () => {
   const { signIn, signUp, isLoading, error } = useUserAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [activeTab, setActiveTab] = useState("login");
   
   useEffect(() => {
     // Redirecionar para a página principal se já estiver autenticado
@@ -47,7 +49,7 @@ const AuthPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
@@ -79,9 +81,10 @@ const AuthPage = () => {
                   />
                 </div>
                 {error && (
-                  <div className="text-sm text-destructive pt-1">
-                    {error}
-                  </div>
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
                 <Button 
                   type="submit" 
@@ -126,9 +129,10 @@ const AuthPage = () => {
                   />
                 </div>
                 {error && (
-                  <div className="text-sm text-destructive pt-1">
-                    {error}
-                  </div>
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
                 <Button 
                   type="submit" 

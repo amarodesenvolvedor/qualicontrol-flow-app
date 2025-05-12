@@ -16,28 +16,58 @@ export const useUserAuth = () => {
       setIsLoading(true);
       setError(null);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Login realizado",
-        description: "Você foi autenticado com sucesso."
-      });
-      
-      navigate("/");
-      return data;
+      // Verifica a conexão com o Supabase antes de tentar fazer login
+      try {
+        // Timeout para evitar que o usuário fique esperando muito tempo
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Tempo de conexão excedido. Verifique sua conexão de internet.')), 10000);
+        });
+        
+        const { data, error } = await Promise.race([
+          supabase.auth.signInWithPassword({
+            email,
+            password
+          }),
+          timeoutPromise
+        ]) as { data: any; error: any };
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Login realizado",
+          description: "Você foi autenticado com sucesso."
+        });
+        
+        navigate("/");
+        return data;
+      } catch (err: any) {
+        if (err.message && err.message.includes('fetch')) {
+          throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.');
+        }
+        throw err;
+      }
     } catch (error: any) {
       console.error("Erro ao fazer login:", error);
-      setError(error.message || "Ocorreu um erro durante o login.");
+      
+      // Mensagens de erro mais amigáveis
+      let errorMessage = "Verifique suas credenciais e tente novamente.";
+      
+      if (error.message.includes('conexão') || error.message.includes('fetch')) {
+        errorMessage = "Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.";
+      } else if (error.message.includes('Invalid login credentials')) {
+        errorMessage = "Email ou senha incorretos.";
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = "Email ainda não confirmado. Verifique sua caixa de entrada.";
+      }
+      
+      setError(errorMessage);
+      
       toast({
         title: "Erro ao fazer login",
-        description: error.message || "Verifique suas credenciais e tente novamente.",
+        description: errorMessage,
         variant: "destructive"
       });
+      
       return null;
     } finally {
       setIsLoading(false);
@@ -49,30 +79,55 @@ export const useUserAuth = () => {
       setIsLoading(true);
       setError(null);
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin
+      try {
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Tempo de conexão excedido. Verifique sua conexão de internet.')), 10000);
+        });
+        
+        const { data, error } = await Promise.race([
+          supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: window.location.origin
+            }
+          }),
+          timeoutPromise
+        ]) as { data: any; error: any };
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Cadastro realizado",
+          description: "Sua conta foi criada com sucesso. Verifique seu e-mail para confirmar."
+        });
+        
+        return data;
+      } catch (err: any) {
+        if (err.message && err.message.includes('fetch')) {
+          throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.');
         }
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Cadastro realizado",
-        description: "Sua conta foi criada com sucesso. Verifique seu e-mail para confirmar."
-      });
-      
-      return data;
+        throw err;
+      }
     } catch (error: any) {
       console.error("Erro ao criar conta:", error);
-      setError(error.message || "Ocorreu um erro durante o cadastro.");
+      
+      let errorMessage = "Ocorreu um erro durante o cadastro.";
+      
+      if (error.message.includes('conexão') || error.message.includes('fetch')) {
+        errorMessage = "Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.";
+      } else if (error.message.includes('User already registered')) {
+        errorMessage = "Este email já está cadastrado.";
+      }
+      
+      setError(errorMessage);
+      
       toast({
         title: "Erro ao criar conta",
-        description: error.message || "Verifique os dados inseridos e tente novamente.",
+        description: errorMessage,
         variant: "destructive"
       });
+      
       return null;
     } finally {
       setIsLoading(false);
