@@ -111,15 +111,7 @@ const HistoryList = ({ entityType, entityId }: HistoryListProps) => {
         <CardTitle>Histórico de Alterações</CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <>
-            <Skeleton className="h-6 w-full my-2" />
-            <Skeleton className="h-6 w-full my-2" />
-            <Skeleton className="h-6 w-full my-2" />
-          </>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
-        ) : history.length === 0 ? (
+        {history.length === 0 ? (
           <p className="text-center text-muted-foreground">Nenhuma alteração registrada</p>
         ) : (
           <div className="overflow-x-auto">
@@ -150,36 +142,6 @@ const HistoryList = ({ entityType, entityId }: HistoryListProps) => {
       </CardContent>
     </Card>
   );
-
-  function getFieldLabel(fieldName: string) {
-    const fieldMap: Record<string, string> = {
-      title: "Título",
-      description: "Descrição",
-      status: "Status",
-      department_id: "Departamento",
-      responsible_name: "Responsável",
-      category: "Categoria",
-      deadline_date: "Prazo",
-      immediate_actions: "Ações Imediatas",
-      // Add more field mappings as needed
-    };
-    
-    return fieldMap[fieldName] || fieldName;
-  }
-
-  function formatValue(value: string | null, fieldName: string) {
-    if (value === null) return "Nenhum valor";
-    
-    if (fieldName.includes("date") && value) {
-      try {
-        return format(new Date(value), "dd/MM/yyyy HH:mm");
-      } catch {
-        return value;
-      }
-    }
-    
-    return value;
-  }
 };
 
 export default HistoryList;

@@ -35,8 +35,9 @@ export const logHistory = async (
     // Get the correct table name based on entity type
     const tableName = getHistoryTableName(entityType);
 
+    // Use type assertion to tell TypeScript this is a valid table name
     const { data, error } = await supabase
-      .from(tableName)
+      .from(tableName as any)
       .insert({
         entity_id: entityId,
         field_name: fieldName,
@@ -83,8 +84,9 @@ export const getEntityHistory = async (entityType: EntityType, entityId: string)
     // Get the correct table name based on entity type
     const tableName = getHistoryTableName(entityType);
     
+    // Use type assertion to tell TypeScript this is a valid table name
     const { data, error } = await supabase
-      .from(tableName)
+      .from(tableName as any)
       .select('*')
       .eq('entity_id', entityId)
       .order('changed_at', { ascending: false });
