@@ -28,21 +28,35 @@ const TextField = ({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>
-            {label} {required && <span className="text-red-500">*</span>}
-          </FormLabel>
-          <FormControl>
-            {multiline ? (
-              <Textarea rows={rows} placeholder={placeholder} {...field} />
-            ) : (
-              <Input placeholder={placeholder} {...field} />
-            )}
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        // Convert Date objects to strings for input fields
+        const value = field.value instanceof Date ? field.value.toISOString() : field.value;
+        
+        return (
+          <FormItem>
+            <FormLabel>
+              {label} {required && <span className="text-red-500">*</span>}
+            </FormLabel>
+            <FormControl>
+              {multiline ? (
+                <Textarea 
+                  rows={rows} 
+                  placeholder={placeholder} 
+                  {...field} 
+                  value={typeof value === 'string' ? value : ''}
+                />
+              ) : (
+                <Input 
+                  placeholder={placeholder} 
+                  {...field} 
+                  value={typeof value === 'string' ? value : ''}
+                />
+              )}
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 };

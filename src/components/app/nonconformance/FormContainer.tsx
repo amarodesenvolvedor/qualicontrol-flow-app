@@ -1,90 +1,42 @@
 
-import { useNonConformanceForm } from "@/hooks/useNonConformanceForm";
-import BasicInfoCard from "./BasicInfoCard";
-import CategoryCard from "./CategoryCard";
-import ActionsCard from "./ActionsCard";
-import EvidenceCard from "./EvidenceCard";
-import FormActions from "./FormActions";
-import { FormProvider } from "react-hook-form";
+import { Form } from "@/components/ui/form";
+import { useNonConformanceFormProvider } from "@/hooks/useNonConformanceFormProvider";
+import BasicInfoForm from "./form/BasicInfoForm";
+import CategoryForm from "./form/CategoryForm";
+import ActionsForm from "./form/ActionsForm";
+import EvidenceForm from "./form/EvidenceForm";
+import FormActions from "./form/FormActions";
 
 const FormContainer = () => {
   const {
-    formData,
-    selectedDate,
-    deadlineDate,
-    effectivenessVerificationDate,
-    completionDate,
+    form,
     files,
     isSubmitting,
-    form,
-    handleInputChange,
     handleFileChange,
     removeFile,
-    handleDepartmentChange,
-    handleCategoryChange,
-    handleStatusChange,
-    setSelectedDate,
-    setDeadlineDate,
-    setEffectivenessVerificationDate,
-    setCompletionDate,
-    handleSubmit,
+    onSubmit,
     handleCancel
-  } = useNonConformanceForm();
+  } = useNonConformanceFormProvider();
 
   return (
-    <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+    <Form {...form}>
+      <form onSubmit={onSubmit} className="space-y-6">
         <div className="space-y-6">
-          {/* Informações Básicas */}
-          <BasicInfoCard
-            title={formData.title}
-            description={formData.description}
-            location={formData.location}
-            auditorName={formData.auditor_name}
-            selectedDate={selectedDate}
-            onInputChange={handleInputChange}
-            onDateChange={setSelectedDate}
-          />
-
-          {/* Categorização */}
-          <CategoryCard
-            department={formData.department_id}
-            category={formData.category}
-            status={formData.status}
-            onDepartmentChange={handleDepartmentChange}
-            onCategoryChange={handleCategoryChange}
-            onStatusChange={handleStatusChange}
-          />
-
-          {/* Ações e Responsabilidades */}
-          <ActionsCard
-            immediateActions={formData.immediate_actions}
-            responsibleName={formData.responsible_name}
-            deadlineDate={deadlineDate}
-            effectivenessVerificationDate={effectivenessVerificationDate}
-            completionDate={completionDate}
-            onInputChange={handleInputChange}
-            onDeadlineChange={setDeadlineDate}
-            onEffectivenessVerificationDateChange={setEffectivenessVerificationDate}
-            onCompletionDateChange={setCompletionDate}
-            isReadOnly={false}
-          />
-
-          {/* Evidências */}
-          <EvidenceCard
+          <BasicInfoForm control={form.control} />
+          <CategoryForm control={form.control} />
+          <ActionsForm control={form.control} />
+          <EvidenceForm 
             files={files}
             onFileChange={handleFileChange}
             onRemoveFile={removeFile}
           />
-
-          {/* Form Actions */}
           <FormActions 
             isSubmitting={isSubmitting}
             onCancel={handleCancel}
           />
         </div>
       </form>
-    </FormProvider>
+    </Form>
   );
 };
 
