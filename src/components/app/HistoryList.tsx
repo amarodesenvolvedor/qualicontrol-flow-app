@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { fetchHistory } from "@/services/historyService";
+import { getEntityHistory, EntityType } from "@/services/historyService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
@@ -18,6 +18,7 @@ interface HistoryRecord {
   new_value: string | null;
   changed_at: string;
   changed_by: string | null;
+  entity_id: string;
 }
 
 const HistoryList = ({ entityType, entityId }: HistoryListProps) => {
@@ -29,7 +30,8 @@ const HistoryList = ({ entityType, entityId }: HistoryListProps) => {
     const loadHistory = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchHistory(entityType, entityId);
+        // Cast the entityType to the correct type
+        const data = await getEntityHistory(entityType as EntityType, entityId);
         setHistory(data);
       } catch (err) {
         setError("Não foi possível carregar o histórico");

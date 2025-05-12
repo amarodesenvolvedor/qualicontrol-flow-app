@@ -1,11 +1,10 @@
-
 import Layout from "@/components/app/Layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileSpreadsheet, FileText, Download, ArrowUpDown } from "lucide-react";
-import { CalendarIcon as CalendarLucide } from "lucide-react";
+import { CalendarIcon as Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
@@ -34,7 +33,7 @@ import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ExportPage = () => {
@@ -154,7 +153,7 @@ const ExportPage = () => {
                         {date ? format(date, "PP", { locale: ptBR }) : "Selecionar data"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
                       <CalendarComponent
                         mode="single"
                         selected={date}
@@ -252,7 +251,7 @@ const ExportPage = () => {
                 <ExportItem 
                   title="Cronograma de Auditorias" 
                   description={`Planejamento de auditorias e seus respectivos resultados (${auditReports.length} registros)`}
-                  icon={<CalendarIcon className="h-6 w-6" />}
+                  icon={<Calendar className="h-6 w-6" />}
                   tag="Agenda"
                   onExport={() => handleExport("Cronograma de Auditorias")}
                 />

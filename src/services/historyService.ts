@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-type EntityType = 'non_conformance' | 'audit' | 'report';
+export type EntityType = 'non_conformance' | 'audit' | 'report';
 type BasicValueType = string | number | boolean | null;
 type ValueType = BasicValueType | Record<string, any>;
 
@@ -32,8 +32,11 @@ export const logHistory = async (
       ? JSON.stringify(newValue)
       : String(newValue);
 
+    // Get the correct table name based on entity type
+    const tableName = `${entityType}_history`;
+
     const { data, error } = await supabase
-      .from(entityType + '_history')
+      .from(tableName)
       .insert({
         entity_id: entityId,
         field_name: fieldName,
@@ -63,8 +66,11 @@ export const logHistory = async (
  */
 export const getEntityHistory = async (entityType: EntityType, entityId: string) => {
   try {
+    // Get the correct table name based on entity type
+    const tableName = `${entityType}_history`;
+    
     const { data, error } = await supabase
-      .from(entityType + '_history')
+      .from(tableName)
       .select('*')
       .eq('entity_id', entityId)
       .order('changed_at', { ascending: false });
@@ -80,3 +86,6 @@ export const getEntityHistory = async (entityType: EntityType, entityId: string)
     return [];
   }
 };
+
+// This is the function that HistoryList.tsx was trying to import
+export const fetchHistory = getEntityHistory;
