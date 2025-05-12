@@ -10,6 +10,8 @@ import {
   uploadFilesToStorage
 } from '@/services/nonConformanceService';
 import { NonConformanceFilter, NonConformanceCreateData, NonConformanceUpdateData } from '@/types/nonConformance';
+import { sendNonConformanceNotification } from '@/services/notificationService';
+import { logHistory } from '@/services/historyService';
 
 export * from '@/types/nonConformance';
 
@@ -40,11 +42,38 @@ export const useNonConformances = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       toast({
         title: 'Não conformidade criada',
         description: 'A não conformidade foi criada com sucesso.',
       });
+      
+      // Send notification email to responsible person
+      if (result) {
+        sendNonConformanceNotification(
+          result.id, 
+          result.department_id, 
+          result.responsible_name
+        );
+        
+        // Log the creation in history
+        Object.keys(result).forEach(key => {
+          if (result[key as keyof typeof result] !== null && 
+              key !== 'id' && 
+              key !== 'created_at' && 
+              key !== 'updated_at' &&
+              key !== 'code') {
+            logHistory(
+              'non_conformance', 
+              result.id, 
+              key, 
+              null, 
+              result[key as keyof typeof result]
+            );
+          }
+        });
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
     },
     onError: (error: any) => {
@@ -58,13 +87,50 @@ export const useNonConformances = () => {
 
   const updateNonConformance = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: NonConformanceUpdateData }) => {
-      return await updateNC(id, data);
+      // Fetch the current state before updating
+      const { data: currentData } = await queryClient.fetchQuery({
+        queryKey: ['nonConformance', id],
+        queryFn: async () => {
+          const response = await fetchNonConformances({ searchTerm: id });
+          return response.find(nc => nc.id === id) || null;
+        }
+      });
+      
+      const result = await updateNC(id, data);
+      
+      // Log history for each changed field
+      if (currentData) {
+        Object.keys(data).forEach(key => {
+          const keyTyped = key as keyof typeof data;
+          if (data[keyTyped] !== currentData[keyTyped]) {
+            logHistory(
+              'non_conformance',
+              id,
+              key,
+              currentData[keyTyped],
+              data[keyTyped]
+            );
+          }
+        });
+      }
+      
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       toast({
         title: 'Não conformidade atualizada',
         description: 'A não conformidade foi atualizada com sucesso.',
       });
+      
+      // If status is changed to something that requires action, notify the responsible person
+      if (result && (result.status === 'in-progress')) {
+        sendNonConformanceNotification(
+          result.id,
+          result.department_id,
+          result.responsible_name
+        );
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
     },
     onError: () => {

@@ -2,6 +2,8 @@
 import { useNonConformances } from "@/hooks/useNonConformances";
 import NonConformanceList from "./NonConformanceList";
 import NonConformanceFilters from "./NonConformanceFilters";
+import { NotificationWrapper } from "./NotificationWrapper";
+import { Toaster } from "sonner";
 
 const NonConformanceListWrapper = () => {
   const { 
@@ -18,18 +20,21 @@ const NonConformanceListWrapper = () => {
   };
   
   return (
-    <div className="space-y-6">
-      <NonConformanceFilters 
-        filters={filters}
-        onFilterChange={setFilters}
-      />
-      <NonConformanceList 
-        nonConformances={nonConformances} 
-        isLoading={isLoading} 
-        refetch={refetch}
-        deleteNonConformance={handleDeleteNonConformance}
-      />
-    </div>
+    <NotificationWrapper>
+      <Toaster position="top-right" />
+      <div className="space-y-6">
+        <NonConformanceFilters 
+          filters={filters}
+          onFilterChange={setFilters}
+        />
+        <NonConformanceList 
+          nonConformances={nonConformances} 
+          isLoading={isLoading} 
+          refetch={refetch}
+          deleteNonConformance={handleDeleteNonConformance}
+        />
+      </div>
+    </NotificationWrapper>
   );
 };
 
