@@ -20,21 +20,23 @@ const NonConformanceListWrapper = () => {
   };
   
   return (
-    <NotificationWrapper>
-      <Toaster position="top-right" />
-      <div className="space-y-6">
-        <NonConformanceFilters 
-          filters={filters}
-          onFilterChange={setFilters}
-        />
-        <NonConformanceList 
-          nonConformances={nonConformances} 
-          isLoading={isLoading} 
-          refetch={refetch}
-          deleteNonConformance={handleDeleteNonConformance}
-        />
-      </div>
-    </NotificationWrapper>
+    <>
+      <NotificationWrapper>
+        <Toaster position="top-right" />
+        <div className="space-y-6">
+          <NonConformanceFilters 
+            filters={filters}
+            onFilterChange={setFilters}
+          />
+          <NonConformanceList 
+            nonConformances={nonConformances} 
+            isLoading={isLoading} 
+            refetch={refetch}
+            deleteNonConformance={handleDeleteNonConformance}
+          />
+        </div>
+      </NotificationWrapper>
+    </>
   );
 };
 

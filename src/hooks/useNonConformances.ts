@@ -35,12 +35,7 @@ export const useNonConformances = () => {
 
   const createNonConformance = useMutation({
     mutationFn: async (data: NonConformanceCreateData) => {
-      try {
-        return await createNC(data);
-      } catch (error) {
-        console.error('Error creating non-conformance:', error);
-        throw error;
-      }
+      return await createNC(data);
     },
     onSuccess: (result) => {
       toast({
@@ -58,17 +53,18 @@ export const useNonConformances = () => {
         
         // Log the creation in history
         Object.keys(result).forEach(key => {
-          if (result[key as keyof typeof result] !== null && 
-              key !== 'id' && 
-              key !== 'created_at' && 
-              key !== 'updated_at' &&
-              key !== 'code') {
+          const typedKey = key as keyof typeof result;
+          if (result[typedKey] !== null && 
+              typedKey !== 'id' && 
+              typedKey !== 'created_at' && 
+              typedKey !== 'updated_at' &&
+              typedKey !== 'code') {
             logHistory(
               'non_conformance', 
               result.id, 
               key, 
               null, 
-              result[key as keyof typeof result]
+              result[typedKey]
             );
           }
         });
@@ -102,12 +98,14 @@ export const useNonConformances = () => {
       if (currentData) {
         Object.keys(data).forEach(key => {
           const keyTyped = key as keyof typeof data;
-          if (data[keyTyped] !== currentData[keyTyped as keyof typeof currentData]) {
+          const currentKeyTyped = key as keyof typeof currentData;
+          
+          if (data[keyTyped] !== currentData[currentKeyTyped]) {
             logHistory(
               'non_conformance',
               id,
               key,
-              currentData[keyTyped as keyof typeof currentData],
+              currentData[currentKeyTyped],
               data[keyTyped]
             );
           }
@@ -164,7 +162,7 @@ export const useNonConformances = () => {
 
   // Return the necessary data and functions
   return {
-    nonConformances: data,
+    nonConformances: data as NonConformance[],
     isLoading,
     isError,
     error,

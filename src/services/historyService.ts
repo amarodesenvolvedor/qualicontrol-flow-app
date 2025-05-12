@@ -1,103 +1,82 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+type EntityType = 'non_conformance' | 'audit' | 'report';
+type BasicValueType = string | number | boolean | null;
+type ValueType = BasicValueType | Record<string, any>;
+
 /**
  * Logs a change to the history table
- * 
- * @param entityType The type of entity (non_conformance, audit_report, etc.)
- * @param entityId The ID of the entity that was changed
- * @param fieldName The field that was changed
+ * @param entityType The type of entity being changed
+ * @param entityId The ID of the entity
+ * @param fieldName The name of the field that changed
  * @param oldValue The previous value
  * @param newValue The new value
- * @returns A promise that resolves to a boolean indicating success or failure
+ * @param userId The ID of the user who made the change (optional)
  */
 export const logHistory = async (
-  entityType: string,
+  entityType: EntityType,
   entityId: string,
   fieldName: string,
-  oldValue: any,
-  newValue: any
-): Promise<boolean> => {
+  oldValue: ValueType,
+  newValue: ValueType,
+  userId?: string
+) => {
   try {
-    // Determine which history table to use based on entity type
-    let tableName: "non_conformance_history" | "audit_history";
-    switch (entityType) {
-      case 'non_conformance':
-        tableName = 'non_conformance_history';
-        break;
-      case 'audit':
-        tableName = 'non_conformance_history'; // We'll use the same table for now, can be expanded later
-        break;
-      default:
-        throw new Error(`Unsupported entity type: ${entityType}`);
-    }
+    // Convert complex objects to JSON strings for storage
+    const oldValueString = typeof oldValue === 'object' && oldValue !== null
+      ? JSON.stringify(oldValue)
+      : String(oldValue);
+    
+    const newValueString = typeof newValue === 'object' && newValue !== null
+      ? JSON.stringify(newValue)
+      : String(newValue);
 
-    // Format values as strings for storage
-    const oldValueStr = oldValue === null ? null : String(oldValue);
-    const newValueStr = newValue === null ? null : String(newValue);
-
-    // Insert the history record
-    const { error } = await supabase
-      .from(tableName)
+    const { data, error } = await supabase
+      .from(entityType + '_history')
       .insert({
-        non_conformance_id: entityId,
+        entity_id: entityId,
         field_name: fieldName,
-        old_value: oldValueStr,
-        new_value: newValueStr,
+        old_value: oldValueString,
+        new_value: newValueString,
+        changed_by: userId || 'system',
+        changed_at: new Date().toISOString()
       });
-
-    if (error) throw error;
-    return true;
+    
+    if (error) {
+      console.error(`Error logging history: ${error.message}`);
+      return null;
+    }
+    
+    return data;
   } catch (error) {
-    console.error("Error logging history:", error);
-    return false;
+    console.error('Error in logHistory:', error);
+    return null;
   }
 };
 
 /**
- * Fetches history records for a specific entity
- * 
- * @param entityType The type of entity (non_conformance, audit_report, etc.)
+ * Gets the history for a specific entity
+ * @param entityType The type of entity
  * @param entityId The ID of the entity
- * @returns A promise that resolves to the history records
+ * @returns Array of history records
  */
-export const fetchHistory = async (entityType: string, entityId: string) => {
+export const getEntityHistory = async (entityType: EntityType, entityId: string) => {
   try {
-    // Determine which history table to query based on entity type
-    let tableName: "non_conformance_history" | "audit_history";
-    let idField: string;
-    
-    switch (entityType) {
-      case 'non_conformance':
-        tableName = 'non_conformance_history';
-        idField = 'non_conformance_id';
-        break;
-      case 'audit':
-        tableName = 'non_conformance_history'; // We'll use the same table for now
-        idField = 'non_conformance_id'; // Using the same field for simplicity
-        break;
-      default:
-        throw new Error(`Unsupported entity type: ${entityType}`);
-    }
-
-    // Fetch the history records
     const { data, error } = await supabase
-      .from(tableName)
-      .select(`
-        id, 
-        field_name, 
-        old_value, 
-        new_value, 
-        changed_at,
-        changed_by
-      `)
-      .eq(idField, entityId)
+      .from(entityType + '_history')
+      .select('*')
+      .eq('entity_id', entityId)
       .order('changed_at', { ascending: false });
-
-    if (error) throw error;
-    return data;
+    
+    if (error) {
+      console.error(`Error getting history: ${error.message}`);
+      return [];
+    }
+    
+    return data || [];
   } catch (error) {
-    console.error(`Error fetching ${entityType} history:`, error);
-    throw error;
+    console.error('Error in getEntityHistory:', error);
+    return [];
   }
 };
