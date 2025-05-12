@@ -15,6 +15,8 @@ export const useNonConformanceForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
+  const [effectivenessVerificationDate, setEffectivenessVerificationDate] = useState<Date | undefined>(undefined);
+  const [completionDate, setCompletionDate] = useState<Date | undefined>(undefined);
   const [files, setFiles] = useState<File[]>([]);
   
   // Cria uma instância de form para o FormProvider
@@ -69,8 +71,8 @@ export const useNonConformanceForm = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
-    // Use the validation utility
-    if (!validateNonConformanceForm(formData, selectedDate, deadlineDate)) {
+    // Use the validation utility but with modified parameters to make deadline optional
+    if (!validateNonConformanceForm(formData, selectedDate)) {
       setIsSubmitting(false);
       return;
     }
@@ -81,6 +83,8 @@ export const useNonConformanceForm = () => {
         ...formData,
         occurrence_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
         deadline_date: deadlineDate ? format(deadlineDate, 'yyyy-MM-dd') : null,
+        effectiveness_verification_date: effectivenessVerificationDate ? format(effectivenessVerificationDate, 'yyyy-MM-dd') : null,
+        completion_date: completionDate ? format(completionDate, 'yyyy-MM-dd') : null,
       };
       
       const result = await createNonConformance.mutateAsync(nonConformanceData);
@@ -122,9 +126,11 @@ export const useNonConformanceForm = () => {
     formData,
     selectedDate,
     deadlineDate,
+    effectivenessVerificationDate,
+    completionDate,
     files,
     isSubmitting,
-    form, // Retornar a instância do form
+    form,
     handleInputChange,
     handleFileChange,
     removeFile,
@@ -133,6 +139,8 @@ export const useNonConformanceForm = () => {
     handleStatusChange,
     setSelectedDate,
     setDeadlineDate,
+    setEffectivenessVerificationDate,
+    setCompletionDate,
     handleSubmit,
     handleCancel
   };

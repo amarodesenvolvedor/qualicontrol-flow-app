@@ -12,9 +12,11 @@ const FormContainer = () => {
     formData,
     selectedDate,
     deadlineDate,
+    effectivenessVerificationDate,
+    completionDate,
     files,
     isSubmitting,
-    form, // Obter a instância do form do hook
+    form,
     handleInputChange,
     handleFileChange,
     removeFile,
@@ -23,6 +25,8 @@ const FormContainer = () => {
     handleStatusChange,
     setSelectedDate,
     setDeadlineDate,
+    setEffectivenessVerificationDate,
+    setCompletionDate,
     handleSubmit,
     handleCancel
   } = useNonConformanceForm();
@@ -57,8 +61,12 @@ const FormContainer = () => {
             immediateActions={formData.immediate_actions}
             responsibleName={formData.responsible_name}
             deadlineDate={deadlineDate}
+            effectivenessVerificationDate={effectivenessVerificationDate}
+            completionDate={completionDate}
             onInputChange={handleInputChange}
             onDeadlineChange={setDeadlineDate}
+            onEffectivenessVerificationDateChange={setEffectivenessVerificationDate}
+            onCompletionDateChange={setCompletionDate}
             isReadOnly={false}
           />
 

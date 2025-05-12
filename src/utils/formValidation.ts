@@ -13,8 +13,7 @@ interface NonConformanceFormData {
 
 export const validateNonConformanceForm = (
   formData: NonConformanceFormData,
-  selectedDate?: Date,
-  deadlineDate?: Date
+  selectedDate?: Date
 ): boolean => {
   if (
     !formData.title || 
@@ -24,8 +23,7 @@ export const validateNonConformanceForm = (
     !formData.location || 
     !formData.auditor_name || 
     !formData.responsible_name ||
-    !selectedDate ||
-    !deadlineDate
+    !selectedDate
   ) {
     toast({
       title: "Campos obrigatórios",

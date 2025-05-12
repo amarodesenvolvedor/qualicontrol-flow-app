@@ -22,7 +22,7 @@ const CategoryCard = ({
   onCategoryChange,
   onStatusChange
 }: CategoryCardProps) => {
-  const { departments } = useDepartments();
+  const { departments, error: departmentsError } = useDepartments();
   
   // Categorias traduzidas para português
   const categories = [
@@ -46,10 +46,17 @@ const CategoryCard = ({
 
   // Garante que um departamento válido seja selecionado se houverem dados disponíveis
   useEffect(() => {
-    if (departments.length > 0 && !department) {
+    if (departments.length > 0 && !department && !departmentsError) {
       onDepartmentChange(departments[0].id);
     }
-  }, [departments, department, onDepartmentChange]);
+  }, [departments, department, onDepartmentChange, departmentsError]);
+
+  // Log para depuração
+  console.log("Departments loaded:", departments.length);
+  console.log("Selected department:", department);
+  if (departmentsError) {
+    console.error("Error loading departments:", departmentsError);
+  }
 
   return (
     <Card>

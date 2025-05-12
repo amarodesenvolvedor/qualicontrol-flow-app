@@ -20,8 +20,12 @@ interface ActionsCardProps {
   immediateActions: string;
   responsibleName: string;
   deadlineDate: Date | undefined;
+  effectivenessVerificationDate: Date | undefined;
+  completionDate: Date | undefined;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onDeadlineChange: (date: Date | undefined) => void;
+  onEffectivenessVerificationDateChange: (date: Date | undefined) => void;
+  onCompletionDateChange: (date: Date | undefined) => void;
   isReadOnly?: boolean;
 }
 
@@ -29,8 +33,12 @@ const ActionsCard = ({
   immediateActions,
   responsibleName,
   deadlineDate,
+  effectivenessVerificationDate,
+  completionDate,
   onInputChange,
   onDeadlineChange,
+  onEffectivenessVerificationDateChange,
+  onCompletionDateChange,
   isReadOnly = false
 }: ActionsCardProps) => {
   return (
@@ -81,7 +89,7 @@ const ActionsCard = ({
           </div>
 
           <div className="grid gap-2">
-            <Label>Prazo para Ação Corretiva <span className="text-red-500">*</span></Label>
+            <Label>Prazo para Ação Corretiva</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -93,7 +101,7 @@ const ActionsCard = ({
                   {deadlineDate ? (
                     format(deadlineDate, "dd/MM/yyyy")
                   ) : (
-                    <span>Selecione o prazo</span>
+                    <span>Selecione o prazo (opcional)</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -104,6 +112,65 @@ const ActionsCard = ({
                   onSelect={onDeadlineChange}
                   locale={ptBR}
                   disabled={(date) => date < new Date()}
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="grid gap-2">
+            <Label>Data de Verificação da Eficácia</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {effectivenessVerificationDate ? (
+                    format(effectivenessVerificationDate, "dd/MM/yyyy")
+                  ) : (
+                    <span>Selecione a data (opcional)</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={effectivenessVerificationDate}
+                  onSelect={onEffectivenessVerificationDateChange}
+                  locale={ptBR}
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="grid gap-2">
+            <Label>Finalizada</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {completionDate ? (
+                    format(completionDate, "dd/MM/yyyy")
+                  ) : (
+                    <span>Selecione a data (opcional)</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={completionDate}
+                  onSelect={onCompletionDateChange}
+                  locale={ptBR}
+                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
