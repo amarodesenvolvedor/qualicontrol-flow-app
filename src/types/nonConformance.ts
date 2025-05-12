@@ -26,9 +26,10 @@ export type NonConformanceCreateData = Omit<NonConformance, 'id' | 'code' | 'cre
 export type NonConformanceUpdateData = Partial<NonConformanceCreateData>;
 
 export type NonConformanceFilter = {
-  status?: NonConformance['status'] | '';
-  category?: string | '';
-  departmentId?: string | '';
+  status?: string;
+  category?: string;
+  departmentId?: string;
+  responsibleName?: string;
   dateRange?: { from: Date | null; to: Date | null } | null;
   searchTerm?: string;
 };

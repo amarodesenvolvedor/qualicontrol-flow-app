@@ -17,15 +17,24 @@ export const fetchNonConformances = async (filters: NonConformanceFilter): Promi
 
   // Apply filters
   if (filters.status) {
-    query = query.eq('status', filters.status);
+    const statuses = filters.status.split(',');
+    if (statuses.length > 0) {
+      query = query.in('status', statuses);
+    }
   }
 
   if (filters.category) {
-    query = query.eq('category', filters.category);
+    const categories = filters.category.split(',');
+    if (categories.length > 0) {
+      query = query.in('category', categories);
+    }
   }
 
   if (filters.departmentId) {
-    query = query.eq('department_id', filters.departmentId);
+    const departments = filters.departmentId.split(',');
+    if (departments.length > 0) {
+      query = query.in('department_id', departments);
+    }
   }
 
   if (filters.dateRange?.from) {
@@ -37,7 +46,14 @@ export const fetchNonConformances = async (filters: NonConformanceFilter): Promi
   }
 
   if (filters.searchTerm) {
-    query = query.ilike('title', `%${filters.searchTerm}%`);
+    query = query.or(`title.ilike.%${filters.searchTerm}%,code.ilike.%${filters.searchTerm}%`);
+  }
+
+  if (filters.responsibleName) {
+    const responsibles = filters.responsibleName.split(',');
+    if (responsibles.length > 0) {
+      query = query.in('responsible_name', responsibles);
+    }
   }
 
   const { data, error } = await query;
@@ -127,4 +143,27 @@ export const uploadFilesToStorage = async (files: File[]): Promise<string[]> => 
   });
 
   return Promise.all(uploadPromises);
+};
+
+// Function to get all responsible names
+export const fetchResponsibleNames = async (): Promise<string[]> => {
+  const { data, error } = await supabase
+    .from('non_conformances')
+    .select('responsible_name')
+    .order('responsible_name');
+    
+  if (error) {
+    console.error('Error fetching responsible names:', error);
+    throw new Error('Error fetching responsible names');
+  }
+  
+  // Extract unique responsible names
+  const names = new Set<string>();
+  data.forEach(item => {
+    if (item.responsible_name) {
+      names.add(item.responsible_name);
+    }
+  });
+  
+  return Array.from(names);
 };

@@ -7,11 +7,11 @@ import { AuditFilters } from "@/components/audits/AuditFilters";
 import { AuditReportList } from "@/components/audits/AuditReportList";
 import { NewAuditForm } from "@/components/audits/NewAuditForm";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Calendar as CalendarIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AuditCalendarView from "@/components/audits/AuditCalendarView";
 
 const AuditsPage = () => {
-  const [showNewAuditForm, setShowNewAuditForm] = useState(false);
   const [selectedTab, setSelectedTab] = useState("list");
   
   const { departments } = useDepartments();
@@ -34,18 +34,19 @@ const AuditsPage = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold tracking-tight">Auditorias</h1>
-          <Button onClick={() => {
-            setShowNewAuditForm(!showNewAuditForm);
-            setSelectedTab(showNewAuditForm ? "list" : "new");
-          }}>
+          <Button onClick={() => setSelectedTab(selectedTab === "new" ? "list" : "new")}>
             <PlusCircle className="mr-2 h-4 w-4" />
-            {showNewAuditForm ? "Voltar para Lista" : "Nova Auditoria"}
+            {selectedTab === "new" ? "Voltar para Lista" : "Nova Auditoria"}
           </Button>
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList>
-            <TabsTrigger value="list">Lista de Auditorias</TabsTrigger>
+            <TabsTrigger value="list">Lista</TabsTrigger>
+            <TabsTrigger value="calendar">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              Calendário
+            </TabsTrigger>
             <TabsTrigger value="new">Nova Auditoria</TabsTrigger>
           </TabsList>
           
@@ -64,15 +65,18 @@ const AuditsPage = () => {
             </div>
           </TabsContent>
           
+          <TabsContent value="calendar">
+            <div className="space-y-4">
+              <AuditCalendarView auditReports={auditReports} />
+            </div>
+          </TabsContent>
+          
           <TabsContent value="new">
             <NewAuditForm 
               departments={departments}
-              onSubmit={(data) => createAuditReport.mutate(data)}
+              onSubmit={data => createAuditReport.mutate(data)}
               isSubmitting={createAuditReport.isPending}
-              onCancel={() => {
-                setShowNewAuditForm(false);
-                setSelectedTab("list");
-              }}
+              onCancel={() => setSelectedTab("list")}
             />
           </TabsContent>
         </Tabs>

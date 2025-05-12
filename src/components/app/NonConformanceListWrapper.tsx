@@ -1,13 +1,16 @@
 
 import { useNonConformances } from "@/hooks/useNonConformances";
 import NonConformanceList from "./NonConformanceList";
+import NonConformanceFilters from "./NonConformanceFilters";
 
 const NonConformanceListWrapper = () => {
   const { 
     nonConformances, 
     isLoading, 
     refetch, 
-    deleteNonConformance 
+    deleteNonConformance,
+    filters,
+    setFilters
   } = useNonConformances();
   
   const handleDeleteNonConformance = async (id: string) => {
@@ -16,6 +19,10 @@ const NonConformanceListWrapper = () => {
   
   return (
     <div className="space-y-6">
+      <NonConformanceFilters 
+        filters={filters}
+        onFilterChange={setFilters}
+      />
       <NonConformanceList 
         nonConformances={nonConformances} 
         isLoading={isLoading} 

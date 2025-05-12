@@ -31,7 +31,23 @@ export const useAuditReports = () => {
     }
 
     if (filters.departmentId) {
-      query = query.eq('department_id', filters.departmentId);
+      // Handle multiple departments
+      const departmentIds = filters.departmentId.split(',');
+      query = query.in('department_id', departmentIds);
+    }
+
+    if (filters.status) {
+      // Handle multiple statuses
+      const statuses = filters.status.split(',');
+      query = query.in('status', statuses);
+    }
+
+    if (filters.dateRange?.from) {
+      query = query.gte('audit_date', filters.dateRange.from.toISOString().split('T')[0]);
+    }
+
+    if (filters.dateRange?.to) {
+      query = query.lte('audit_date', filters.dateRange.to.toISOString().split('T')[0]);
     }
 
     if (filters.searchTerm) {

@@ -35,5 +35,7 @@ export interface AuditReportInput {
 export type AuditFilter = {
   year?: string;
   departmentId?: string;
+  status?: string;
   searchTerm?: string;
+  dateRange?: { from: Date | null; to: Date | null } | null;
 };
