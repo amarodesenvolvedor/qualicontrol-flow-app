@@ -50,9 +50,16 @@ export const useNonConformanceFormProvider = () => {
     setIsSubmitting(true);
     
     try {
-      // Create the non-conformance record
+      // Create the non-conformance record with proper typing
       const nonConformanceData = {
-        ...data,
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        department_id: data.department_id,
+        category: data.category,
+        immediate_actions: data.immediate_actions || null,
+        responsible_name: data.responsible_name,
+        auditor_name: data.auditor_name,
         occurrence_date: format(data.occurrence_date, 'yyyy-MM-dd'),
         deadline_date: data.deadline_date ? format(data.deadline_date, 'yyyy-MM-dd') : null,
         effectiveness_verification_date: data.effectiveness_verification_date 
@@ -61,6 +68,7 @@ export const useNonConformanceFormProvider = () => {
         completion_date: data.completion_date 
           ? format(data.completion_date, 'yyyy-MM-dd') 
           : null,
+        status: data.status,
       };
       
       const result = await createNonConformance.mutateAsync(nonConformanceData);
