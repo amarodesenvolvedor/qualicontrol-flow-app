@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useDepartments } from "@/hooks/useDepartments";
+import { useEffect } from "react";
 
 interface CategoryCardProps {
   department: string;
@@ -23,12 +24,13 @@ const CategoryCard = ({
 }: CategoryCardProps) => {
   const { departments } = useDepartments();
   
+  // Categorias traduzidas para português
   const categories = [
-    "quality",
-    "safety",
-    "environment",
-    "maintenance",
-    "operation"
+    { value: "quality", label: "Qualidade" },
+    { value: "safety", label: "Segurança" },
+    { value: "environment", label: "Meio Ambiente" },
+    { value: "maintenance", label: "Manutenção" },
+    { value: "operation", label: "Operação" }
   ];
 
   const statusOptions = [
@@ -37,6 +39,13 @@ const CategoryCard = ({
     { value: 'resolved', label: 'Resolvido' },
     { value: 'closed', label: 'Encerrado' }
   ];
+
+  // Garante que um departamento válido seja selecionado se houverem dados disponíveis
+  useEffect(() => {
+    if (departments.length > 0 && !department) {
+      onDepartmentChange(departments[0].id);
+    }
+  }, [departments, department, onDepartmentChange]);
 
   return (
     <Card>
@@ -68,8 +77,8 @@ const CategoryCard = ({
             </SelectTrigger>
             <SelectContent>
               {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
                 </SelectItem>
               ))}
             </SelectContent>
