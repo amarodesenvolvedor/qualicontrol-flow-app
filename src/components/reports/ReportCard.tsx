@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { jsPDF } from "jspdf";
+import * as XLSX from 'xlsx';
 
 interface ReportCardProps {
   title: string;
@@ -19,33 +21,58 @@ interface ReportCardProps {
 }
 
 export const ReportCard = ({ title, description, type, updatedAt }: ReportCardProps) => {
-  const handleDownload = (format: "pdf" | "excel") => {
+  const handleDownload = async (format: "pdf" | "excel") => {
     toast.success(`Iniciando download: ${title} em formato ${format.toUpperCase()}`);
     
-    // Criar um arquivo fictício para download
-    setTimeout(() => {
-      // Criar um conteúdo de exemplo
-      const content = `Relatório: ${title}\nDescrição: ${description}\nTipo: ${type}\nData: ${updatedAt}`;
-      // Criar um blob com o conteúdo
-      const blob = new Blob(
-        [content], 
-        { type: format === "pdf" ? "application/pdf" : "application/vnd.ms-excel" }
-      );
-      // Criar URL para o blob
-      const url = URL.createObjectURL(blob);
-      // Criar um elemento de âncora para download
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.${format}`;
-      // Anexar, clicar e remover o elemento
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      // Limpar a URL criada
-      URL.revokeObjectURL(url);
+    try {
+      if (format === "pdf") {
+        // Create a PDF document
+        const doc = new jsPDF();
+        
+        // Add title and content
+        doc.setFontSize(18);
+        doc.text(title, 20, 20);
+        
+        doc.setFontSize(12);
+        doc.text(`Tipo: ${type}`, 20, 35);
+        doc.text(`Atualizado em: ${updatedAt}`, 20, 45);
+        
+        doc.setFontSize(14);
+        doc.text("Descrição:", 20, 60);
+        
+        doc.setFontSize(12);
+        const descriptionLines = doc.splitTextToSize(description, 170);
+        doc.text(descriptionLines, 20, 70);
+        
+        // Save the PDF
+        doc.save(`${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+      } else {
+        // Create Excel workbook
+        const wb = XLSX.utils.book_new();
+        
+        // Create worksheet data
+        const wsData = [
+          ["Título", "Descrição", "Tipo", "Atualizado em"],
+          [title, description, type, updatedAt]
+        ];
+        
+        // Create worksheet
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, "Relatório");
+        
+        // Generate Excel file
+        XLSX.writeFile(wb, `${title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+      }
       
       toast.success(`${title} baixado com sucesso!`);
-    }, 1500);
+    } catch (error) {
+      console.error("Error generating file:", error);
+      toast.error("Erro ao gerar arquivo", {
+        description: `Não foi possível gerar o arquivo ${format.toUpperCase()}.`
+      });
+    }
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/tabs";
 import HistoryList from "@/components/app/HistoryList";
 import { toast } from "sonner";
+import { exportNonConformanceToPDF, exportNonConformanceToExcel } from "@/services/exportService";
 
 const NonConformanceDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,30 +63,40 @@ const NonConformanceDetailsPage = () => {
     }
   };
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     if (!nonConformance) return;
     
     toast.success("Iniciando download do PDF...", {
       description: `${nonConformance.code} - ${nonConformance.title}`
     });
     
-    // In a real implementation, this would call an API to generate a PDF
-    setTimeout(() => {
+    try {
+      await exportNonConformanceToPDF(nonConformance);
       toast.success("PDF gerado com sucesso!");
-    }, 1500);
+    } catch (error) {
+      console.error("Error exporting to PDF:", error);
+      toast.error("Erro ao gerar o PDF", {
+        description: "Não foi possível gerar o arquivo PDF."
+      });
+    }
   };
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     if (!nonConformance) return;
     
     toast.success("Iniciando download da planilha Excel...", {
       description: `${nonConformance.code} - ${nonConformance.title}`
     });
     
-    // In a real implementation, this would call an API to generate Excel file
-    setTimeout(() => {
+    try {
+      await exportNonConformanceToExcel(nonConformance);
       toast.success("Planilha Excel gerada com sucesso!");
-    }, 1500);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      toast.error("Erro ao gerar a planilha", {
+        description: "Não foi possível gerar o arquivo Excel."
+      });
+    }
   };
 
   if (isLoading) {
@@ -127,88 +137,90 @@ const NonConformanceDetailsPage = () => {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex justify-between">
-              <span>{nonConformance.code} - {nonConformance.title}</span>
-              <Badge className={getStatusBadgeColor(nonConformance.status)}>
-                {nonConformance.status}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="details">Detalhes</TabsTrigger>
-                <TabsTrigger value="history">Histórico</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="details" className="pt-4">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Departamento</h3>
-                      <p>{nonConformance.department?.name || '-'}</p>
+        {nonConformance && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex justify-between">
+                <span>{nonConformance.code} - {nonConformance.title}</span>
+                <Badge className={getStatusBadgeColor(nonConformance.status)}>
+                  {nonConformance.status}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                  <TabsTrigger value="details">Detalhes</TabsTrigger>
+                  <TabsTrigger value="history">Histórico</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="pt-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">Departamento</h3>
+                        <p>{nonConformance.department?.name || '-'}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">Categoria</h3>
+                        <p>{nonConformance.category}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">Data de Ocorrência</h3>
+                        <p>{format(new Date(nonConformance.occurrence_date), 'dd/MM/yyyy')}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">Data Limite</h3>
+                        <p>{nonConformance.deadline_date ? format(new Date(nonConformance.deadline_date), 'dd/MM/yyyy') : 'Não definida'}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">Auditor</h3>
+                        <p>{nonConformance.auditor_name}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">Responsável</h3>
+                        <p>{nonConformance.responsible_name}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">Local</h3>
+                        <p>{nonConformance.location}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground">Criado em</h3>
+                        <p>{format(new Date(nonConformance.created_at), 'dd/MM/yyyy HH:mm')}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Categoria</h3>
-                      <p>{nonConformance.category}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Data de Ocorrência</h3>
-                      <p>{format(new Date(nonConformance.occurrence_date), 'dd/MM/yyyy')}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Data Limite</h3>
-                      <p>{nonConformance.deadline_date ? format(new Date(nonConformance.deadline_date), 'dd/MM/yyyy') : 'Não definida'}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Auditor</h3>
-                      <p>{nonConformance.auditor_name}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Responsável</h3>
-                      <p>{nonConformance.responsible_name}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Local</h3>
-                      <p>{nonConformance.location}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Criado em</h3>
-                      <p>{format(new Date(nonConformance.created_at), 'dd/MM/yyyy HH:mm')}</p>
-                    </div>
-                  </div>
 
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Descrição</h3>
-                    <p className="mt-1">{nonConformance.description}</p>
-                  </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Descrição</h3>
+                      <p className="mt-1">{nonConformance.description}</p>
+                    </div>
 
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Ações Imediatas Tomadas</h3>
-                    <p className="mt-1">{nonConformance.immediate_actions || 'Nenhuma ação registrada'}</p>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Ações Imediatas Tomadas</h3>
+                      <p className="mt-1">{nonConformance.immediate_actions || 'Nenhuma ação registrada'}</p>
+                    </div>
+                    
+                    <div className="flex gap-4 pt-4">
+                      <Button variant="outline" onClick={exportToPDF}>
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Exportar para PDF
+                      </Button>
+                      <Button variant="outline" onClick={exportToExcel}>
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Exportar para Excel
+                      </Button>
+                    </div>
                   </div>
-                  
-                  <div className="flex gap-4 pt-4">
-                    <Button variant="outline" onClick={exportToPDF}>
-                      <FileDown className="h-4 w-4 mr-2" />
-                      Exportar para PDF
-                    </Button>
-                    <Button variant="outline" onClick={exportToExcel}>
-                      <FileDown className="h-4 w-4 mr-2" />
-                      Exportar para Excel
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="history" className="pt-4">
-                <HistoryList entityType="non_conformance" entityId={id || ''} />
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+                </TabsContent>
+                
+                <TabsContent value="history" className="pt-4">
+                  <HistoryList entityType="non_conformance" entityId={id || ''} />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </Layout>
   );

@@ -32,7 +32,7 @@ const HistoryList = ({ entityType, entityId }: HistoryListProps) => {
         setIsLoading(true);
         // Cast the entityType to the correct type
         const data = await getEntityHistory(entityType as EntityType, entityId);
-        setHistory(data);
+        setHistory(data as HistoryRecord[]);
       } catch (err) {
         setError("Não foi possível carregar o histórico");
         console.error(err);
