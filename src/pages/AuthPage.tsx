@@ -2,16 +2,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/app/Logo";
 import { useUserAuth } from "@/hooks/useUserAuth";
-import { Loader2, AlertCircle, WifiOff, RefreshCcw, Wifi } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+// Import our new components
+import { ConnectivityStatus } from "@/components/auth/ConnectivityStatus";
+import { ConnectivityHelpDialog } from "@/components/auth/ConnectivityHelpDialog";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { SignupForm } from "@/components/auth/SignupForm";
+import { OfflineAlert } from "@/components/auth/OfflineAlert";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -75,27 +78,9 @@ const AuthPage = () => {
         <CardContent>
           {/* Connectivity Status Indicator */}
           <div className="mb-4 flex items-center justify-center">
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm 
-              ${connectivityStatus === 'online' ? 'bg-green-100 text-green-800' : 
-              connectivityStatus === 'offline' ? 'bg-red-100 text-red-800' : 
-              'bg-yellow-100 text-yellow-800'}`}>
-              {connectivityStatus === 'online' ? (
-                <>
-                  <Wifi className="h-3 w-3" />
-                  <span>Conectado</span>
-                </>
-              ) : connectivityStatus === 'offline' ? (
-                <>
-                  <WifiOff className="h-3 w-3" />
-                  <span>Desconectado</span>
-                </>
-              ) : (
-                <>
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  <span>Verificando conexão...</span>
-                </>
-              )}
-            </div>
+            <ConnectivityStatus 
+              status={connectivityStatus} 
+            />
             {connectivityStatus === 'offline' && (
               <Button 
                 variant="ghost" 
@@ -109,29 +94,12 @@ const AuthPage = () => {
           </div>
           
           {connectivityStatus === 'offline' && (
-            <Alert variant="destructive" className="mb-4">
-              <WifiOff className="h-4 w-4 mr-2" />
-              <div className="flex flex-row items-center justify-between w-full">
-                <AlertDescription>
-                  Não foi possível conectar ao servidor. Verifique sua conexão de internet.
-                  {retryAttempt > 0 && ` (Tentativa ${retryAttempt}/${maxRetryAttempts})`}
-                </AlertDescription>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={checkConnectivity}
-                  className="ml-2"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <RefreshCcw className="h-3 w-3 mr-1" />
-                  )}
-                  Tentar novamente
-                </Button>
-              </div>
-            </Alert>
+            <OfflineAlert
+              retryAttempt={retryAttempt}
+              maxRetryAttempts={maxRetryAttempts}
+              isLoading={isLoading}
+              onRetry={checkConnectivity}
+            />
           )}
           
           <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -141,159 +109,40 @@ const AuthPage = () => {
             </TabsList>
             
             <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email-login">Email</Label>
-                  <Input 
-                    id="email-login"
-                    type="email"
-                    placeholder="seu.email@empresa.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading || connectivityStatus === 'offline'}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password-login">Senha</Label>
-                  <Input 
-                    id="password-login"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading || connectivityStatus === 'offline'}
-                    required
-                  />
-                </div>
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading || connectivityStatus === 'offline'}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Autenticando...
-                    </>
-                  ) : connectivityStatus === 'checking' ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verificando conexão...
-                    </>
-                  ) : (
-                    "Entrar"
-                  )}
-                </Button>
-              </form>
+              <LoginForm 
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
+                error={error}
+                isLoading={isLoading}
+                connectivityStatus={connectivityStatus}
+                onSubmit={handleLogin}
+              />
             </TabsContent>
             
             <TabsContent value="cadastro">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email-signup">Email</Label>
-                  <Input 
-                    id="email-signup"
-                    type="email"
-                    placeholder="seu.email@empresa.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading || connectivityStatus === 'offline'}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password-signup">Senha</Label>
-                  <Input 
-                    id="password-signup"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading || connectivityStatus === 'offline'}
-                    required
-                  />
-                </div>
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading || connectivityStatus === 'offline'}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Criando conta...
-                    </>
-                  ) : connectivityStatus === 'checking' ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verificando conexão...
-                    </>
-                  ) : (
-                    "Criar conta"
-                  )}
-                </Button>
-              </form>
+              <SignupForm 
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
+                error={error}
+                isLoading={isLoading}
+                connectivityStatus={connectivityStatus}
+                onSubmit={handleSignUp}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
       
       {/* Connectivity Help Dialog */}
-      <Dialog 
+      <ConnectivityHelpDialog 
         open={showConnectivityHelp} 
         onOpenChange={setShowConnectivityHelp}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Problemas de Conexão</DialogTitle>
-            <DialogDescription>
-              Não foi possível conectar ao servidor. Aqui estão algumas dicas para resolver o problema:
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <h4 className="font-medium">1. Verifique sua conexão com a internet</h4>
-              <p className="text-sm text-muted-foreground">
-                Certifique-se de que seu dispositivo está conectado à internet. Tente acessar outros sites para confirmar se sua conexão está funcionando.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">2. Verifique seu firewall ou VPN</h4>
-              <p className="text-sm text-muted-foreground">
-                Se você está usando um firewall ou VPN, eles podem estar bloqueando a conexão. Tente desativá-los temporariamente.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">3. Limpe o cache do navegador</h4>
-              <p className="text-sm text-muted-foreground">
-                Problemas de cache podem interferir na autenticação. Tente limpar o cache do seu navegador.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">4. Tente outro navegador</h4>
-              <p className="text-sm text-muted-foreground">
-                Se o problema persistir, tente acessar o sistema usando outro navegador.
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => checkConnectivity()}>
-              Tentar novamente
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onRetry={checkConnectivity}
+      />
     </div>
   );
 };

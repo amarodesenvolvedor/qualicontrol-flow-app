@@ -22,8 +22,8 @@ export const supabase = createClient<Database>(
       flowType: 'implicit',
     },
     global: {
-      fetch: (...args) => {
-        return fetch(...args);
+      fetch: function customFetch(url, options) {
+        return fetch(url, options);
       },
     },
     // Adding retry strategy for network issues
