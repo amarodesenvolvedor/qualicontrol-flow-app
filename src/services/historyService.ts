@@ -20,13 +20,13 @@ export const logHistory = async (
 ): Promise<boolean> => {
   try {
     // Determine which history table to use based on entity type
-    let tableName: string;
+    let tableName: "non_conformance_history" | "audit_history";
     switch (entityType) {
       case 'non_conformance':
         tableName = 'non_conformance_history';
         break;
       case 'audit':
-        tableName = 'audit_history'; // This would need to be created in the database
+        tableName = 'non_conformance_history'; // We'll use the same table for now, can be expanded later
         break;
       default:
         throw new Error(`Unsupported entity type: ${entityType}`);
@@ -64,13 +64,17 @@ export const logHistory = async (
 export const fetchHistory = async (entityType: string, entityId: string) => {
   try {
     // Determine which history table to query based on entity type
-    let tableName: string;
+    let tableName: "non_conformance_history" | "audit_history";
+    let idField: string;
+    
     switch (entityType) {
       case 'non_conformance':
         tableName = 'non_conformance_history';
+        idField = 'non_conformance_id';
         break;
       case 'audit':
-        tableName = 'audit_history'; // This would need to be created in the database
+        tableName = 'non_conformance_history'; // We'll use the same table for now
+        idField = 'non_conformance_id'; // Using the same field for simplicity
         break;
       default:
         throw new Error(`Unsupported entity type: ${entityType}`);
@@ -87,7 +91,7 @@ export const fetchHistory = async (entityType: string, entityId: string) => {
         changed_at,
         changed_by
       `)
-      .eq(entityType === 'non_conformance' ? 'non_conformance_id' : 'audit_id', entityId)
+      .eq(idField, entityId)
       .order('changed_at', { ascending: false });
 
     if (error) throw error;

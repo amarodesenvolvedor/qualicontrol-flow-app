@@ -29,12 +29,12 @@ export const NotificationWrapper = ({ children }: NotificationWrapperProps) => {
         { event: 'UPDATE', schema: 'public', table: 'non_conformances' },
         (payload) => {
           const updatedNonConformance = payload.new as NonConformance;
-          const oldData = payload.old as NonConformance;
+          const oldData = payload.old as Partial<NonConformance>;
           
           // Check if status changed
           if (updatedNonConformance.status !== oldData.status) {
             toast.info(`Status atualizado: ${updatedNonConformance.code}`, {
-              description: `Status alterado de ${oldData.status} para ${updatedNonConformance.status}`,
+              description: `Status alterado de ${oldData.status || 'desconhecido'} para ${updatedNonConformance.status}`,
               duration: 5000,
             });
           }

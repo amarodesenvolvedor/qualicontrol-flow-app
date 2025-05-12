@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileSpreadsheet, FileText, Download, Calendar, ArrowUpDown } from "lucide-react";
+import { FileSpreadsheet, FileText, Download, ArrowUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
@@ -33,7 +33,7 @@ import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ExportPage = () => {
@@ -154,7 +154,7 @@ const ExportPage = () => {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
+                      <CalendarComponent
                         mode="single"
                         selected={date}
                         onSelect={setDate}
@@ -251,7 +251,7 @@ const ExportPage = () => {
                 <ExportItem 
                   title="Cronograma de Auditorias" 
                   description={`Planejamento de auditorias e seus respectivos resultados (${auditReports.length} registros)`}
-                  icon={<Calendar className="h-6 w-6" />}
+                  icon={<CalendarIcon className="h-6 w-6" />}
                   tag="Agenda"
                   onExport={() => handleExport("Cronograma de Auditorias")}
                 />

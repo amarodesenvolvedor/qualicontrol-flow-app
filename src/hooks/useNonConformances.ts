@@ -9,7 +9,7 @@ import {
   deleteNonConformance as deleteNC,
   uploadFilesToStorage
 } from '@/services/nonConformanceService';
-import { NonConformanceFilter, NonConformanceCreateData, NonConformanceUpdateData } from '@/types/nonConformance';
+import { NonConformanceFilter, NonConformanceCreateData, NonConformanceUpdateData, NonConformance } from '@/types/nonConformance';
 import { sendNonConformanceNotification } from '@/services/notificationService';
 import { logHistory } from '@/services/historyService';
 
@@ -88,11 +88,11 @@ export const useNonConformances = () => {
   const updateNonConformance = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: NonConformanceUpdateData }) => {
       // Fetch the current state before updating
-      const { data: currentData } = await queryClient.fetchQuery({
+      const currentData = await queryClient.fetchQuery({
         queryKey: ['nonConformance', id],
         queryFn: async () => {
           const response = await fetchNonConformances({ searchTerm: id });
-          return response.find(nc => nc.id === id) || null;
+          return response.find((nc: NonConformance) => nc.id === id) || null;
         }
       });
       
@@ -102,12 +102,12 @@ export const useNonConformances = () => {
       if (currentData) {
         Object.keys(data).forEach(key => {
           const keyTyped = key as keyof typeof data;
-          if (data[keyTyped] !== currentData[keyTyped]) {
+          if (data[keyTyped] !== currentData[keyTyped as keyof typeof currentData]) {
             logHistory(
               'non_conformance',
               id,
               key,
-              currentData[keyTyped],
+              currentData[keyTyped as keyof typeof currentData],
               data[keyTyped]
             );
           }
