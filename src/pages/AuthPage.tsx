@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,25 +8,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/app/Logo";
 import { useUserAuth } from "@/hooks/useUserAuth";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, WifiOff, RefreshCcw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { signIn, signUp, isLoading, error } = useUserAuth();
+  const { signIn, signUp, isLoading, error, checkSupabaseConnectivity } = useUserAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState("login");
+  const [connectivityStatus, setConnectivityStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+  const [retryCount, setRetryCount] = useState(0);
   
   useEffect(() => {
     // Redirecionar para a página principal se já estiver autenticado
     if (isAuthenticated) {
       navigate("/");
     }
+    
+    // Verificar a conectividade
+    checkConnectivity();
   }, [isAuthenticated, navigate]);
+  
+  const checkConnectivity = async () => {
+    setConnectivityStatus('checking');
+    const isConnected = await checkSupabaseConnectivity();
+    setConnectivityStatus(isConnected ? 'online' : 'offline');
+  };
+  
+  const handleRetryConnection = () => {
+    setRetryCount(prev => prev + 1);
+    checkConnectivity();
+  };
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +64,26 @@ const AuthPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {connectivityStatus === 'offline' && (
+            <Alert variant="destructive" className="mb-4">
+              <WifiOff className="h-4 w-4 mr-2" />
+              <div className="flex flex-row items-center justify-between w-full">
+                <AlertDescription>
+                  Não foi possível conectar ao servidor. Verifique sua conexão de internet.
+                </AlertDescription>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleRetryConnection}
+                  className="ml-2"
+                >
+                  <RefreshCcw className="h-3 w-3 mr-1" />
+                  Tentar novamente
+                </Button>
+              </div>
+            </Alert>
+          )}
+          
           <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Login</TabsTrigger>
@@ -65,7 +100,7 @@ const AuthPage = () => {
                     placeholder="seu.email@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || connectivityStatus === 'offline'}
                     required
                   />
                 </div>
@@ -76,7 +111,7 @@ const AuthPage = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || connectivityStatus === 'offline'}
                     required
                   />
                 </div>
@@ -89,12 +124,17 @@ const AuthPage = () => {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={isLoading}
+                  disabled={isLoading || connectivityStatus === 'offline'}
                 >
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Autenticando...
+                    </>
+                  ) : connectivityStatus === 'checking' ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verificando conexão...
                     </>
                   ) : (
                     "Entrar"
@@ -113,7 +153,7 @@ const AuthPage = () => {
                     placeholder="seu.email@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || connectivityStatus === 'offline'}
                     required
                   />
                 </div>
@@ -124,7 +164,7 @@ const AuthPage = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
+                    disabled={isLoading || connectivityStatus === 'offline'}
                     required
                   />
                 </div>
@@ -137,12 +177,17 @@ const AuthPage = () => {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={isLoading}
+                  disabled={isLoading || connectivityStatus === 'offline'}
                 >
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Criando conta...
+                    </>
+                  ) : connectivityStatus === 'checking' ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verificando conexão...
                     </>
                   ) : (
                     "Criar conta"

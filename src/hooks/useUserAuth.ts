@@ -11,48 +11,53 @@ export const useUserAuth = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
+  const attemptSupabaseConnection = async <T,>(operation: () => Promise<T>): Promise<T> => {
+    try {
+      // Timeout para evitar que o usuário fique esperando muito tempo
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Tempo de conexão excedido. Verifique sua conexão de internet.')), 10000);
+      });
+      
+      return await Promise.race([
+        operation(),
+        timeoutPromise
+      ]) as T;
+    } catch (err: any) {
+      if (err.message && (err.message.includes('fetch') || err.message.includes('Failed to fetch') || err.message.includes('Network') || err.message.includes('Tempo de conexão'))) {
+        throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.');
+      }
+      throw err;
+    }
+  };
+  
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // Verifica a conexão com o Supabase antes de tentar fazer login
-      try {
-        // Timeout para evitar que o usuário fique esperando muito tempo
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Tempo de conexão excedido. Verifique sua conexão de internet.')), 10000);
-        });
-        
-        const { data, error } = await Promise.race([
-          supabase.auth.signInWithPassword({
-            email,
-            password
-          }),
-          timeoutPromise
-        ]) as { data: any; error: any };
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Login realizado",
-          description: "Você foi autenticado com sucesso."
-        });
-        
-        navigate("/");
-        return data;
-      } catch (err: any) {
-        if (err.message && err.message.includes('fetch')) {
-          throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.');
-        }
-        throw err;
-      }
+      const { data, error } = await attemptSupabaseConnection(() => 
+        supabase.auth.signInWithPassword({
+          email,
+          password
+        })
+      );
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Login realizado",
+        description: "Você foi autenticado com sucesso."
+      });
+      
+      navigate("/");
+      return data;
     } catch (error: any) {
       console.error("Erro ao fazer login:", error);
       
       // Mensagens de erro mais amigáveis
       let errorMessage = "Verifique suas credenciais e tente novamente.";
       
-      if (error.message.includes('conexão') || error.message.includes('fetch')) {
+      if (error.message.includes('conexão') || error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('Network')) {
         errorMessage = "Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.";
       } else if (error.message.includes('Invalid login credentials')) {
         errorMessage = "Email ou senha incorretos.";
@@ -79,42 +84,30 @@ export const useUserAuth = () => {
       setIsLoading(true);
       setError(null);
       
-      try {
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Tempo de conexão excedido. Verifique sua conexão de internet.')), 10000);
-        });
-        
-        const { data, error } = await Promise.race([
-          supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              emailRedirectTo: window.location.origin
-            }
-          }),
-          timeoutPromise
-        ]) as { data: any; error: any };
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Cadastro realizado",
-          description: "Sua conta foi criada com sucesso. Verifique seu e-mail para confirmar."
-        });
-        
-        return data;
-      } catch (err: any) {
-        if (err.message && err.message.includes('fetch')) {
-          throw new Error('Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.');
-        }
-        throw err;
-      }
+      const { data, error } = await attemptSupabaseConnection(() => 
+        supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.origin
+          }
+        })
+      );
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Cadastro realizado",
+        description: "Sua conta foi criada com sucesso. Verifique seu e-mail para confirmar."
+      });
+      
+      return data;
     } catch (error: any) {
       console.error("Erro ao criar conta:", error);
       
       let errorMessage = "Ocorreu um erro durante o cadastro.";
       
-      if (error.message.includes('conexão') || error.message.includes('fetch')) {
+      if (error.message.includes('conexão') || error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('Network')) {
         errorMessage = "Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.";
       } else if (error.message.includes('User already registered')) {
         errorMessage = "Este email já está cadastrado.";
@@ -137,20 +130,43 @@ export const useUserAuth = () => {
   const signOut = async () => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signOut();
+      setError(null);
+      
+      const { error } = await attemptSupabaseConnection(() => 
+        supabase.auth.signOut()
+      );
       
       if (error) throw error;
       
       navigate("/auth");
     } catch (error: any) {
       console.error("Erro ao fazer logout:", error);
+      
+      let errorMessage = "Não foi possível finalizar sua sessão.";
+      
+      if (error.message.includes('conexão') || error.message.includes('fetch') || error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+        errorMessage = "Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.";
+      }
+      
       toast({
         title: "Erro ao fazer logout",
-        description: error.message || "Não foi possível finalizar sua sessão.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const checkSupabaseConnectivity = async () => {
+    try {
+      setError(null);
+      await attemptSupabaseConnection(() => supabase.auth.getSession());
+      return true;
+    } catch (error: any) {
+      console.error("Erro ao verificar conectividade:", error);
+      setError("Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.");
+      return false;
     }
   };
   
@@ -160,6 +176,7 @@ export const useUserAuth = () => {
     signOut,
     isLoading,
     error,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    checkSupabaseConnectivity
   };
 };
