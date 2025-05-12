@@ -8,19 +8,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/app/Logo";
 import { useUserAuth } from "@/hooks/useUserAuth";
-import { Loader2, AlertCircle, WifiOff, RefreshCcw } from "lucide-react";
+import { Loader2, AlertCircle, WifiOff, RefreshCcw, Wifi } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { signIn, signUp, isLoading, error, checkSupabaseConnectivity } = useUserAuth();
+  const { 
+    signIn, 
+    signUp, 
+    isLoading, 
+    error, 
+    checkSupabaseConnectivity, 
+    connectivityStatus, 
+    retryAttempt,
+    maxRetryAttempts
+  } = useUserAuth();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState("login");
-  const [connectivityStatus, setConnectivityStatus] = useState<'checking' | 'online' | 'offline'>('checking');
-  const [retryCount, setRetryCount] = useState(0);
+  const [showConnectivityHelp, setShowConnectivityHelp] = useState(false);
   
   useEffect(() => {
     // Redirecionar para a página principal se já estiver autenticado
@@ -29,18 +39,17 @@ const AuthPage = () => {
     }
     
     // Verificar a conectividade
-    checkConnectivity();
-  }, [isAuthenticated, navigate]);
+    const intervalId = setInterval(() => {
+      if (connectivityStatus === 'offline') {
+        checkConnectivity();
+      }
+    }, 30000); // Check every 30 seconds if offline
+    
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated, navigate, connectivityStatus]);
   
   const checkConnectivity = async () => {
-    setConnectivityStatus('checking');
-    const isConnected = await checkSupabaseConnectivity();
-    setConnectivityStatus(isConnected ? 'online' : 'offline');
-  };
-  
-  const handleRetryConnection = () => {
-    setRetryCount(prev => prev + 1);
-    checkConnectivity();
+    await checkSupabaseConnectivity();
   };
   
   const handleLogin = async (e: React.FormEvent) => {
@@ -64,20 +73,61 @@ const AuthPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Connectivity Status Indicator */}
+          <div className="mb-4 flex items-center justify-center">
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm 
+              ${connectivityStatus === 'online' ? 'bg-green-100 text-green-800' : 
+              connectivityStatus === 'offline' ? 'bg-red-100 text-red-800' : 
+              'bg-yellow-100 text-yellow-800'}`}>
+              {connectivityStatus === 'online' ? (
+                <>
+                  <Wifi className="h-3 w-3" />
+                  <span>Conectado</span>
+                </>
+              ) : connectivityStatus === 'offline' ? (
+                <>
+                  <WifiOff className="h-3 w-3" />
+                  <span>Desconectado</span>
+                </>
+              ) : (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Verificando conexão...</span>
+                </>
+              )}
+            </div>
+            {connectivityStatus === 'offline' && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="ml-1 h-7 px-2"
+                onClick={() => setShowConnectivityHelp(true)}
+              >
+                <AlertCircle className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+          
           {connectivityStatus === 'offline' && (
             <Alert variant="destructive" className="mb-4">
               <WifiOff className="h-4 w-4 mr-2" />
               <div className="flex flex-row items-center justify-between w-full">
                 <AlertDescription>
                   Não foi possível conectar ao servidor. Verifique sua conexão de internet.
+                  {retryAttempt > 0 && ` (Tentativa ${retryAttempt}/${maxRetryAttempts})`}
                 </AlertDescription>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={handleRetryConnection}
+                  onClick={checkConnectivity}
                   className="ml-2"
+                  disabled={isLoading}
                 >
-                  <RefreshCcw className="h-3 w-3 mr-1" />
+                  {isLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <RefreshCcw className="h-3 w-3 mr-1" />
+                  )}
                   Tentar novamente
                 </Button>
               </div>
@@ -198,6 +248,52 @@ const AuthPage = () => {
           </Tabs>
         </CardContent>
       </Card>
+      
+      {/* Connectivity Help Dialog */}
+      <Dialog 
+        open={showConnectivityHelp} 
+        onOpenChange={setShowConnectivityHelp}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Problemas de Conexão</DialogTitle>
+            <DialogDescription>
+              Não foi possível conectar ao servidor. Aqui estão algumas dicas para resolver o problema:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <h4 className="font-medium">1. Verifique sua conexão com a internet</h4>
+              <p className="text-sm text-muted-foreground">
+                Certifique-se de que seu dispositivo está conectado à internet. Tente acessar outros sites para confirmar se sua conexão está funcionando.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-medium">2. Verifique seu firewall ou VPN</h4>
+              <p className="text-sm text-muted-foreground">
+                Se você está usando um firewall ou VPN, eles podem estar bloqueando a conexão. Tente desativá-los temporariamente.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-medium">3. Limpe o cache do navegador</h4>
+              <p className="text-sm text-muted-foreground">
+                Problemas de cache podem interferir na autenticação. Tente limpar o cache do seu navegador.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-medium">4. Tente outro navegador</h4>
+              <p className="text-sm text-muted-foreground">
+                Se o problema persistir, tente acessar o sistema usando outro navegador.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => checkConnectivity()}>
+              Tentar novamente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
