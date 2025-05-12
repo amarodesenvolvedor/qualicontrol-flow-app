@@ -33,7 +33,7 @@ export const logHistory = async (
       : String(newValue);
 
     // Get the correct table name based on entity type
-    const tableName = `${entityType}_history`;
+    const tableName = getHistoryTableName(entityType);
 
     const { data, error } = await supabase
       .from(tableName)
@@ -58,6 +58,20 @@ export const logHistory = async (
   }
 };
 
+// Helper function to get the correct table name
+const getHistoryTableName = (entityType: EntityType): string => {
+  switch (entityType) {
+    case 'non_conformance':
+      return 'non_conformance_history';
+    case 'audit':
+      return 'audit_history';
+    case 'report':
+      return 'report_history';
+    default:
+      return 'non_conformance_history';
+  }
+};
+
 /**
  * Gets the history for a specific entity
  * @param entityType The type of entity
@@ -67,7 +81,7 @@ export const logHistory = async (
 export const getEntityHistory = async (entityType: EntityType, entityId: string) => {
   try {
     // Get the correct table name based on entity type
-    const tableName = `${entityType}_history`;
+    const tableName = getHistoryTableName(entityType);
     
     const { data, error } = await supabase
       .from(tableName)

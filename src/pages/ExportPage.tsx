@@ -1,40 +1,13 @@
+
 import Layout from "@/components/app/Layout";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileSpreadsheet, FileText, Download, ArrowUpDown } from "lucide-react";
-import { CalendarIcon as Calendar } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { useAuditReports } from "@/hooks/useAuditReports";
 import { Toaster } from "sonner";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Checkbox } from "@/components/ui/checkbox";
+import { ExportOptions } from "@/components/exports/ExportOptions";
+import { AvailableReports } from "@/components/exports/AvailableReports";
+import { getReportData, generateExcelReport, generatePDFReport } from "@/components/exports/exportUtils";
 import { jsPDF } from "jspdf";
 import * as XLSX from 'xlsx';
 
@@ -61,7 +34,7 @@ const ExportPage = () => {
 
     try {
       // Get report data based on type
-      const reportData = getReportData(reportType);
+      const reportData = getReportData(reportType, nonConformances, auditReports);
       
       if (exportFormat === 'excel') {
         // Generate Excel file
@@ -78,160 +51,6 @@ const ExportPage = () => {
         description: "Não foi possível gerar o relatório solicitado."
       });
     }
-  };
-  
-  const getReportData = (reportType: string) => {
-    switch (reportType) {
-      case "Não Conformidades Completo":
-        return nonConformances.map(nc => ({
-          code: nc.code,
-          title: nc.title,
-          status: nc.status,
-          department: nc.department?.name,
-          category: nc.category,
-          responsible: nc.responsible_name,
-          occurrence_date: format(new Date(nc.occurrence_date), "dd/MM/yyyy"),
-          deadline_date: nc.deadline_date ? format(new Date(nc.deadline_date), "dd/MM/yyyy") : "N/A"
-        }));
-      case "Ações Corretivas":
-        return nonConformances
-          .filter(nc => nc.immediate_actions)
-          .map(nc => ({
-            code: nc.code, 
-            title: nc.title,
-            actions: nc.immediate_actions,
-            status: nc.status,
-            responsible: nc.responsible_name
-          }));
-      case "Indicadores de Desempenho":
-        // Sample KPI data
-        const pendingCount = nonConformances.filter(nc => nc.status === 'pending').length;
-        const inProgressCount = nonConformances.filter(nc => nc.status === 'in-progress').length;
-        const resolvedCount = nonConformances.filter(nc => nc.status === 'resolved').length;
-        const totalCount = nonConformances.length;
-        
-        return [
-          { indicator: "Não Conformidades em Aberto", value: pendingCount, percentage: totalCount ? (pendingCount / totalCount * 100).toFixed(1) + "%" : "0%" },
-          { indicator: "Não Conformidades em Progresso", value: inProgressCount, percentage: totalCount ? (inProgressCount / totalCount * 100).toFixed(1) + "%" : "0%" },
-          { indicator: "Não Conformidades Resolvidas", value: resolvedCount, percentage: totalCount ? (resolvedCount / totalCount * 100).toFixed(1) + "%" : "0%" },
-          { indicator: "Total de Não Conformidades", value: totalCount, percentage: "100%" },
-        ];
-      case "Cronograma de Auditorias":
-        return auditReports.map(audit => ({
-          title: audit.title,
-          status: audit.status,
-          department: "Departamento", // Replace with actual department name if available
-          audit_date: format(new Date(audit.audit_date), "dd/MM/yyyy"),
-          file_name: audit.file_name
-        }));
-      default:
-        return [];
-    }
-  };
-  
-  const generateExcelReport = async (reportType: string, data: any[]) => {
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    
-    // Get headers from first data item
-    const headers = data.length > 0 ? Object.keys(data[0]) : [];
-    
-    // Convert data to array format for excel
-    const wsData = [
-      headers,
-      ...data.map(item => headers.map(header => item[header] || ""))
-    ];
-    
-    // Create worksheet
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, reportType.slice(0, 30));
-    
-    // Generate Excel file
-    XLSX.writeFile(wb, `${reportType.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
-  };
-  
-  const generatePDFReport = async (reportType: string, data: any[]) => {
-    // Create PDF document
-    const doc = new jsPDF();
-    const lineHeight = 10;
-    let y = 20;
-    
-    // Add title
-    doc.setFontSize(18);
-    doc.text(reportType, 20, y);
-    y += lineHeight * 2;
-    
-    // Add date info
-    doc.setFontSize(12);
-    doc.text(`Data de geração: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, 20, y);
-    y += lineHeight * 1.5;
-    
-    // If data exists
-    if (data.length > 0) {
-      // Get headers
-      const headers = Object.keys(data[0]);
-      
-      // Determine if we need to create a table or just list the items
-      if (headers.length <= 2 || data.length <= 5) {
-        // Simple listing format for small datasets
-        data.forEach((item, index) => {
-          doc.setFontSize(14);
-          doc.text(`Item ${index + 1}`, 20, y);
-          y += lineHeight;
-          
-          doc.setFontSize(12);
-          Object.entries(item).forEach(([key, value]) => {
-            const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
-            doc.text(`${formattedKey}: ${value}`, 30, y);
-            y += lineHeight;
-          });
-          
-          y += lineHeight / 2;
-          
-          // Add new page if needed
-          if (y > 280) {
-            doc.addPage();
-            y = 20;
-          }
-        });
-      } else {
-        // Create summary for larger datasets
-        doc.setFontSize(14);
-        doc.text(`Resumo (${data.length} registros)`, 20, y);
-        y += lineHeight * 1.5;
-        
-        // List first few items as samples
-        const sampleSize = Math.min(3, data.length);
-        for (let i = 0; i < sampleSize; i++) {
-          const item = data[i];
-          doc.setFontSize(12);
-          
-          // Get the first 2-3 key properties to display
-          const keysToShow = headers.slice(0, 3);
-          const itemText = keysToShow.map(key => `${key}: ${item[key]}`).join(', ');
-          doc.text(`- ${itemText}`, 30, y);
-          y += lineHeight;
-          
-          if (y > 280) {
-            doc.addPage();
-            y = 20;
-          }
-        }
-        
-        if (data.length > sampleSize) {
-          y += lineHeight / 2;
-          doc.text(`... e mais ${data.length - sampleSize} registros`, 30, y);
-        }
-      }
-    } else {
-      doc.setFontSize(12);
-      doc.text("Nenhum dado disponível para este relatório", 20, y);
-    }
-    
-    // Save the PDF
-    doc.save(`${reportType.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const handleFieldToggle = (field: keyof typeof includeFields) => {
@@ -251,225 +70,30 @@ const ExportPage = () => {
 
         <div className="grid gap-6 md:grid-cols-3">
           <div className="space-y-6 md:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Opções de Exportação</CardTitle>
-                <CardDescription>Configure as opções para exportar seus dados</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Formato</h3>
-                  <Tabs value={exportFormat} onValueChange={setExportFormat}>
-                    <TabsList className="grid grid-cols-2">
-                      <TabsTrigger value="excel">Excel</TabsTrigger>
-                      <TabsTrigger value="pdf">PDF</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Período de Dados</h3>
-                  <Tabs value={dateRange} onValueChange={setDateRange}>
-                    <TabsList className="grid grid-cols-3">
-                      <TabsTrigger value="month">Mês</TabsTrigger>
-                      <TabsTrigger value="quarter">Trimestre</TabsTrigger>
-                      <TabsTrigger value="year">Ano</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Ano de Referência</h3>
-                  <Select value={year} onValueChange={setYear}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o ano" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="2025">2025</SelectItem>
-                      <SelectItem value="2024">2024</SelectItem>
-                      <SelectItem value="2023">2023</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">Data Específica</h3>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PP", { locale: ptBR }) : "Selecionar data"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                {exportFormat === 'excel' && (
-                  <>
-                    <Separator />
-                    <div className="space-y-2">
-                      <h3 className="text-sm font-medium">Campos a incluir</h3>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="status" 
-                            checked={includeFields.status}
-                            onCheckedChange={() => handleFieldToggle('status')}
-                          />
-                          <label htmlFor="status" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Status</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="description" 
-                            checked={includeFields.description}
-                            onCheckedChange={() => handleFieldToggle('description')}
-                          />
-                          <label htmlFor="description" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Descrição</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="responsible" 
-                            checked={includeFields.responsible}
-                            onCheckedChange={() => handleFieldToggle('responsible')}
-                          />
-                          <label htmlFor="responsible" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Responsável</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="deadline" 
-                            checked={includeFields.deadline}
-                            onCheckedChange={() => handleFieldToggle('deadline')}
-                          />
-                          <label htmlFor="deadline" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Prazo</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="category" 
-                            checked={includeFields.category}
-                            onCheckedChange={() => handleFieldToggle('category')}
-                          />
-                          <label htmlFor="category" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Categoria</label>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+            <ExportOptions
+              exportFormat={exportFormat}
+              setExportFormat={setExportFormat}
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+              year={year}
+              setYear={setYear}
+              date={date}
+              setDate={setDate}
+              includeFields={includeFields}
+              handleFieldToggle={handleFieldToggle}
+            />
           </div>
 
           <div className="space-y-6 md:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Relatórios Disponíveis</CardTitle>
-                <CardDescription>Selecione o relatório que deseja exportar</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ExportItem 
-                  title="Não Conformidades Completo" 
-                  description={`Relatório completo com todos os dados de não conformidades (${nonConformances.length} registros)`}
-                  icon={<FileSpreadsheet className="h-6 w-6" />}
-                  tag="Completo"
-                  onExport={() => handleExport("Não Conformidades Completo")}
-                />
-                
-                <ExportItem 
-                  title="Ações Corretivas" 
-                  description="Listagem de todas as ações corretivas e seus status"
-                  icon={<FileText className="h-6 w-6" />}
-                  tag="Detalhado"
-                  onExport={() => handleExport("Ações Corretivas")}
-                />
-                
-                <ExportItem 
-                  title="Indicadores de Desempenho" 
-                  description="KPIs e métricas de desempenho relacionadas às não conformidades"
-                  icon={<ArrowUpDown className="h-6 w-6" />}
-                  tag="Indicadores"
-                  onExport={() => handleExport("Indicadores de Desempenho")}
-                />
-                
-                <ExportItem 
-                  title="Cronograma de Auditorias" 
-                  description={`Planejamento de auditorias e seus respectivos resultados (${auditReports.length} registros)`}
-                  icon={<Calendar className="h-6 w-6" />}
-                  tag="Agenda"
-                  onExport={() => handleExport("Cronograma de Auditorias")}
-                />
-              </CardContent>
-              <CardFooter>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button className="w-full">
-                      <Download className="mr-2 h-4 w-4" />
-                      Exportar Todos os Relatórios
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Exportar todos os relatórios?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta operação irá exportar todos os relatórios disponíveis no formato selecionado. 
-                        Pode levar algum tempo para completar.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleExport("Todos os Relatórios")}>
-                        Exportar
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </CardFooter>
-            </Card>
+            <AvailableReports
+              nonConformancesCount={nonConformances.length}
+              auditReportsCount={auditReports.length}
+              handleExport={handleExport}
+            />
           </div>
         </div>
       </div>
     </Layout>
-  );
-};
-
-interface ExportItemProps {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  tag: string;
-  onExport: () => void;
-}
-
-const ExportItem = ({ title, description, icon, tag, onExport }: ExportItemProps) => {
-  return (
-    <div className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent/50">
-      <div className="flex items-center gap-4">
-        <div className="rounded-md bg-primary/10 p-2 text-primary">
-          {icon}
-        </div>
-        <div>
-          <h3 className="font-medium">{title}</h3>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <Badge variant="outline">{tag}</Badge>
-        <Button variant="ghost" size="icon" onClick={onExport}>
-          <Download className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
   );
 };
 
