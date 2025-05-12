@@ -40,6 +40,10 @@ const CategoryCard = ({
     { value: 'closed', label: 'Encerrado' }
   ];
 
+  // Separar departamentos por tipo
+  const corporateDepartments = departments.filter(dept => dept.group_type === "corporate");
+  const regionalDepartments = departments.filter(dept => dept.group_type === "regional");
+
   // Garante que um departamento válido seja selecionado se houverem dados disponíveis
   useEffect(() => {
     if (departments.length > 0 && !department) {
@@ -60,11 +64,31 @@ const CategoryCard = ({
               <SelectValue placeholder="Selecione um departamento" />
             </SelectTrigger>
             <SelectContent>
-              {departments.map((dept) => (
-                <SelectItem key={dept.id} value={dept.id}>
-                  {dept.name}
-                </SelectItem>
-              ))}
+              {corporateDepartments.length > 0 && (
+                <>
+                  <SelectItem value="corporate-group" disabled className="font-medium">
+                    Corporativo
+                  </SelectItem>
+                  {corporateDepartments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </>
+              )}
+              
+              {regionalDepartments.length > 0 && (
+                <>
+                  <SelectItem value="regional-group" disabled className="font-medium mt-2">
+                    Regional
+                  </SelectItem>
+                  {regionalDepartments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>
