@@ -9,7 +9,7 @@ import EditFormActions from "./EditFormActions";
 import { useNonConformanceEdit } from "@/hooks/useNonConformanceEdit";
 
 const EditForm = () => {
-  const { form, onSubmit, handleCancel } = useNonConformanceEdit();
+  const { form, onSubmit, handleCancel, isSubmitting } = useNonConformanceEdit();
   const { departments } = useDepartments();
   
   const categories = [
@@ -38,19 +38,25 @@ const EditForm = () => {
         <FormFieldGroup>
           <TextField 
             control={form.control} 
+            name="code" 
+            label="Código" 
+            required
+          />
+          <TextField 
+            control={form.control} 
             name="title" 
             label="Título" 
             required
           />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <TextField 
             control={form.control} 
             name="location" 
             label="Local" 
             required
           />
-        </FormFieldGroup>
-
-        <FormFieldGroup>
           <SelectField 
             control={form.control} 
             name="department_id" 
@@ -58,6 +64,9 @@ const EditForm = () => {
             options={departmentOptions}
             required
           />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <SelectField 
             control={form.control} 
             name="category" 
@@ -65,9 +74,6 @@ const EditForm = () => {
             options={categories}
             required
           />
-        </FormFieldGroup>
-
-        <FormFieldGroup>
           <SelectField 
             control={form.control} 
             name="status" 
@@ -75,25 +81,34 @@ const EditForm = () => {
             options={statusOptions}
             required
           />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <DateField 
             control={form.control} 
             name="occurrence_date" 
             label="Data de Ocorrência" 
             required
           />
-        </FormFieldGroup>
-
-        <FormFieldGroup>
           <DateField 
             control={form.control} 
             name="deadline_date" 
             label="Data Limite"
             placeholder="Selecione uma data (opcional)"
           />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <DateField 
             control={form.control}
             name="effectiveness_verification_date"
             label="Data de Verificação da Eficácia" 
+            placeholder="Selecione uma data (opcional)"
+          />
+          <DateField 
+            control={form.control}
+            name="completion_date"
+            label="Data de Conclusão" 
             placeholder="Selecione uma data (opcional)"
           />
         </FormFieldGroup>
@@ -129,15 +144,8 @@ const EditForm = () => {
           multiline
           rows={4}
         />
-        
-        <DateField 
-          control={form.control}
-          name="completion_date"
-          label="Data de Conclusão" 
-          placeholder="Selecione uma data (opcional)"
-        />
 
-        <EditFormActions onCancel={handleCancel} />
+        <EditFormActions onCancel={handleCancel} isSubmitting={isSubmitting} />
       </form>
     </Form>
   );

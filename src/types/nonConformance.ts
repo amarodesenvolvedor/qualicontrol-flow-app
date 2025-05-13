@@ -3,7 +3,7 @@ import type { Department } from '@/hooks/useDepartments';
 
 export type NonConformance = {
   id: string;
-  code: string;
+  code: string | null;
   title: string;
   description: string | null;
   location: string | null;
@@ -23,7 +23,7 @@ export type NonConformance = {
   updated_at?: string;
 };
 
-export type NonConformanceCreateData = Omit<NonConformance, 'id' | 'code' | 'created_at' | 'department' | 'created_by' | 'updated_at'>;
+export type NonConformanceCreateData = Omit<NonConformance, 'id' | 'created_at' | 'department' | 'created_by' | 'updated_at'>;
 
 export type NonConformanceUpdateData = Partial<NonConformanceCreateData>;
 

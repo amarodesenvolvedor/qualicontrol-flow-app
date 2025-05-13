@@ -6,6 +6,7 @@ import CategoryForm from "./form/CategoryForm";
 import ActionsForm from "./form/ActionsForm";
 import EvidenceForm from "./form/EvidenceForm";
 import FormActions from "./form/FormActions";
+import CodeField from "./form/CodeField";
 
 const FormContainer = () => {
   const {
@@ -22,6 +23,7 @@ const FormContainer = () => {
     <Form {...form}>
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="space-y-6">
+          <CodeField control={form.control} />
           <BasicInfoForm control={form.control} />
           <CategoryForm control={form.control} />
           <ActionsForm control={form.control} />

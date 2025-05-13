@@ -172,12 +172,14 @@ export type Database = {
         Row: {
           auditor_name: string
           category: string
-          code: string
+          code: string | null
+          completion_date: string | null
           created_at: string
           created_by: string | null
           deadline_date: string | null
           department_id: string
           description: string
+          effectiveness_verification_date: string | null
           id: string
           immediate_actions: string | null
           location: string
@@ -190,12 +192,14 @@ export type Database = {
         Insert: {
           auditor_name: string
           category: string
-          code: string
+          code?: string | null
+          completion_date?: string | null
           created_at?: string
           created_by?: string | null
           deadline_date?: string | null
           department_id: string
           description: string
+          effectiveness_verification_date?: string | null
           id?: string
           immediate_actions?: string | null
           location: string
@@ -208,12 +212,14 @@ export type Database = {
         Update: {
           auditor_name?: string
           category?: string
-          code?: string
+          code?: string | null
+          completion_date?: string | null
           created_at?: string
           created_by?: string | null
           deadline_date?: string | null
           department_id?: string
           description?: string
+          effectiveness_verification_date?: string | null
           id?: string
           immediate_actions?: string | null
           location?: string

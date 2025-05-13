@@ -2,6 +2,7 @@
 import { z } from "zod";
 
 export const nonConformanceFormSchema = z.object({
+  code: z.string().optional(),
   title: z.string().min(3, "O título deve ter pelo menos 3 caracteres"),
   description: z.string().min(10, "A descrição deve ter pelo menos 10 caracteres"),
   location: z.string().min(3, "O local deve ter pelo menos 3 caracteres"),

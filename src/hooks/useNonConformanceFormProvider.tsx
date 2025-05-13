@@ -19,6 +19,7 @@ export const useNonConformanceFormProvider = () => {
   const form = useForm<NonConformanceFormValues>({
     resolver: zodResolver(nonConformanceFormSchema),
     defaultValues: {
+      code: "",
       title: "",
       description: "",
       location: "",
@@ -52,6 +53,7 @@ export const useNonConformanceFormProvider = () => {
     try {
       // Create the non-conformance record with proper typing
       const nonConformanceData = {
+        code: data.code || null,
         title: data.title,
         description: data.description,
         location: data.location,
@@ -86,7 +88,7 @@ export const useNonConformanceFormProvider = () => {
       // Show success message and redirect
       toast({
         title: "Não Conformidade Registrada",
-        description: `Sua não conformidade foi registrada com sucesso! ID: ${result?.code}`
+        description: `Sua não conformidade foi registrada com sucesso!${result?.code ? ` ID: ${result.code}` : ''}`
       });
       
       navigate("/nao-conformidades");
