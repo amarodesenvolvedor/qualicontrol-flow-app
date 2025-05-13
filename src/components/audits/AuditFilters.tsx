@@ -1,6 +1,6 @@
 
 import { Input } from '@/components/ui/input';
-import { AdvancedFilters, MultiSelectFilter, DateRangeFilter } from '@/components/shared/AdvancedFilters';
+import { AdvancedFilters, MultiSelectFilter, DateRangeFilter } from '@/components/shared/filters';
 import type { Department } from '@/hooks/useDepartments';
 import type { AuditFilter } from '@/types/audit';
 

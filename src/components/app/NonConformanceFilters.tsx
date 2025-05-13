@@ -1,6 +1,6 @@
 
 import { NonConformanceFilter } from "@/types/nonConformance";
-import { AdvancedFilters, DateRangeFilter, MultiSelectFilter } from "../shared/AdvancedFilters";
+import { AdvancedFilters, DateRangeFilter, MultiSelectFilter } from "../shared/filters";
 import { useDepartments } from "@/hooks/useDepartments";
 
 interface NonConformanceFiltersProps {

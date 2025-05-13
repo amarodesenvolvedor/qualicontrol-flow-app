@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InteractiveChart } from "@/components/reports/InteractiveChart";
 import { DataItem } from "@/components/charts/types";
-import { MultiSelectFilter } from "@/components/shared/AdvancedFilters";
+import { MultiSelectFilter } from "@/components/shared/filters";
 import { useDepartments } from "@/hooks/useDepartments";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { ScrollArea } from "@/components/ui/scroll-area";
