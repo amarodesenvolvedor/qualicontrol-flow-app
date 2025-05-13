@@ -8,11 +8,11 @@ import { OverviewTab } from "@/components/statistics/OverviewTab";
 import { TrendsTab } from "@/components/statistics/TrendsTab";
 import { ComparisonTab } from "@/components/statistics/ComparisonTab";
 import { StatisticsHeader } from "@/components/statistics/StatisticsHeader";
-import { generateTrendData, generateComparisonData } from "@/components/statistics/StatisticsDataUtils";
+import { generateTrendData } from "@/components/statistics/StatisticsDataUtils";
 
 const StatisticsPage = () => {
   const { nonConformances, isLoading, refetch } = useNonConformances();
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
 
   // Gerar dados para os gráficos usando os dados reais
   const departmentStats = nonConformances.length > 0 
@@ -30,12 +30,9 @@ const StatisticsPage = () => {
   const trendData = nonConformances.length > 0 
     ? generateTrendData(nonConformances)
     : [];
-  
-  const comparisonData = generateComparisonData();
 
   const handleYearChange = (year: string) => {
     setSelectedYear(year);
-    // Em um aplicativo real, buscaríamos dados para o ano selecionado
   };
 
   return (
@@ -71,7 +68,7 @@ const StatisticsPage = () => {
           <TabsContent value="comparison">
             <ComparisonTab 
               hasData={nonConformances.length > 0}
-              comparisonData={comparisonData}
+              comparisonData={[]} 
             />
           </TabsContent>
         </Tabs>
