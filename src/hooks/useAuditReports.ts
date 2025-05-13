@@ -1,14 +1,13 @@
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { AuditReport, AuditReportInput, AuditFilter } from '@/types/audit';
-import { createSafeStorageFilename } from '@/utils/fileUtils';
+import { AuditReport } from '@/types/audit';
+import { useAuditFilters } from './useAuditFilters';
+import { useAuditReportsCrud } from './useAuditReportsCrud';
 
 export const useAuditReports = () => {
-  const queryClient = useQueryClient();
-  const [filters, setFilters] = useState<AuditFilter>({});
+  const { filters, setFilters, getYearsFromReports } = useAuditFilters();
+  const { createAuditReport, deleteAuditReport, isUploading } = useAuditReportsCrud();
 
   // Function to fetch all audit reports
   const fetchAuditReports = async (): Promise<AuditReport[]> => {
@@ -71,120 +70,6 @@ export const useAuditReports = () => {
     queryFn: fetchAuditReports,
   });
 
-  // Function to upload a file to Supabase Storage
-  const uploadAuditFile = async (file: File): Promise<{filePath: string, originalFilename: string}> => {
-    // Create a safe filename for storage
-    const { safeFilename, originalFilename } = createSafeStorageFilename(file.name);
-    const filePath = `audits/${safeFilename}`;
-
-    console.log('Uploading file with sanitized name:', safeFilename);
-    
-    try {
-      const { error } = await supabase.storage.from('audit_files').upload(filePath, file);
-
-      if (error) {
-        console.error('Error uploading file:', error);
-        throw new Error(`Error uploading file: ${error.message}`);
-      }
-
-      return { filePath, originalFilename };
-    } catch (error: any) {
-      console.error('Exception during file upload:', error);
-      throw new Error(`Upload failed: ${error.message}`);
-    }
-  };
-
-  // Mutation to create a new audit report
-  const createAuditReport = useMutation({
-    mutationFn: async ({ data, file }: { data: AuditReportInput, file: File }) => {
-      try {
-        // Upload the file first with sanitized filename
-        const { filePath, originalFilename } = await uploadAuditFile(file);
-
-        // Update the file_name to store the original name for display
-        const auditData = {
-          ...data,
-          file_path: filePath,
-          file_name: originalFilename, // Keep original filename for display
-        };
-
-        // Create the audit report
-        const { error } = await supabase.from('audit_reports').insert(auditData);
-
-        if (error) throw error;
-
-        return { success: true };
-      } catch (error: any) {
-        console.error('Error creating audit report:', error);
-        throw new Error(`Error creating audit report: ${error.message}`);
-      }
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Relatório de auditoria criado',
-        description: 'O relatório de auditoria foi criado com sucesso.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['auditReports'] });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Erro',
-        description: `Erro ao criar relatório de auditoria: ${error.message}`,
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Mutation to delete an audit report
-  const deleteAuditReport = useMutation({
-    mutationFn: async (id: string) => {
-      // Get the file path first
-      const { data: report } = await supabase
-        .from('audit_reports')
-        .select('file_path')
-        .eq('id', id)
-        .single();
-
-      if (report?.file_path) {
-        // Delete the file from storage
-        await supabase.storage.from('audit_files').remove([report.file_path]);
-      }
-
-      // Delete the report record
-      const { error } = await supabase.from('audit_reports').delete().eq('id', id);
-
-      if (error) throw error;
-
-      return { success: true };
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Relatório de auditoria excluído',
-        description: 'O relatório de auditoria foi excluído com sucesso.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['auditReports'] });
-    },
-    onError: () => {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao excluir relatório de auditoria.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Function to get years from audit reports
-  const getYearsFromReports = (reports: AuditReport[]): string[] => {
-    const years = new Set<string>();
-    
-    reports.forEach(report => {
-      const year = new Date(report.audit_date).getFullYear().toString();
-      years.add(year);
-    });
-
-    return Array.from(years).sort().reverse();
-  };
-
   return {
     auditReports: auditReportsQuery.data || [],
     isLoading: auditReportsQuery.isLoading,
@@ -194,5 +79,6 @@ export const useAuditReports = () => {
     filters,
     setFilters,
     getYearsFromReports,
+    isUploading,
   };
 };
