@@ -17,13 +17,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 interface NonConformanceListProps {
   nonConformances: NonConformance[];
   isLoading: boolean;
   refetch: () => void;
-  deleteNonConformance: (id: string) => void;
+  deleteNonConformance: (id: string) => Promise<void>;
 }
 
 const NonConformanceList = ({ 
@@ -33,10 +33,10 @@ const NonConformanceList = ({
   deleteNonConformance
 }: NonConformanceListProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [filterOpen, setFilterOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getStatusBadgeColor = (status: NonConformance['status']) => {
     switch (status) {
@@ -64,6 +64,7 @@ const NonConformanceList = ({
   const confirmDelete = async () => {
     if (selectedId) {
       try {
+        setIsDeleting(true);
         await deleteNonConformance(selectedId);
         toast({
           title: "Não conformidade excluída",
@@ -71,14 +72,17 @@ const NonConformanceList = ({
         });
         refetch();
       } catch (error) {
+        console.error("Error deleting non-conformance:", error);
         toast({
           title: "Erro ao excluir",
           description: "Não foi possível excluir o registro.",
           variant: "destructive",
         });
+      } finally {
+        setIsDeleting(false);
+        setDeleteDialogOpen(false);
       }
     }
-    setDeleteDialogOpen(false);
   };
 
   return (
@@ -158,9 +162,13 @@ const NonConformanceList = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Excluir
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete} 
+              className="bg-red-600 hover:bg-red-700" 
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

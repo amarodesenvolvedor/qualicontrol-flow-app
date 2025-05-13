@@ -65,7 +65,7 @@ export const OverviewTab = ({
           <InteractiveChart
             title=""
             data={departmentStats}
-            type="pie"
+            type="bar"
             height={300}
           />
         </CardContent>

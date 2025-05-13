@@ -1,3 +1,4 @@
+
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import {
   BarChart, Bar, Cell, PieChart, Pie, LineChart, Line,
@@ -32,18 +33,11 @@ const CHART_COLORS = [
 
 // Componente de Gráfico de Pizza
 export const PieChartComponent = ({ data, dataKey = "value", height, onItemClick }: ChartProps) => {
-  // Calculando os percentuais para os rótulos
-  const total = data.reduce((sum, item) => sum + item.value, 0);
-  const dataWithPercentage = data.map(item => ({
-    ...item,
-    percentage: Math.round((item.value / total) * 100)
-  }));
-
   return (
     <ResponsiveContainer width="100%" height={height}>
       <PieChart>
         <Pie
-          data={dataWithPercentage}
+          data={data}
           cx="50%"
           cy="50%"
           innerRadius={60}
@@ -52,13 +46,13 @@ export const PieChartComponent = ({ data, dataKey = "value", height, onItemClick
           paddingAngle={3}
           dataKey={dataKey}
           onClick={onItemClick}
-          label={({ name, percentage }) => `${percentage}%`}
+          label={({ name, value }) => `${value}`}
           labelLine={true}
           cursor="pointer"
           animationBegin={0}
           animationDuration={1200}
         >
-          {dataWithPercentage.map((entry, index) => (
+          {data.map((entry, index) => (
             <Cell 
               key={`cell-${index}`} 
               fill={entry.color || CHART_COLORS[index % CHART_COLORS.length]} 
@@ -68,7 +62,7 @@ export const PieChartComponent = ({ data, dataKey = "value", height, onItemClick
           ))}
         </Pie>
         <Tooltip 
-          formatter={(value: any, name: string) => [`${value} (${dataWithPercentage.find(item => item.name === name)?.percentage}%)`, name]} 
+          formatter={(value: any, name: string) => [value, name]} 
           contentStyle={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
         />
         <Legend 
@@ -92,7 +86,7 @@ export const LineChartComponent = ({ data, dataKey = "value", height, onItemClic
   
   // Encontrar todas as chaves de dados exceto "name" para criar múltiplas linhas
   const dataKeys = data.length > 0 
-    ? Object.keys(data[0]).filter(key => key !== 'name' && key !== 'id' && key !== 'descriptions' && key !== 'percentage')
+    ? Object.keys(data[0]).filter(key => key !== 'name' && key !== 'id' && key !== 'descriptions' && key !== 'percentage' && key !== 'color')
     : [dataKey];
   
   return (
@@ -116,7 +110,7 @@ export const LineChartComponent = ({ data, dataKey = "value", height, onItemClic
           <Label value="Quantidade" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fill="#6b7280" />
         </YAxis>
         <Tooltip 
-          formatter={(value: any) => [`${value}`, 'Quantidade']} 
+          formatter={(value: any) => [value, 'Quantidade']} 
           contentStyle={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
         />
         <Legend 
@@ -155,7 +149,7 @@ export const LineChartComponent = ({ data, dataKey = "value", height, onItemClic
 // Componente de Gráfico de Barras
 export const BarChartComponent = ({ data, dataKey = "value", height, onItemClick }: ChartProps) => {
   // Lista de propriedades internas que não devem ser exibidas no gráfico
-  const excludedKeys = ['name', 'id', 'descriptions', 'percentage', 'color', 'value'];
+  const excludedKeys = ['name', 'id', 'descriptions', 'percentage', 'color'];
   
   // Encontrar todas as chaves de dados exceto as excluídas para criar múltiplas barras
   const dataKeys = data.length > 0 
@@ -163,7 +157,7 @@ export const BarChartComponent = ({ data, dataKey = "value", height, onItemClick
     : [dataKey];
   
   // Se tivermos mais de uma série de dados, renderizamos barras agrupadas
-  if (dataKeys.length > 0) {
+  if (dataKeys.length > 1) {
     return (
       <ResponsiveContainer width="100%" height={height}>
         <BarChart
@@ -185,7 +179,7 @@ export const BarChartComponent = ({ data, dataKey = "value", height, onItemClick
             <Label value="Quantidade" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fill="#6b7280" />
           </YAxis>
           <Tooltip 
-            formatter={(value: any, name: string) => [`${value}`, name]} 
+            formatter={(value: any, name: string) => [value, name]} 
             contentStyle={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
           />
           <Legend 
@@ -236,7 +230,7 @@ export const BarChartComponent = ({ data, dataKey = "value", height, onItemClick
           <Label value="Quantidade" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fill="#6b7280" />
         </YAxis>
         <Tooltip 
-          formatter={(value: any) => [`${value}`, 'Quantidade']} 
+          formatter={(value: any) => [value, 'Quantidade']} 
           contentStyle={{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
         />
         <Legend 

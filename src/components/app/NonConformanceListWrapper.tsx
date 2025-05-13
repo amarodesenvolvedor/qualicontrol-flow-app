@@ -16,7 +16,13 @@ const NonConformanceListWrapper = () => {
   } = useNonConformances();
   
   const handleDeleteNonConformance = async (id: string) => {
-    await deleteNonConformance.mutateAsync(id);
+    try {
+      await deleteNonConformance.mutateAsync(id);
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error in delete handler:", error);
+      return Promise.reject(error);
+    }
   };
   
   return (

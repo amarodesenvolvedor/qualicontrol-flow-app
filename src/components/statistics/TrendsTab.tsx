@@ -21,7 +21,7 @@ export const TrendsTab = ({ trendData }: TrendsTabProps) => {
               title=""
               data={trendData}
               type="line"
-              dataKey="Pendentes"
+              dataKey="value"
               height={400}
             />
           </div>
