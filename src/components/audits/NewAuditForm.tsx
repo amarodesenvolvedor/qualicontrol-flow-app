@@ -30,10 +30,12 @@ import {
 } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Upload } from 'lucide-react';
+import { CalendarIcon, Upload, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Department } from '@/hooks/useDepartments';
 import type { AuditReportInput } from '@/types/audit';
+import { sanitizeFilename } from '@/utils/fileUtils';
 
 // Form validation schema
 const formSchema = z.object({
@@ -62,6 +64,7 @@ export function NewAuditForm({
 }: NewAuditFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [filenameWarning, setFilenameWarning] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,6 +79,7 @@ export function NewAuditForm({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     setFileError(null);
+    setFilenameWarning(null);
 
     if (!file) {
       return;
@@ -91,6 +95,16 @@ export function NewAuditForm({
     if (file.size > 10 * 1024 * 1024) {
       setFileError('O arquivo não pode ser maior que 10MB');
       return;
+    }
+
+    // Check if filename contains special characters
+    const originalFilename = file.name;
+    const sanitizedFilename = sanitizeFilename(originalFilename);
+    
+    if (originalFilename !== sanitizedFilename) {
+      setFilenameWarning(
+        'O nome do arquivo contém caracteres especiais que serão removidos durante o upload.'
+      );
     }
 
     setSelectedFile(file);
@@ -303,9 +317,20 @@ export function NewAuditForm({
                 </div>
               )}
             </div>
+            
             {fileError && (
               <p className="text-sm font-medium text-destructive">{fileError}</p>
             )}
+            
+            {filenameWarning && (
+              <Alert variant="warning" className="mt-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {filenameWarning}
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <FormDescription>
               Anexe o arquivo PDF do relatório de auditoria (máximo 10MB)
             </FormDescription>

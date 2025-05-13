@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { AuditReport, AuditReportInput, AuditFilter } from '@/types/audit';
-import type { Department } from '@/hooks/useDepartments';
+import { createSafeStorageFilename } from '@/utils/fileUtils';
 
 export const useAuditReports = () => {
   const queryClient = useQueryClient();
@@ -72,39 +72,51 @@ export const useAuditReports = () => {
   });
 
   // Function to upload a file to Supabase Storage
-  const uploadAuditFile = async (file: File): Promise<string> => {
-    const fileName = `${Date.now()}_${file.name}`;
-    const filePath = `audits/${fileName}`;
+  const uploadAuditFile = async (file: File): Promise<{filePath: string, originalFilename: string}> => {
+    // Create a safe filename for storage
+    const { safeFilename, originalFilename } = createSafeStorageFilename(file.name);
+    const filePath = `audits/${safeFilename}`;
 
-    const { error } = await supabase.storage.from('audit_files').upload(filePath, file);
+    console.log('Uploading file with sanitized name:', safeFilename);
+    
+    try {
+      const { error } = await supabase.storage.from('audit_files').upload(filePath, file);
 
-    if (error) {
-      console.error('Error uploading file:', error);
-      throw new Error('Error uploading file');
+      if (error) {
+        console.error('Error uploading file:', error);
+        throw new Error(`Error uploading file: ${error.message}`);
+      }
+
+      return { filePath, originalFilename };
+    } catch (error: any) {
+      console.error('Exception during file upload:', error);
+      throw new Error(`Upload failed: ${error.message}`);
     }
-
-    return filePath;
   };
 
   // Mutation to create a new audit report
   const createAuditReport = useMutation({
     mutationFn: async ({ data, file }: { data: AuditReportInput, file: File }) => {
       try {
-        // Upload the file first
-        const filePath = await uploadAuditFile(file);
+        // Upload the file first with sanitized filename
+        const { filePath, originalFilename } = await uploadAuditFile(file);
 
-        // Create the audit report
-        const { error } = await supabase.from('audit_reports').insert({
+        // Update the file_name to store the original name for display
+        const auditData = {
           ...data,
           file_path: filePath,
-        });
+          file_name: originalFilename, // Keep original filename for display
+        };
+
+        // Create the audit report
+        const { error } = await supabase.from('audit_reports').insert(auditData);
 
         if (error) throw error;
 
         return { success: true };
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error creating audit report:', error);
-        throw new Error('Error creating audit report');
+        throw new Error(`Error creating audit report: ${error.message}`);
       }
     },
     onSuccess: () => {
