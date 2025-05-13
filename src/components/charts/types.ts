@@ -5,5 +5,6 @@ export interface DataItem {
   id?: string[];
   color?: string;
   descriptions?: string[];
+  percentage?: number;
   [key: string]: any;
 }

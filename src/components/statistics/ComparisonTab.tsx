@@ -8,6 +8,8 @@ import { DataItem } from "@/components/charts/types";
 import { MultiSelectFilter } from "@/components/shared/AdvancedFilters";
 import { useDepartments } from "@/hooks/useDepartments";
 import { useNonConformances } from "@/hooks/useNonConformances";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { COLORS } from "@/components/dashboard/utils/dashboardConstants";
 
 interface ComparisonTabProps {
   hasData: boolean;
@@ -72,33 +74,56 @@ export const ComparisonTab = ({ hasData }: ComparisonTabProps) => {
     // Agrupar por departamento
     const departmentCounts1: Record<string, number> = {};
     const departmentCounts2: Record<string, number> = {};
+    const departmentIds: Record<string, string[]> = {};
+    const departmentDescriptions: Record<string, string[]> = {};
     
     // Inicializar contagens
     departments.forEach(dept => {
       departmentCounts1[dept.name] = 0;
       departmentCounts2[dept.name] = 0;
+      departmentIds[dept.name] = [];
+      departmentDescriptions[dept.name] = [];
     });
     
     // Contar não conformidades por departamento para o ano 1
     filteredYear1Data.forEach(nc => {
       const deptName = departments.find(d => d.id === nc.department_id)?.name || "Não especificado";
       departmentCounts1[deptName] = (departmentCounts1[deptName] || 0) + 1;
+      
+      if (!departmentIds[deptName]) {
+        departmentIds[deptName] = [];
+        departmentDescriptions[deptName] = [];
+      }
+      
+      departmentIds[deptName].push(nc.id);
+      departmentDescriptions[deptName].push(nc.title);
     });
     
     // Contar não conformidades por departamento para o ano 2
     filteredYear2Data.forEach(nc => {
       const deptName = departments.find(d => d.id === nc.department_id)?.name || "Não especificado";
       departmentCounts2[deptName] = (departmentCounts2[deptName] || 0) + 1;
+      
+      if (!departmentIds[deptName]) {
+        departmentIds[deptName] = [];
+        departmentDescriptions[deptName] = [];
+      }
+      
+      departmentIds[deptName].push(nc.id);
+      departmentDescriptions[deptName].push(nc.title);
     });
     
     // Formatar dados para o gráfico
     const chartData = Object.keys(departmentCounts1)
       .filter(deptName => departmentCounts1[deptName] > 0 || departmentCounts2[deptName] > 0)
-      .map(deptName => ({
+      .map((deptName, index) => ({
         name: deptName,
         value: departmentCounts1[deptName],
         [year1]: departmentCounts1[deptName],
-        [year2]: departmentCounts2[deptName]
+        [year2]: departmentCounts2[deptName],
+        id: departmentIds[deptName],
+        descriptions: departmentDescriptions[deptName],
+        color: COLORS.primary // Cor padrão para o item
       }));
     
     setComparisonData(chartData);
@@ -111,7 +136,7 @@ export const ComparisonTab = ({ hasData }: ComparisonTabProps) => {
   
   return (
     <div className="grid gap-6">
-      <Card>
+      <Card className="shadow-sm hover:shadow-md transition-shadow duration-300">
         <CardHeader>
           <CardTitle>Comparativo Entre Períodos</CardTitle>
           <CardDescription>Análise comparativa de não conformidades</CardDescription>
@@ -125,9 +150,11 @@ export const ComparisonTab = ({ hasData }: ComparisonTabProps) => {
                   <SelectValue placeholder="Selecione o ano" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={year}>{year}</SelectItem>
-                  ))}
+                  <ScrollArea className="h-40">
+                    {availableYears.map(year => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                  </ScrollArea>
                 </SelectContent>
               </Select>
             </div>
@@ -138,9 +165,11 @@ export const ComparisonTab = ({ hasData }: ComparisonTabProps) => {
                   <SelectValue placeholder="Selecione o ano" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableYears.map(year => (
-                    <SelectItem key={year} value={year}>{year}</SelectItem>
-                  ))}
+                  <ScrollArea className="h-40">
+                    {availableYears.map(year => (
+                      <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                  </ScrollArea>
                 </SelectContent>
               </Select>
             </div>
@@ -154,7 +183,7 @@ export const ComparisonTab = ({ hasData }: ComparisonTabProps) => {
               />
             </div>
             <div className="lg:col-span-3 flex justify-end">
-              <Button onClick={generateComparisonData} disabled={!year1 || !year2 || isComparing}>
+              <Button onClick={generateComparisonData} disabled={!year1 || !year2 || isComparing} className="bg-primary hover:bg-primary/90">
                 {isComparing ? "Processando..." : "Comparar"}
               </Button>
             </div>
@@ -163,15 +192,15 @@ export const ComparisonTab = ({ hasData }: ComparisonTabProps) => {
           {comparisonData.length > 0 ? (
             <div className="h-[400px]">
               <InteractiveChart
-                title=""
+                title={`Comparação de Não Conformidades: ${year1} vs ${year2}`}
+                description="Comparativo por departamento"
                 data={comparisonData}
                 type="bar"
-                dataKey={year1}
                 height={400}
               />
             </div>
           ) : (
-            <div className="flex justify-center items-center h-[400px] text-muted-foreground">
+            <div className="flex justify-center items-center h-[400px] text-muted-foreground bg-muted/10 rounded-lg border border-dashed">
               {isComparing ? "Processando dados..." : "Selecione os anos e clique em comparar para visualizar dados"}
             </div>
           )}

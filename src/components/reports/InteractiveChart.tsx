@@ -16,9 +16,6 @@ interface InteractiveChartProps {
   height?: number;
 }
 
-// Change this to 'export type' to fix the TS1205 error
-export type { DataItem };
-
 export const InteractiveChart = ({
   title,
   description,
@@ -72,7 +69,7 @@ export const InteractiveChart = ({
   };
 
   return (
-    <Card>
+    <Card className="shadow-sm hover:shadow-md transition-shadow duration-300">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle>{title}</CardTitle>

@@ -2,6 +2,7 @@
 import { useDepartments } from "@/hooks/useDepartments";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl } from "@/components/ui/form";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DepartmentSelectProps {
   value: string;
@@ -26,11 +27,13 @@ const DepartmentSelect = ({
         </SelectTrigger>
       </FormControl>
       <SelectContent>
-        {departments.map((department) => (
-          <SelectItem key={department.id} value={department.id}>
-            {department.name}
-          </SelectItem>
-        ))}
+        <ScrollArea className="h-72">
+          {departments.map((department) => (
+            <SelectItem key={department.id} value={department.id}>
+              {department.name}
+            </SelectItem>
+          ))}
+        </ScrollArea>
       </SelectContent>
     </Select>
   );
