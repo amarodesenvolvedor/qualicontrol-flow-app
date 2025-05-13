@@ -11,6 +11,7 @@ import { StatisticsHeader } from "@/components/statistics/StatisticsHeader";
 import { generateTrendData } from "@/components/statistics/StatisticsDataUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const StatisticsPage = () => {
   const { nonConformances, isLoading, refetch } = useNonConformances();
