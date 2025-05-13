@@ -26,6 +26,7 @@ import { CalendarIcon, ChevronDown, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format, subDays, startOfYear } from "date-fns";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface FilterOption {
   value: string;
@@ -71,15 +72,17 @@ export const MultiSelectFilter = ({
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>{label}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {options.map((option) => (
-          <DropdownMenuCheckboxItem
-            key={option.value}
-            checked={selectedValues.includes(option.value)}
-            onCheckedChange={() => toggleValue(option.value)}
-          >
-            {option.label}
-          </DropdownMenuCheckboxItem>
-        ))}
+        <ScrollArea className="h-72">
+          {options.map((option) => (
+            <DropdownMenuCheckboxItem
+              key={option.value}
+              checked={selectedValues.includes(option.value)}
+              onCheckedChange={() => toggleValue(option.value)}
+            >
+              {option.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
   );

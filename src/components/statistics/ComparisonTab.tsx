@@ -116,15 +116,21 @@ export const ComparisonTab = ({ hasData }: ComparisonTabProps) => {
     // Formatar dados para o gráfico
     const chartData = Object.keys(departmentCounts1)
       .filter(deptName => departmentCounts1[deptName] > 0 || departmentCounts2[deptName] > 0)
-      .map((deptName, index) => ({
-        name: deptName,
-        value: departmentCounts1[deptName],
-        [year1]: departmentCounts1[deptName],
-        [year2]: departmentCounts2[deptName],
-        id: departmentIds[deptName],
-        descriptions: departmentDescriptions[deptName],
-        color: COLORS.primary // Cor padrão para o item
-      }));
+      .map((deptName, index) => {
+        // Criar objeto com apenas os dados necessários para comparação
+        const chartItem: DataItem = {
+          name: deptName,
+          value: departmentCounts1[deptName], // Mantemos 'value' como field obrigatório mas não será usado no gráfico
+          id: departmentIds[deptName],
+          descriptions: departmentDescriptions[deptName]
+        };
+        
+        // Adicionar os valores de cada ano como propriedades separadas
+        chartItem[year1] = departmentCounts1[deptName];
+        chartItem[year2] = departmentCounts2[deptName];
+        
+        return chartItem;
+      });
     
     setComparisonData(chartData);
     setIsComparing(false);

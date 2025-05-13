@@ -1,4 +1,3 @@
-
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import {
   BarChart, Bar, Cell, PieChart, Pie, LineChart, Line,
@@ -155,13 +154,16 @@ export const LineChartComponent = ({ data, dataKey = "value", height, onItemClic
 
 // Componente de Gráfico de Barras
 export const BarChartComponent = ({ data, dataKey = "value", height, onItemClick }: ChartProps) => {
-  // Encontrar todas as chaves de dados exceto "name" para criar múltiplas barras
+  // Lista de propriedades internas que não devem ser exibidas no gráfico
+  const excludedKeys = ['name', 'id', 'descriptions', 'percentage', 'color', 'value'];
+  
+  // Encontrar todas as chaves de dados exceto as excluídas para criar múltiplas barras
   const dataKeys = data.length > 0 
-    ? Object.keys(data[0]).filter(key => key !== 'name' && key !== 'id' && key !== 'descriptions' && key !== 'percentage')
+    ? Object.keys(data[0]).filter(key => !excludedKeys.includes(key))
     : [dataKey];
   
   // Se tivermos mais de uma série de dados, renderizamos barras agrupadas
-  if (dataKeys.length > 1) {
+  if (dataKeys.length > 0) {
     return (
       <ResponsiveContainer width="100%" height={height}>
         <BarChart
@@ -253,7 +255,7 @@ export const BarChartComponent = ({ data, dataKey = "value", height, onItemClick
           {data.map((entry, index) => (
             <Cell 
               key={`cell-${index}`} 
-              fill={entry.color || CHART_COLORS[index % CHART_COLORS.length]} 
+              fill={CHART_COLORS[index % CHART_COLORS.length]} 
             />
           ))}
           <LabelList dataKey={dataKey} position="top" style={{ fill: '#6b7280', fontSize: 10 }} />
