@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Layout from "@/components/app/Layout";
 import EditForm from "@/components/app/nonconformance/edit/EditForm";
 import { useNonConformanceEdit } from "@/hooks/useNonConformanceEdit";
+import { Toaster } from "@/components/ui/toaster";
 
 const NonConformanceEditPage = () => {
   const { isLoading, error, ncData, id } = useNonConformanceEdit();
@@ -25,6 +26,7 @@ const NonConformanceEditPage = () => {
       <Layout>
         <div className="flex flex-col items-center py-8">
           <p className="text-red-500 mb-4">Erro ao carregar dados ou não conformidade não encontrada</p>
+          <pre className="bg-gray-100 p-2 rounded text-xs mb-4">{error ? String(error) : 'Não conformidade não encontrada'}</pre>
           <Button onClick={() => navigate('/nao-conformidades')}>Voltar para lista</Button>
         </div>
       </Layout>
@@ -44,6 +46,7 @@ const NonConformanceEditPage = () => {
 
         <EditForm />
       </div>
+      <Toaster />
     </Layout>
   );
 };

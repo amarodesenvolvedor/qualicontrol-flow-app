@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
@@ -83,36 +82,58 @@ export const useNonConformances = () => {
 
   const updateNonConformance = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: NonConformanceUpdateData }) => {
-      // Fetch the current state before updating
-      const currentData = await queryClient.fetchQuery({
-        queryKey: ['nonConformance', id],
-        queryFn: async () => {
-          const response = await fetchNonConformances({ searchTerm: id });
-          return response.find((nc: NonConformance) => nc.id === id) || null;
-        }
-      });
-      
-      const result = await updateNC(id, data);
-      
-      // Log history for each changed field
-      if (currentData) {
-        Object.keys(data).forEach(key => {
-          const keyTyped = key as keyof typeof data;
-          const currentKeyTyped = key as keyof typeof currentData;
-          
-          if (data[keyTyped] !== currentData[currentKeyTyped]) {
-            logHistory(
-              'non_conformance',
-              id,
-              key,
-              currentData[currentKeyTyped],
-              data[keyTyped]
-            );
+      try {
+        console.log("Enviando atualização para o ID:", id);
+        console.log("Dados a serem atualizados:", data);
+        
+        // Fetch the current state before updating
+        const currentData = await queryClient.fetchQuery({
+          queryKey: ['nonConformance', id],
+          queryFn: async () => {
+            console.log("Buscando registro atual");
+            const response = await fetchNonConformances({ searchTerm: id });
+            const record = response.find((nc: NonConformance) => nc.id === id);
+            console.log("Registro atual encontrado:", record);
+            return record || null;
           }
         });
+        
+        if (!currentData) {
+          console.error("Registro atual não encontrado");
+          throw new Error("Registro não encontrado para atualização");
+        }
+        
+        const result = await updateNC(id, data);
+        console.log("Resultado da atualização:", result);
+        
+        // Log history for each changed field
+        if (currentData) {
+          Object.keys(data).forEach(key => {
+            const keyTyped = key as keyof typeof data;
+            const currentKeyTyped = key as keyof typeof currentData;
+            
+            if (data[keyTyped] !== currentData[currentKeyTyped]) {
+              try {
+                logHistory(
+                  'non_conformance',
+                  id,
+                  key,
+                  String(currentData[currentKeyTyped]),
+                  String(data[keyTyped])
+                );
+              } catch (historyError) {
+                console.error('Erro ao registrar histórico:', historyError);
+                // Não interrompe o processo se falhar o histórico
+              }
+            }
+          });
+        }
+        
+        return result;
+      } catch (error) {
+        console.error("Erro na mutação de atualização:", error);
+        throw error;
       }
-      
-      return result;
     },
     onSuccess: (result) => {
       toast({
@@ -122,19 +143,26 @@ export const useNonConformances = () => {
       
       // If status is changed to something that requires action, notify the responsible person
       if (result && (result.status === 'in-progress')) {
-        sendNonConformanceNotification(
-          result.id,
-          result.department_id,
-          result.responsible_name
-        );
+        try {
+          sendNonConformanceNotification(
+            result.id,
+            result.department_id,
+            result.responsible_name
+          );
+        } catch (notifyError) {
+          console.error("Erro ao enviar notificação:", notifyError);
+          // Não interrompe o processo se falhar a notificação
+        }
       }
       
       queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
+      queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit'] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Erro na atualização:", error);
       toast({
         title: 'Erro',
-        description: 'Erro ao atualizar não conformidade.',
+        description: `Erro ao atualizar não conformidade: ${error.message || 'Erro desconhecido'}`,
         variant: 'destructive',
       });
     },

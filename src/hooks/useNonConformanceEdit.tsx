@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { useNonConformances, NonConformance } from "@/hooks/useNonConformances";
 import { format } from "date-fns";
 import { nonConformanceFormSchema, NonConformanceFormValues } from "@/utils/nonConformanceFormSchema";
@@ -81,6 +81,9 @@ export const useNonConformanceEdit = () => {
     setIsSubmitting(true);
 
     try {
+      console.log("Atualizando não conformidade com ID:", id);
+      console.log("Dados de atualização:", values);
+      
       await updateNonConformance.mutateAsync({
         id,
         data: {

@@ -99,19 +99,23 @@ export const createNonConformance = async (data: NonConformanceCreateData): Prom
 
 // Update an existing non-conformance
 export const updateNonConformance = async (id: string, data: NonConformanceUpdateData): Promise<NonConformance> => {
+  // O problema estava na função single() quando não há registros retornados
   const { data: updatedData, error } = await supabase
     .from('non_conformances')
     .update(data)
     .eq('id', id)
-    .select()
-    .single();
+    .select();
 
   if (error) {
     console.error('Error updating non-conformance:', error);
-    throw new Error('Error updating non-conformance');
+    throw new Error(`Error updating non-conformance: ${error.message}`);
   }
 
-  return updatedData as unknown as NonConformance;
+  if (!updatedData || updatedData.length === 0) {
+    throw new Error('No record was updated. The record may not exist or you may not have permission to update it.');
+  }
+
+  return updatedData[0] as unknown as NonConformance;
 };
 
 // Delete a non-conformance
