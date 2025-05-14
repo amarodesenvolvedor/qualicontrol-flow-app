@@ -1,6 +1,5 @@
 
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { FormActions as SharedFormActions } from "@/components/shared/FormActions";
 
 interface FormActionsProps {
   isSubmitting: boolean;
@@ -9,26 +8,12 @@ interface FormActionsProps {
 
 const FormActions = ({ isSubmitting, onCancel }: FormActionsProps) => {
   return (
-    <div className="flex justify-end space-x-2">
-      <Button 
-        type="button" 
-        variant="outline" 
-        onClick={onCancel}
-        disabled={isSubmitting}
-      >
-        Cancelar
-      </Button>
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Enviando...
-          </>
-        ) : (
-          'Registrar Não Conformidade'
-        )}
-      </Button>
-    </div>
+    <SharedFormActions
+      isSubmitting={isSubmitting}
+      onCancel={onCancel}
+      submitLabel="Registrar Não Conformidade"
+      submittingLabel="Enviando..."
+    />
   );
 };
 

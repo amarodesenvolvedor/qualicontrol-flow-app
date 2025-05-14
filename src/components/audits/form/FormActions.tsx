@@ -1,6 +1,5 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import { FormActions as SharedFormActions } from "@/components/shared/FormActions";
 
 interface FormActionsProps {
   isSubmitting: boolean;
@@ -9,19 +8,12 @@ interface FormActionsProps {
 
 export function FormActions({ isSubmitting, onCancel }: FormActionsProps) {
   return (
-    <div className="flex justify-end gap-2">
-      {onCancel && (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-        >
-          Cancelar
-        </Button>
-      )}
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Salvando...' : 'Salvar relatório'}
-      </Button>
-    </div>
+    <SharedFormActions
+      isSubmitting={isSubmitting}
+      onCancel={onCancel}
+      submitLabel="Salvar relatório"
+      submittingLabel="Salvando..."
+      showCancelButton={!!onCancel}
+    />
   );
 }
