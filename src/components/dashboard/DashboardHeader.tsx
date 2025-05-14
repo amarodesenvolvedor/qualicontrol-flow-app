@@ -7,18 +7,24 @@ import { Switch } from "@/components/ui/switch";
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DashboardHeaderProps {
-  filterPeriod: string;
-  setFilterPeriod: (value: string) => void;
+  availableYears: number[];
+  filterYear: string;
+  setFilterYear: (value: string) => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
 }
 
 const DashboardHeader = ({
-  filterPeriod,
-  setFilterPeriod,
+  availableYears,
+  filterYear,
+  setFilterYear,
   isDarkMode,
   toggleDarkMode
 }: DashboardHeaderProps) => {
+  // Ensure we have the current year in the list even if no data exists for it yet
+  const currentYear = new Date().getFullYear();
+  const years = [...new Set([...availableYears, currentYear])].sort((a, b) => b - a);
+
   return (
     <div className="flex flex-col sm:flex-row justify-between gap-4">
       <div>
@@ -43,15 +49,15 @@ const DashboardHeader = ({
           </Tooltip>
         </TooltipProvider>
 
-        <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+        <Select value={filterYear} onValueChange={setFilterYear}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrar período" />
+            <SelectValue placeholder="Filtrar por ano" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os períodos</SelectItem>
-            <SelectItem value="week">Última semana</SelectItem>
-            <SelectItem value="month">Último mês</SelectItem>
-            <SelectItem value="quarter">Último trimestre</SelectItem>
+            <SelectItem value="all">Todos os anos</SelectItem>
+            {years.map(year => (
+              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         

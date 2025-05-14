@@ -20,8 +20,8 @@ export const HorizontalBarChart = ({
   // Get data keys for the chart
   const dataKeys = getDataKeys(data, dataKey);
   
-  // Standard margins for horizontal charts
-  const margins = { top: 20, right: 30, left: 100, bottom: 20 };
+  // Standard margins for horizontal charts - increase left margin for longer department names
+  const margins = { top: 20, right: 30, left: 150, bottom: 20 };
   
   // If we have multiple data series, render grouped bars
   if (shouldRenderGroupedBars(dataKeys, dataKey)) {
@@ -45,7 +45,7 @@ export const HorizontalBarChart = ({
             dataKey="name" 
             stroke="#6b7280"
             tick={{ fill: '#6b7280' }}
-            width={90}
+            width={140}
           />
           <Tooltip 
             formatter={(value: any, name: string) => [value, name]} 
@@ -102,7 +102,7 @@ export const HorizontalBarChart = ({
           dataKey="name" 
           stroke="#6b7280"
           tick={{ fill: '#6b7280' }}
-          width={100}
+          width={140} 
         />
         <Tooltip 
           formatter={(value: any) => [value, 'Quantidade']} 

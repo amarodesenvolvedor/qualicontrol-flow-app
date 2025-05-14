@@ -1,11 +1,11 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { FileText, AlertCircle, Clock } from "lucide-react";
+import { FileText, AlertCircle, Clock, CheckCircle } from "lucide-react";
 
 interface KPICardsProps {
   totalCount: number;
   openCount: number;
-  criticalCount: number;
+  completedCount: number;
   dueCount: number;
   animateValues: boolean;
 }
@@ -13,7 +13,7 @@ interface KPICardsProps {
 const DashboardKPICards = ({ 
   totalCount, 
   openCount, 
-  criticalCount, 
+  completedCount, 
   dueCount, 
   animateValues 
 }: KPICardsProps) => {
@@ -51,16 +51,16 @@ const DashboardKPICards = ({
       </Card>
       <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Críticas</CardTitle>
-          <AlertCircle className="h-4 w-4 text-destructive" />
+          <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
+          <CheckCircle className="h-4 w-4 text-green-500" />
         </CardHeader>
         <CardContent>
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
-            {criticalCount}
+            {completedCount}
           </div>
-          <p className="text-xs text-muted-foreground">Requerem ação imediata</p>
+          <p className="text-xs text-muted-foreground">Não conformidades resolvidas</p>
           <div className="mt-2 h-1 w-full bg-muted">
-            <div className="h-1 bg-destructive" style={{ width: `${totalCount ? (criticalCount / totalCount) * 100 : 0}%` }}></div>
+            <div className="h-1 bg-green-500" style={{ width: `${totalCount ? (completedCount / totalCount) * 100 : 0}%` }}></div>
           </div>
         </CardContent>
       </Card>

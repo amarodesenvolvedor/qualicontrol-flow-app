@@ -18,21 +18,33 @@ import RecentItemsList from "@/components/dashboard/RecentItemsList";
 
 const Dashboard = () => {
   const { nonConformances, isLoading, refetch } = useNonConformances();
-  const [filterPeriod, setFilterPeriod] = useState("all");
+  const [filterYear, setFilterYear] = useState<string>(new Date().getFullYear().toString());
   const [animateValues, setAnimateValues] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Prepare data based on real non-conformances
+  // Filter nonconformances by selected year
+  const filteredNonConformances = nonConformances.filter(nc => {
+    if (filterYear === 'all') return true;
+    const createdYear = new Date(nc.created_at).getFullYear().toString();
+    return createdYear === filterYear;
+  });
+
+  // Get available years from data for the filter
+  const availableYears = Array.from(
+    new Set(nonConformances.map(nc => new Date(nc.created_at).getFullYear()))
+  ).sort((a, b) => b - a); // Sort descending (most recent first)
+
+  // Prepare data based on filtered non-conformances
   const statusData = [
-    { name: "Concluídas", value: nonConformances.filter(nc => nc.status === "closed").length, color: COLORS.completed },
-    { name: "Em Andamento", value: nonConformances.filter(nc => nc.status === "in-progress").length, color: COLORS.inProgress },
-    { name: "Críticas", value: nonConformances.filter(nc => nc.status === "pending" && isUrgent(nc)).length, color: COLORS.critical },
-    { name: "Pendentes", value: nonConformances.filter(nc => nc.status === "pending" && !isUrgent(nc)).length, color: COLORS.pending },
+    { name: "Concluídas", value: filteredNonConformances.filter(nc => nc.status === "closed").length, color: COLORS.completed },
+    { name: "Em Andamento", value: filteredNonConformances.filter(nc => nc.status === "in-progress").length, color: COLORS.inProgress },
+    { name: "Críticas", value: filteredNonConformances.filter(nc => nc.status === "pending" && isUrgent(nc)).length, color: COLORS.critical },
+    { name: "Pendentes", value: filteredNonConformances.filter(nc => nc.status === "pending" && !isUrgent(nc)).length, color: COLORS.pending },
   ];
 
   // Group by department
   const departmentsMap: Record<string, number> = {};
-  nonConformances.forEach(nc => {
+  filteredNonConformances.forEach(nc => {
     const deptName = nc.department?.name || "Sem departamento";
     departmentsMap[deptName] = (departmentsMap[deptName] || 0) + 1;
   });
@@ -42,18 +54,18 @@ const Dashboard = () => {
     .sort((a, b) => Number(b.total) - Number(a.total));
 
   // Monthly trend data
-  const monthlyData = prepareMonthlyData(nonConformances);
+  const monthlyData = prepareMonthlyData(filteredNonConformances);
 
   // Recent items
-  const recentItems = nonConformances
+  const recentItems = filteredNonConformances
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
 
   // Total counts for KPIs
-  const totalCount = nonConformances.length;
-  const openCount = nonConformances.filter(nc => nc.status !== "closed").length;
-  const criticalCount = nonConformances.filter(nc => nc.status === "pending" && isUrgent(nc)).length;
-  const dueCount = nonConformances.filter(nc => isApproachingDeadline(nc)).length;
+  const totalCount = filteredNonConformances.length;
+  const openCount = filteredNonConformances.filter(nc => nc.status !== "closed").length;
+  const completedCount = filteredNonConformances.filter(nc => nc.status === "closed").length;
+  const dueCount = filteredNonConformances.filter(nc => isApproachingDeadline(nc)).length;
 
   // Animation effect for counts
   useEffect(() => {
@@ -69,8 +81,9 @@ const Dashboard = () => {
   return (
     <div className={`space-y-6 transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       <DashboardHeader 
-        filterPeriod={filterPeriod}
-        setFilterPeriod={setFilterPeriod}
+        availableYears={availableYears}
+        filterYear={filterYear}
+        setFilterYear={setFilterYear}
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
       />
@@ -78,14 +91,14 @@ const Dashboard = () => {
       <DashboardKPICards 
         totalCount={totalCount}
         openCount={openCount}
-        criticalCount={criticalCount}
+        completedCount={completedCount}
         dueCount={dueCount}
         animateValues={animateValues}
       />
 
       {isLoading ? (
         <DashboardLoadingState />
-      ) : nonConformances.length === 0 ? (
+      ) : filteredNonConformances.length === 0 ? (
         <DashboardEmptyState />
       ) : (
         <Tabs defaultValue="overview" className="space-y-4">
@@ -119,13 +132,13 @@ const Dashboard = () => {
           <TabsContent value="deptAnalysis" className="space-y-4">
             <DepartmentAnalysisTab 
               departmentData={departmentData}
-              nonConformances={nonConformances}
+              nonConformances={filteredNonConformances}
             />
           </TabsContent>
         </Tabs>
       )}
 
-      {nonConformances.length > 0 && (
+      {filteredNonConformances.length > 0 && (
         <RecentItemsList 
           recentItems={recentItems}
           isUrgent={isUrgent}

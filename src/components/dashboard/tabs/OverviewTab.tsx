@@ -64,28 +64,37 @@ const OverviewTab = ({ statusData, departmentData, COLORS }: OverviewTabProps) =
           <CardTitle>Não Conformidades por Departamento</CardTitle>
         </CardHeader>
         <CardContent className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={departmentData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip 
-                formatter={(value) => [`${value} não conformidades`, '']}
-                contentStyle={{ 
-                  borderRadius: '8px',
-                  padding: '10px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  border: 'none'
-                }}
-              />
-              <Bar 
-                dataKey="total" 
-                fill={COLORS.primary}
-                radius={[4, 4, 0, 0]} 
-                barSize={30}
-                className="transition-all hover:opacity-80"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="overflow-x-auto" style={{ width: '100%', height: '100%' }}>
+            <ResponsiveContainer width={departmentData.length > 3 ? Math.max(600, departmentData.length * 120) : '100%'} height="100%">
+              <BarChart data={departmentData}>
+                <XAxis 
+                  dataKey="name" 
+                  angle={-45} 
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
+                  tick={{ fontSize: 10 }}
+                />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value) => [`${value} não conformidades`, '']}
+                  contentStyle={{ 
+                    borderRadius: '8px',
+                    padding: '10px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    border: 'none'
+                  }}
+                />
+                <Bar 
+                  dataKey="total" 
+                  fill={COLORS.primary}
+                  radius={[4, 4, 0, 0]} 
+                  barSize={30}
+                  className="transition-all hover:opacity-80"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </div>
