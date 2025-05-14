@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/tabs";
 import HistoryList from "@/components/app/HistoryList";
 import { toast } from "sonner";
-import { exportNonConformanceToPDF, exportNonConformanceToExcel } from "@/services/exportService";
+import { exportNonConformanceToPDF } from "@/services/exports/pdf";
+import { exportNonConformanceToExcel } from "@/services/exports/excelExportService";
 
 const NonConformanceDetailsPage = () => {
   const { id } = useParams<{ id: string }>();

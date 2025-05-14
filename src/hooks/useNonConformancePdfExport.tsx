@@ -2,7 +2,7 @@
 import { format } from "date-fns";
 import { NonConformance } from "@/hooks/useNonConformances";
 import { NonConformanceFormValues } from "@/utils/nonConformanceFormSchema";
-import { exportAcacToPDF } from "@/services/exports/pdfExportService";
+import { exportAcacToPDF } from "@/services/exports/pdf";
 import { useToast } from "@/hooks/use-toast";
 
 export const useNonConformancePdfExport = () => {

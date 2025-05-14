@@ -1,6 +1,6 @@
 
 // Re-export all export services from their dedicated files
-export * from './exports/pdfExportService';
+export * from './exports/pdf';
 export * from './exports/excelExportService';
 
 // Generate report data based on non-conformances
