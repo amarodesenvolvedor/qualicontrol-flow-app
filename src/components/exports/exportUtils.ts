@@ -8,27 +8,37 @@ export interface ExportedData {
 }
 
 export const getReportData = (reportType: string, nonConformances: any[], auditReports: any[]) => {
+  // Status map para traduzir o status para português
+  const statusMap: Record<string, string> = {
+    'pending': 'Pendente',
+    'in-progress': 'Em Andamento',
+    'resolved': 'Resolvido',
+    'closed': 'Encerrado',
+    'critical': 'Crítico',
+    'completed': 'Concluído'
+  };
+
   switch (reportType) {
     case "Não Conformidades Completo":
       return nonConformances.map(nc => ({
-        code: nc.code,
-        title: nc.title,
-        status: nc.status,
-        department: nc.department?.name,
-        category: nc.category,
-        responsible: nc.responsible_name,
-        occurrence_date: format(new Date(nc.occurrence_date), "dd/MM/yyyy"),
-        deadline_date: nc.deadline_date ? format(new Date(nc.deadline_date), "dd/MM/yyyy") : "N/A"
+        codigo: nc.code,
+        titulo: nc.title,
+        status: statusMap[nc.status] || nc.status,
+        departamento: nc.department?.name,
+        categoria: nc.category || "N/A",
+        responsavel: nc.responsible_name,
+        data_ocorrencia: nc.occurrence_date ? format(new Date(nc.occurrence_date), "dd/MM/yyyy") : "N/A",
+        prazo: nc.response_date ? format(new Date(nc.response_date), "dd/MM/yyyy") : "N/A"
       }));
     case "Ações Corretivas":
       return nonConformances
         .filter(nc => nc.immediate_actions)
         .map(nc => ({
-          code: nc.code, 
-          title: nc.title,
-          actions: nc.immediate_actions,
-          status: nc.status,
-          responsible: nc.responsible_name
+          codigo: nc.code, 
+          titulo: nc.title,
+          acoes_imediatas: nc.immediate_actions,
+          status: statusMap[nc.status] || nc.status,
+          responsavel: nc.responsible_name
         }));
     case "Indicadores de Desempenho":
       // Sample KPI data
@@ -38,18 +48,18 @@ export const getReportData = (reportType: string, nonConformances: any[], auditR
       const totalCount = nonConformances.length;
       
       return [
-        { indicator: "Não Conformidades em Aberto", value: pendingCount, percentage: totalCount ? (pendingCount / totalCount * 100).toFixed(1) + "%" : "0%" },
-        { indicator: "Não Conformidades em Progresso", value: inProgressCount, percentage: totalCount ? (inProgressCount / totalCount * 100).toFixed(1) + "%" : "0%" },
-        { indicator: "Não Conformidades Resolvidas", value: resolvedCount, percentage: totalCount ? (resolvedCount / totalCount * 100).toFixed(1) + "%" : "0%" },
-        { indicator: "Total de Não Conformidades", value: totalCount, percentage: "100%" },
+        { indicador: "Não Conformidades em Aberto", valor: pendingCount, percentual: totalCount ? (pendingCount / totalCount * 100).toFixed(1) + "%" : "0%" },
+        { indicador: "Não Conformidades em Progresso", valor: inProgressCount, percentual: totalCount ? (inProgressCount / totalCount * 100).toFixed(1) + "%" : "0%" },
+        { indicador: "Não Conformidades Resolvidas", valor: resolvedCount, percentual: totalCount ? (resolvedCount / totalCount * 100).toFixed(1) + "%" : "0%" },
+        { indicador: "Total de Não Conformidades", valor: totalCount, percentual: "100%" },
       ];
     case "Cronograma de Auditorias":
       return auditReports.map(audit => ({
-        title: audit.title,
-        status: audit.status,
-        department: "Departamento", // Replace with actual department name if available
-        audit_date: format(new Date(audit.audit_date), "dd/MM/yyyy"),
-        file_name: audit.file_name
+        titulo: audit.title,
+        status: statusMap[audit.status] || audit.status,
+        departamento: audit.department_id ? "Departamento" : "N/A", // Substituir por nome real do departamento se disponível
+        data_auditoria: audit.audit_date ? format(new Date(audit.audit_date), "dd/MM/yyyy") : "N/A",
+        nome_arquivo: audit.file_name
       }));
     default:
       return [];
@@ -76,7 +86,7 @@ export const generateExcelReport = async (reportType: string, data: any[]): Prom
   XLSX.utils.book_append_sheet(wb, ws, reportType.slice(0, 30));
   
   // Generate Excel file
-  XLSX.writeFile(wb, `${reportType.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  XLSX.writeFile(wb, `${reportType.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.xlsx`);
 };
 
 export const generatePDFReport = async (reportType: string, data: any[]): Promise<void> => {
@@ -130,13 +140,13 @@ export const generatePDFReport = async (reportType: string, data: any[]): Promis
       y += lineHeight * 1.5;
       
       // List first few items as samples
-      const sampleSize = Math.min(3, data.length);
+      const sampleSize = Math.min(5, data.length);
       for (let i = 0; i < sampleSize; i++) {
         const item = data[i];
         doc.setFontSize(12);
         
-        // Get the first 2-3 key properties to display
-        const keysToShow = headers.slice(0, 3);
+        // Get the first 3-4 key properties to display
+        const keysToShow = headers.slice(0, 4);
         const itemText = keysToShow.map(key => `${key}: ${item[key]}`).join(', ');
         doc.text(`- ${itemText}`, 30, y);
         y += lineHeight;
@@ -158,5 +168,5 @@ export const generatePDFReport = async (reportType: string, data: any[]): Promis
   }
   
   // Save the PDF
-  doc.save(`${reportType.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+  doc.save(`${reportType.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.pdf`);
 };

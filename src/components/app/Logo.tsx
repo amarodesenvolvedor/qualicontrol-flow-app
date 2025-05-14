@@ -22,7 +22,7 @@ export const Logo: React.FC<LogoProps> = ({ className }) => {
         <path d="M12 9v4" />
         <path d="M12 17h.01" />
       </svg>
-      <span>SICNC</span>
+      <span>IntegraQMS</span>
     </div>
   );
 };

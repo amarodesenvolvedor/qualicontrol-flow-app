@@ -45,8 +45,8 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     };
     
     y = drawField("Departamento", nonConformance.department?.name || "N/A", y);
-    y = drawField("Responsável", nonConformance.responsible_name, y);
-    y = drawField("Data de Ocorrência", format(new Date(nonConformance.occurrence_date), "dd/MM/yyyy"), y);
+    y = drawField("Responsável", nonConformance.responsible_name || "N/A", y);
+    y = drawField("Data de Ocorrência", nonConformance.occurrence_date ? format(new Date(nonConformance.occurrence_date), "dd/MM/yyyy") : "N/A", y);
     y = drawField("Local", nonConformance.location || "N/A", y);
     y += lineHeight;
     
@@ -58,7 +58,8 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    const descriptionLines = doc.splitTextToSize(nonConformance.description || "Não fornecida", 170);
+    const descriptionText = nonConformance.description || "Não fornecida";
+    const descriptionLines = doc.splitTextToSize(descriptionText, 170);
     doc.text(descriptionLines, 20, y);
     y += lineHeight * (descriptionLines.length + 1.5);
     
@@ -70,7 +71,8 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    const actionsLines = doc.splitTextToSize(nonConformance.immediate_actions || "Nenhuma ação registrada", 170);
+    const actionsText = nonConformance.immediate_actions || "Nenhuma ação registrada";
+    const actionsLines = doc.splitTextToSize(actionsText, 170);
     doc.text(actionsLines, 20, y);
     y += lineHeight * (actionsLines.length + 1.5);
     
@@ -113,7 +115,7 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
       : "Não definido";
       
     y = drawField("Prazo para Resposta", responseDate, y);
-    y = drawField("Auditor", nonConformance.auditor_name, y);
+    y = drawField("Auditor", nonConformance.auditor_name || "N/A", y);
     y += lineHeight * 2;
     
     // Add section: Verificação da Eficácia
@@ -155,7 +157,7 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     
     return Promise.resolve();
   } catch (error) {
-    console.error("Error generating ACAC PDF:", error);
+    console.error("Erro ao gerar PDF de ACAC:", error);
     throw error;
   }
 };

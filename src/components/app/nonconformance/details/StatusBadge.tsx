@@ -17,9 +17,19 @@ const StatusBadge = ({ status }: StatusBadgeProps) => {
     }
   };
 
+  const getTranslatedStatus = (status: NonConformance['status']) => {
+    switch (status) {
+      case 'pending': return 'Pendente';
+      case 'in-progress': return 'Em Andamento';
+      case 'resolved': return 'Resolvido';
+      case 'closed': return 'Encerrado';
+      default: return status;
+    }
+  };
+
   return (
     <Badge className={getStatusBadgeColor(status)}>
-      {status}
+      {getTranslatedStatus(status)}
     </Badge>
   );
 };

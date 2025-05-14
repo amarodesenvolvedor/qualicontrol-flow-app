@@ -27,13 +27,19 @@ export const exportNonConformanceToPDF = async (nonConformance: NonConformance):
     y += lineHeight;
     
     doc.setFontSize(12);
-    doc.text(`Código: ${nonConformance.code}`, 20, y);
+    doc.text(`Código: ${nonConformance.code || 'N/A'}`, 20, y);
     y += lineHeight;
     
-    doc.text(`Título: ${nonConformance.title}`, 20, y);
+    doc.text(`Título: ${nonConformance.title || 'N/A'}`, 20, y);
     y += lineHeight;
     
-    doc.text(`Status: ${nonConformance.status}`, 20, y);
+    const statusMap: Record<string, string> = {
+      'pending': 'Pendente',
+      'in-progress': 'Em Andamento',
+      'resolved': 'Resolvido',
+      'closed': 'Encerrado',
+    };
+    doc.text(`Status: ${statusMap[nonConformance.status] || nonConformance.status}`, 20, y);
     y += lineHeight * 1.5;
 
     // Add section: Detalhes
@@ -42,13 +48,13 @@ export const exportNonConformanceToPDF = async (nonConformance: NonConformance):
     y += lineHeight;
     
     doc.setFontSize(12);
-    doc.text(`Departamento: ${nonConformance.department?.name || '-'}`, 20, y);
+    doc.text(`Departamento: ${nonConformance.department?.name || 'N/A'}`, 20, y);
     y += lineHeight;
     
-    doc.text(`Responsável: ${nonConformance.responsible_name}`, 20, y);
+    doc.text(`Responsável: ${nonConformance.responsible_name || 'N/A'}`, 20, y);
     y += lineHeight;
     
-    doc.text(`Auditor: ${nonConformance.auditor_name}`, 20, y);
+    doc.text(`Auditor: ${nonConformance.auditor_name || 'N/A'}`, 20, y);
     y += lineHeight * 1.5;
     
     // Add section: Datas
@@ -57,13 +63,13 @@ export const exportNonConformanceToPDF = async (nonConformance: NonConformance):
     y += lineHeight;
     
     doc.setFontSize(12);
-    doc.text(`Ocorrência: ${format(new Date(nonConformance.occurrence_date), "dd/MM/yyyy")}`, 20, y);
+    doc.text(`Ocorrência: ${nonConformance.occurrence_date ? format(new Date(nonConformance.occurrence_date), "dd/MM/yyyy") : 'N/A'}`, 20, y);
     y += lineHeight;
     
     doc.text(`Resposta: ${nonConformance.response_date ? format(new Date(nonConformance.response_date), "dd/MM/yyyy") : "Não definida"}`, 20, y);
     y += lineHeight;
     
-    doc.text(`Criação: ${format(new Date(nonConformance.created_at), "dd/MM/yyyy HH:mm")}`, 20, y);
+    doc.text(`Criação: ${nonConformance.created_at ? format(new Date(nonConformance.created_at), "dd/MM/yyyy HH:mm") : 'N/A'}`, 20, y);
     y += lineHeight * 1.5;
     
     // Add section: Descrição
@@ -72,7 +78,8 @@ export const exportNonConformanceToPDF = async (nonConformance: NonConformance):
     y += lineHeight;
     
     doc.setFontSize(12);
-    const descriptionLines = doc.splitTextToSize(nonConformance.description, 170);
+    const descriptionText = nonConformance.description || "Sem descrição disponível";
+    const descriptionLines = doc.splitTextToSize(descriptionText, 170);
     doc.text(descriptionLines, 20, y);
     y += lineHeight * (descriptionLines.length + 1);
     
@@ -88,15 +95,16 @@ export const exportNonConformanceToPDF = async (nonConformance: NonConformance):
     y += lineHeight;
     
     doc.setFontSize(12);
-    const actionsLines = doc.splitTextToSize(nonConformance.immediate_actions || "Nenhuma ação registrada", 170);
+    const actionsText = nonConformance.immediate_actions || "Nenhuma ação registrada";
+    const actionsLines = doc.splitTextToSize(actionsText, 170);
     doc.text(actionsLines, 20, y);
     
     // Save the PDF
-    doc.save(`${nonConformance.code}_report.pdf`);
+    doc.save(`${nonConformance.code || 'NC'}_relatório.pdf`);
     
     return Promise.resolve();
   } catch (error) {
-    console.error("Error generating PDF:", error);
+    console.error("Erro ao gerar PDF:", error);
     throw error;
   }
 };

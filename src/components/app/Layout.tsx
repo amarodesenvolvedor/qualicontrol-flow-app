@@ -37,17 +37,15 @@ export const Layout = ({ children }: LayoutProps) => {
           {/* Header */}
           <header className="h-16 border-b flex items-center justify-between px-6 bg-card shadow-sm">
             <h1 className="text-lg sm:text-xl font-semibold text-primary">
-              Sistema de Gerenciamento de Não Conformidades
+              Sistema de Gerenciamento
             </h1>
             <div className="flex items-center gap-4">
               <Button 
                 variant="outline" 
                 size="icon"
                 onClick={showNotification}
-                className="relative"
               >
                 <Bell className="h-5 w-5" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
               </Button>
               <Button 
                 variant="outline" 
