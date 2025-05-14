@@ -37,27 +37,48 @@ export const useNonConformanceEdit = () => {
   const { data: ncData, isLoading, error } = useQuery({
     queryKey: ['nonConformanceEdit', id],
     queryFn: async () => {
-      if (!id) return null;
+      if (!id) {
+        console.error('No ID provided for query');
+        return null;
+      }
       
-      const { data, error } = await supabase
-        .from('non_conformances')
-        .select(`
-          *,
-          department:department_id (
-            id,
-            name
-          )
-        `)
-        .eq('id', id)
-        .single();
+      console.log('Fetching non-conformance with ID:', id);
+      try {
+        const { data, error } = await supabase
+          .from('non_conformances')
+          .select(`
+            *,
+            department:department_id (
+              id,
+              name
+            )
+          `)
+          .eq('id', id)
+          .maybeSingle();
 
-      if (error) throw error;
-      return data as NonConformance;
+        if (error) {
+          console.error('Error fetching non-conformance:', error);
+          throw error;
+        }
+        
+        if (!data) {
+          console.error('No non-conformance found with ID:', id);
+          return null;
+        }
+        
+        console.log('Fetched non-conformance data:', data);
+        return data as NonConformance;
+      } catch (err) {
+        console.error('Exception in fetch query:', err);
+        throw err;
+      }
     },
+    enabled: !!id,
   });
 
   useEffect(() => {
     if (ncData) {
+      console.log('Setting form values from ncData:', ncData);
       form.reset({
         code: ncData.code || "",
         title: ncData.title,
@@ -78,35 +99,42 @@ export const useNonConformanceEdit = () => {
   }, [ncData, form]);
 
   const onSubmit = async (values: NonConformanceFormValues) => {
-    if (!id) return;
+    if (!id) {
+      console.error('No ID provided for update');
+      return;
+    }
+    
     setIsSubmitting(true);
+    console.log('Starting update for non-conformance ID:', id);
+    console.log('Form values to update:', values);
 
     try {
-      console.log("Atualizando não conformidade com ID:", id);
-      console.log("Dados de atualização:", values);
+      const updateData = {
+        code: values.code,
+        title: values.title,
+        description: values.description,
+        location: values.location,
+        department_id: values.department_id,
+        category: values.category,
+        immediate_actions: values.immediate_actions || null,
+        responsible_name: values.responsible_name,
+        auditor_name: values.auditor_name,
+        occurrence_date: format(values.occurrence_date, 'yyyy-MM-dd'),
+        deadline_date: values.deadline_date ? format(values.deadline_date, 'yyyy-MM-dd') : null,
+        effectiveness_verification_date: values.effectiveness_verification_date 
+          ? format(values.effectiveness_verification_date, 'yyyy-MM-dd') 
+          : null,
+        completion_date: values.completion_date 
+          ? format(values.completion_date, 'yyyy-MM-dd') 
+          : null,
+        status: values.status,
+      };
+      
+      console.log('Formatted update data:', updateData);
       
       await updateNonConformance.mutateAsync({
         id,
-        data: {
-          code: values.code,
-          title: values.title,
-          description: values.description,
-          location: values.location,
-          department_id: values.department_id,
-          category: values.category,
-          immediate_actions: values.immediate_actions || null,
-          responsible_name: values.responsible_name,
-          auditor_name: values.auditor_name,
-          occurrence_date: format(values.occurrence_date, 'yyyy-MM-dd'),
-          deadline_date: values.deadline_date ? format(values.deadline_date, 'yyyy-MM-dd') : null,
-          effectiveness_verification_date: values.effectiveness_verification_date 
-            ? format(values.effectiveness_verification_date, 'yyyy-MM-dd') 
-            : null,
-          completion_date: values.completion_date 
-            ? format(values.completion_date, 'yyyy-MM-dd') 
-            : null,
-          status: values.status,
-        }
+        data: updateData
       });
 
       toast({
@@ -116,10 +144,10 @@ export const useNonConformanceEdit = () => {
       
       navigate(`/nao-conformidades/${id}`);
     } catch (error) {
-      console.error('Erro ao atualizar não conformidade:', error);
+      console.error('Error updating non-conformance:', error);
       toast({
         title: "Erro ao salvar",
-        description: "Não foi possível salvar as alterações.",
+        description: error instanceof Error ? `Não foi possível salvar as alterações: ${error.message}` : "Não foi possível salvar as alterações.",
         variant: "destructive",
       });
     } finally {

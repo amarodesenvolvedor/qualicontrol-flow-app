@@ -99,23 +99,44 @@ export const createNonConformance = async (data: NonConformanceCreateData): Prom
 
 // Update an existing non-conformance
 export const updateNonConformance = async (id: string, data: NonConformanceUpdateData): Promise<NonConformance> => {
-  // O problema estava na função single() quando não há registros retornados
-  const { data: updatedData, error } = await supabase
-    .from('non_conformances')
-    .update(data)
-    .eq('id', id)
-    .select();
-
-  if (error) {
-    console.error('Error updating non-conformance:', error);
-    throw new Error(`Error updating non-conformance: ${error.message}`);
+  console.log('UpdateNonConformance service called with:', { id, data });
+  
+  // Validate that we have a valid ID
+  if (!id || typeof id !== 'string') {
+    throw new Error('Invalid ID provided for update operation');
   }
+  
+  try {
+    // Use update() with eq() instead of single() to avoid errors when no records are found
+    const { data: updatedData, error } = await supabase
+      .from('non_conformances')
+      .update(data)
+      .eq('id', id)
+      .select(`
+        *,
+        department:department_id (
+          id,
+          name
+        )
+      `)
+      .maybeSingle();
 
-  if (!updatedData || updatedData.length === 0) {
-    throw new Error('No record was updated. The record may not exist or you may not have permission to update it.');
+    if (error) {
+      console.error('Supabase error updating non-conformance:', error);
+      throw new Error(`Error updating non-conformance: ${error.message}`);
+    }
+
+    if (!updatedData) {
+      console.error('No record found with ID:', id);
+      throw new Error('No record was updated. The record may not exist or you may not have permission to update it.');
+    }
+
+    console.log('Successfully updated non-conformance:', updatedData);
+    return updatedData as NonConformance;
+  } catch (error) {
+    console.error('Exception in updateNonConformance:', error);
+    throw error;
   }
-
-  return updatedData[0] as unknown as NonConformance;
 };
 
 // Delete a non-conformance

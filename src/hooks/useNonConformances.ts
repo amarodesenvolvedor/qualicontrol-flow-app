@@ -83,28 +83,28 @@ export const useNonConformances = () => {
   const updateNonConformance = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: NonConformanceUpdateData }) => {
       try {
-        console.log("Enviando atualização para o ID:", id);
-        console.log("Dados a serem atualizados:", data);
+        console.log("Sending update for ID:", id);
+        console.log("Data to be updated:", data);
         
         // Fetch the current state before updating
         const currentData = await queryClient.fetchQuery({
           queryKey: ['nonConformance', id],
           queryFn: async () => {
-            console.log("Buscando registro atual");
+            console.log("Fetching current record");
             const response = await fetchNonConformances({ searchTerm: id });
             const record = response.find((nc: NonConformance) => nc.id === id);
-            console.log("Registro atual encontrado:", record);
+            console.log("Current record found:", record);
             return record || null;
           }
         });
         
         if (!currentData) {
-          console.error("Registro atual não encontrado");
-          throw new Error("Registro não encontrado para atualização");
+          console.error("Current record not found");
+          throw new Error("Record not found for update");
         }
         
         const result = await updateNC(id, data);
-        console.log("Resultado da atualização:", result);
+        console.log("Update result:", result);
         
         // Log history for each changed field
         if (currentData) {
@@ -122,8 +122,8 @@ export const useNonConformances = () => {
                   String(data[keyTyped])
                 );
               } catch (historyError) {
-                console.error('Erro ao registrar histórico:', historyError);
-                // Não interrompe o processo se falhar o histórico
+                console.error('Error logging history:', historyError);
+                // Don't interrupt the process if history logging fails
               }
             }
           });
@@ -131,7 +131,7 @@ export const useNonConformances = () => {
         
         return result;
       } catch (error) {
-        console.error("Erro na mutação de atualização:", error);
+        console.error("Error in update mutation:", error);
         throw error;
       }
     },
@@ -151,7 +151,7 @@ export const useNonConformances = () => {
           );
         } catch (notifyError) {
           console.error("Erro ao enviar notificação:", notifyError);
-          // Não interrompe o processo se falhar a notificação
+          // Don't interrompe o processo se falhar a notificação
         }
       }
       
@@ -159,7 +159,7 @@ export const useNonConformances = () => {
       queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit'] });
     },
     onError: (error: any) => {
-      console.error("Erro na atualização:", error);
+      console.error("Error in update:", error);
       toast({
         title: 'Erro',
         description: `Erro ao atualizar não conformidade: ${error.message || 'Erro desconhecido'}`,
