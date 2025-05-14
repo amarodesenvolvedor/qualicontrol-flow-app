@@ -8,7 +8,7 @@ import { useNonConformances } from "@/hooks/useNonConformances";
 import { StandardReportsTab } from "@/components/reports/StandardReportsTab";
 import { CustomReportTab } from "@/components/reports/CustomReportTab";
 import { ScheduledReportsTab } from "@/components/reports/ScheduledReportsTab";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 
 const ReportsPage = () => {
   const { nonConformances, isLoading, refetch } = useNonConformances();
@@ -16,14 +16,21 @@ const ReportsPage = () => {
   const [refreshKey, setRefreshKey] = useState(0); // Add a refresh key state
 
   const handleRefresh = async () => {
-    toast.info("Atualizando relatórios...");
+    toast({
+      title: "Atualizando relatórios...",
+    });
     try {
       await refetch();
       setRefreshKey(prev => prev + 1); // Force re-render of components
-      toast.success("Relatórios atualizados com sucesso!");
+      toast({
+        title: "Relatórios atualizados com sucesso!"
+      });
     } catch (error) {
       console.error("Erro ao atualizar relatórios:", error);
-      toast.error("Erro ao atualizar relatórios");
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar relatórios"
+      });
     }
   };
 

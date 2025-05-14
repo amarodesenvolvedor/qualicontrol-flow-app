@@ -215,7 +215,11 @@ export const handleReportExport = async (
   nonConformances: any[]
 ): Promise<void> => {
   try {
-    toast.success(`Iniciando download: ${title} em formato ${format.toUpperCase()}`);
+    // Replacing toast.success with standard toast call
+    toast({
+      title: "Iniciando download",
+      description: `${title} em formato ${format.toUpperCase()}`
+    });
     
     // Process data based on report type
     const reportData = processReportData(title, nonConformances);
@@ -227,10 +231,17 @@ export const handleReportExport = async (
       exportToExcel(title, reportData);
     }
     
-    toast.success(`${title} baixado com sucesso!`);
+    // Replacing toast.success with standard toast call
+    toast({
+      title: "Download concluído",
+      description: `${title} baixado com sucesso!`
+    });
   } catch (error) {
     console.error("Error generating file:", error);
-    toast.error("Erro ao gerar arquivo", {
+    // Replacing toast.error with standard toast call with variant
+    toast({
+      variant: "destructive",
+      title: "Erro ao gerar arquivo",
       description: `Não foi possível gerar o arquivo ${format.toUpperCase()}.`
     });
   }

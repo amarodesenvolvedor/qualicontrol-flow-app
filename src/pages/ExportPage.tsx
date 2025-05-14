@@ -1,10 +1,10 @@
 
 import Layout from "@/components/app/Layout";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { useAuditReports } from "@/hooks/useAuditReports";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { ExportOptions } from "@/components/exports/ExportOptions";
 import { AvailableReports } from "@/components/exports/AvailableReports";
 import { getReportData, generateExcelReport, generatePDFReport } from "@/components/exports/exportUtils";
@@ -28,8 +28,9 @@ const ExportPage = () => {
   const { auditReports } = useAuditReports();
 
   const handleExport = async (reportType: string) => {
-    toast.success(`Exportação iniciada: ${reportType}`, {
-      description: `Gerando relatório em formato ${exportFormat === 'excel' ? 'Excel' : 'PDF'}.`
+    toast({
+      title: "Exportação iniciada",
+      description: `${reportType} em formato ${exportFormat === 'excel' ? 'Excel' : 'PDF'}.`
     });
 
     try {
@@ -44,10 +45,15 @@ const ExportPage = () => {
         await generatePDFReport(reportType, reportData);
       }
       
-      toast.success(`${reportType} exportado com sucesso!`);
+      toast({
+        title: "Exportação concluída",
+        description: `${reportType} exportado com sucesso!`
+      });
     } catch (error) {
       console.error("Error exporting report:", error);
-      toast.error("Erro na exportação", {
+      toast({
+        variant: "destructive",
+        title: "Erro na exportação",
         description: "Não foi possível gerar o relatório solicitado."
       });
     }
@@ -62,7 +68,7 @@ const ExportPage = () => {
 
   return (
     <Layout>
-      <Toaster position="top-right" />
+      <Toaster />
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Exportar Dados</h1>
