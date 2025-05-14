@@ -1,3 +1,4 @@
+
 import { useDepartments } from "@/hooks/useDepartments";
 import { Form } from "@/components/ui/form";
 import FormFieldGroup from "./FormFieldGroup";
@@ -11,14 +12,6 @@ const EditForm = () => {
   const { form, onSubmit, handleCancel, isSubmitting, generateAcac } = useNonConformanceEdit();
   const { departments } = useDepartments();
   
-  const categories = [
-    { value: "quality", label: "Qualidade" },
-    { value: "safety", label: "Segurança" },
-    { value: "environment", label: "Meio Ambiente" },
-    { value: "maintenance", label: "Manutenção" },
-    { value: "operation", label: "Operação" }
-  ];
-
   const statusOptions = [
     { value: 'pending', label: 'Pendente' },
     { value: 'in-progress', label: 'Em Andamento' },
@@ -53,8 +46,7 @@ const EditForm = () => {
           <TextField 
             control={form.control} 
             name="location" 
-            label="Local" 
-            required
+            label="Local"
           />
           <SelectField 
             control={form.control} 
@@ -68,31 +60,30 @@ const EditForm = () => {
         <FormFieldGroup>
           <SelectField 
             control={form.control} 
-            name="category" 
-            label="Categoria" 
-            options={categories}
-            required
-          />
-          <SelectField 
-            control={form.control} 
             name="status" 
             label="Status" 
             options={statusOptions}
             required
           />
-        </FormFieldGroup>
-
-        <FormFieldGroup>
           <DateField 
             control={form.control} 
             name="occurrence_date" 
             label="Data de Ocorrência" 
             required
           />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <DateField 
-            control={form.control} 
-            name="deadline_date" 
-            label="Data Limite"
+            control={form.control}
+            name="response_date"
+            label="Resposta"
+            placeholder="Selecione uma data (opcional)"
+          />
+          <DateField 
+            control={form.control}
+            name="action_verification_date"
+            label="Verificação da Ação" 
             placeholder="Selecione uma data (opcional)"
           />
         </FormFieldGroup>

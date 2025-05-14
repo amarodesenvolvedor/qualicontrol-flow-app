@@ -8,12 +8,12 @@ export type NonConformance = {
   description: string | null;
   location: string | null;
   department_id: string;
-  category: string;
   immediate_actions: string | null;
   responsible_name: string;
   auditor_name: string;
   occurrence_date: string;
-  deadline_date: string | null;
+  response_date: string | null;
+  action_verification_date: string | null;
   effectiveness_verification_date: string | null;
   completion_date: string | null;
   created_at: string;
@@ -29,7 +29,6 @@ export type NonConformanceUpdateData = Partial<NonConformanceCreateData>;
 
 export type NonConformanceFilter = {
   status?: string;
-  category?: string;
   departmentId?: string;
   responsibleName?: string;
   dateRange?: { from: Date | null; to: Date | null } | null;

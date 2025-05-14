@@ -23,13 +23,6 @@ export const fetchNonConformances = async (filters: NonConformanceFilter): Promi
     }
   }
 
-  if (filters.category) {
-    const categories = filters.category.split(',');
-    if (categories.length > 0) {
-      query = query.in('category', categories);
-    }
-  }
-
   if (filters.departmentId) {
     const departments = filters.departmentId.split(',');
     if (departments.length > 0) {
@@ -74,12 +67,12 @@ export const createNonConformance = async (data: NonConformanceCreateData): Prom
     description: data.description,
     location: data.location,
     department_id: data.department_id,
-    category: data.category,
     immediate_actions: data.immediate_actions,
     responsible_name: data.responsible_name,
     auditor_name: data.auditor_name,
     occurrence_date: data.occurrence_date,
-    deadline_date: data.deadline_date,
+    response_date: data.response_date,
+    action_verification_date: data.action_verification_date,
     status: data.status,
     code: data.code || null, // Use the code provided in the form or null if not provided
     effectiveness_verification_date: data.effectiveness_verification_date,

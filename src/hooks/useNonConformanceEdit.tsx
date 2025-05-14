@@ -27,7 +27,6 @@ export const useNonConformanceEdit = () => {
       description: "",
       location: "",
       department_id: "",
-      category: "",
       immediate_actions: "",
       responsible_name: "",
       auditor_name: "",
@@ -86,12 +85,12 @@ export const useNonConformanceEdit = () => {
         description: ncData.description || "",
         location: ncData.location || "",
         department_id: ncData.department_id,
-        category: ncData.category,
         immediate_actions: ncData.immediate_actions || "",
         responsible_name: ncData.responsible_name,
         auditor_name: ncData.auditor_name,
         occurrence_date: ncData.occurrence_date ? new Date(ncData.occurrence_date) : new Date(),
-        deadline_date: ncData.deadline_date ? new Date(ncData.deadline_date) : undefined,
+        response_date: ncData.response_date ? new Date(ncData.response_date) : undefined,
+        action_verification_date: ncData.action_verification_date ? new Date(ncData.action_verification_date) : undefined,
         effectiveness_verification_date: ncData.effectiveness_verification_date ? new Date(ncData.effectiveness_verification_date) : undefined,
         completion_date: ncData.completion_date ? new Date(ncData.completion_date) : undefined,
         status: ncData.status,
@@ -114,14 +113,16 @@ export const useNonConformanceEdit = () => {
         code: values.code,
         title: values.title,
         description: values.description,
-        location: values.location,
+        location: values.location || null,
         department_id: values.department_id,
-        category: values.category,
         immediate_actions: values.immediate_actions || null,
         responsible_name: values.responsible_name,
         auditor_name: values.auditor_name,
         occurrence_date: format(values.occurrence_date, 'yyyy-MM-dd'),
-        deadline_date: values.deadline_date ? format(values.deadline_date, 'yyyy-MM-dd') : null,
+        response_date: values.response_date ? format(values.response_date, 'yyyy-MM-dd') : null,
+        action_verification_date: values.action_verification_date 
+          ? format(values.action_verification_date, 'yyyy-MM-dd') 
+          : null,
         effectiveness_verification_date: values.effectiveness_verification_date 
           ? format(values.effectiveness_verification_date, 'yyyy-MM-dd') 
           : null,
@@ -173,12 +174,14 @@ export const useNonConformanceEdit = () => {
         description: formValues.description || null,
         location: formValues.location || null,
         department_id: formValues.department_id,
-        category: formValues.category,
         immediate_actions: formValues.immediate_actions || null,
         responsible_name: formValues.responsible_name,
         auditor_name: formValues.auditor_name,
         occurrence_date: formValues.occurrence_date ? format(formValues.occurrence_date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-        deadline_date: formValues.deadline_date ? format(formValues.deadline_date, 'yyyy-MM-dd') : null,
+        response_date: formValues.response_date ? format(formValues.response_date, 'yyyy-MM-dd') : null,
+        action_verification_date: formValues.action_verification_date 
+          ? format(formValues.action_verification_date, 'yyyy-MM-dd') 
+          : null,
         effectiveness_verification_date: formValues.effectiveness_verification_date 
           ? format(formValues.effectiveness_verification_date, 'yyyy-MM-dd') 
           : null,

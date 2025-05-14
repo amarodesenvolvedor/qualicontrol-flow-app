@@ -170,60 +170,60 @@ export type Database = {
       }
       non_conformances: {
         Row: {
+          action_verification_date: string | null
           auditor_name: string
-          category: string
           code: string | null
           completion_date: string | null
           created_at: string
           created_by: string | null
-          deadline_date: string | null
           department_id: string
           description: string
           effectiveness_verification_date: string | null
           id: string
           immediate_actions: string | null
-          location: string
+          location: string | null
           occurrence_date: string
+          response_date: string | null
           responsible_name: string
           status: string
           title: string
           updated_at: string
         }
         Insert: {
+          action_verification_date?: string | null
           auditor_name: string
-          category: string
           code?: string | null
           completion_date?: string | null
           created_at?: string
           created_by?: string | null
-          deadline_date?: string | null
           department_id: string
           description: string
           effectiveness_verification_date?: string | null
           id?: string
           immediate_actions?: string | null
-          location: string
+          location?: string | null
           occurrence_date: string
+          response_date?: string | null
           responsible_name: string
           status?: string
           title: string
           updated_at?: string
         }
         Update: {
+          action_verification_date?: string | null
           auditor_name?: string
-          category?: string
           code?: string | null
           completion_date?: string | null
           created_at?: string
           created_by?: string | null
-          deadline_date?: string | null
           department_id?: string
           description?: string
           effectiveness_verification_date?: string | null
           id?: string
           immediate_actions?: string | null
-          location?: string
+          location?: string | null
           occurrence_date?: string
+          response_date?: string | null
           responsible_name?: string
           status?: string
           title?: string

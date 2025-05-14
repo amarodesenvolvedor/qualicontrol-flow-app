@@ -37,25 +37,34 @@ const ActionsForm = ({ control }: ActionsFormProps) => {
         <FormFieldGroup>
           <DateField 
             control={control}
-            name="deadline_date"
-            label="Data Limite"
+            name="response_date"
+            label="Resposta"
             placeholder="Selecione uma data (opcional)"
           />
           
+          <DateField 
+            control={control}
+            name="action_verification_date"
+            label="Verificação da Ação" 
+            placeholder="Selecione uma data (opcional)"
+          />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <DateField 
             control={control}
             name="effectiveness_verification_date"
             label="Data de Verificação da Eficácia" 
             placeholder="Selecione uma data (opcional)"
           />
+          
+          <DateField 
+            control={control}
+            name="completion_date"
+            label="Data de Conclusão" 
+            placeholder="Selecione uma data (opcional)"
+          />
         </FormFieldGroup>
-
-        <DateField 
-          control={control}
-          name="completion_date"
-          label="Data de Conclusão" 
-          placeholder="Selecione uma data (opcional)"
-        />
       </CardContent>
     </Card>
   );

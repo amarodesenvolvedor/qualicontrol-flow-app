@@ -17,15 +17,6 @@ const CategoryForm = ({ control }: CategoryFormProps) => {
     value: dept.id,
     label: dept.name
   }));
-  
-  // Categories
-  const categories = [
-    { value: "quality", label: "Qualidade" },
-    { value: "safety", label: "Segurança" },
-    { value: "environment", label: "Meio Ambiente" },
-    { value: "maintenance", label: "Manutenção" },
-    { value: "operation", label: "Operação" }
-  ];
 
   const statusOptions = [
     { value: 'pending', label: 'Pendente' },
@@ -48,14 +39,6 @@ const CategoryForm = ({ control }: CategoryFormProps) => {
           required
         />
         
-        <SelectField 
-          control={control} 
-          name="category" 
-          label="Categoria" 
-          options={categories}
-          required
-        />
-
         <SelectField 
           control={control} 
           name="status" 

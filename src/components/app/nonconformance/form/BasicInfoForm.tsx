@@ -42,7 +42,6 @@ const BasicInfoForm = ({ control }: BasicInfoFormProps) => {
               name="location" 
               label="Local da Ocorrência" 
               placeholder="Setor, linha ou local específico"
-              required
             />
             
             <DateField 
