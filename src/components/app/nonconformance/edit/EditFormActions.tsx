@@ -1,13 +1,14 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, FileDown } from "lucide-react";
 
 interface EditFormActionsProps {
   onCancel: () => void;
   isSubmitting?: boolean;
+  onGenerateAcac?: () => void;
 }
 
-const EditFormActions = ({ onCancel, isSubmitting = false }: EditFormActionsProps) => {
+const EditFormActions = ({ onCancel, isSubmitting = false, onGenerateAcac }: EditFormActionsProps) => {
   return (
     <div className="flex justify-end space-x-2">
       <Button 
@@ -19,6 +20,19 @@ const EditFormActions = ({ onCancel, isSubmitting = false }: EditFormActionsProp
         <ArrowLeft className="h-4 w-4 mr-2" />
         Cancelar
       </Button>
+      
+      {onGenerateAcac && (
+        <Button 
+          type="button" 
+          variant="secondary" 
+          onClick={onGenerateAcac}
+          disabled={isSubmitting}
+        >
+          <FileDown className="h-4 w-4 mr-2" />
+          Gerar ACAC
+        </Button>
+      )}
+      
       <Button type="submit" disabled={isSubmitting}>
         <Save className="h-4 w-4 mr-2" />
         {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}

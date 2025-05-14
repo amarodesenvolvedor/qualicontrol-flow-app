@@ -1,4 +1,3 @@
-
 import { useDepartments } from "@/hooks/useDepartments";
 import { Form } from "@/components/ui/form";
 import FormFieldGroup from "./FormFieldGroup";
@@ -9,7 +8,7 @@ import EditFormActions from "./EditFormActions";
 import { useNonConformanceEdit } from "@/hooks/useNonConformanceEdit";
 
 const EditForm = () => {
-  const { form, onSubmit, handleCancel, isSubmitting } = useNonConformanceEdit();
+  const { form, onSubmit, handleCancel, isSubmitting, generateAcac } = useNonConformanceEdit();
   const { departments } = useDepartments();
   
   const categories = [
@@ -145,7 +144,11 @@ const EditForm = () => {
           rows={4}
         />
 
-        <EditFormActions onCancel={handleCancel} isSubmitting={isSubmitting} />
+        <EditFormActions 
+          onCancel={handleCancel} 
+          isSubmitting={isSubmitting}
+          onGenerateAcac={generateAcac} 
+        />
       </form>
     </Form>
   );
