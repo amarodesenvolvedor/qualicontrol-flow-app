@@ -138,8 +138,8 @@ export const ReportCard = ({ title, description, type, updatedAt }: ReportCardPr
         });
         
         // Save the PDF
-        const filename = `${title.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.pdf`;
-        doc.save(filename);
+        const filename = `${title.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}`;
+        doc.save(filename + ".pdf");
       } else {
         // Create Excel workbook
         const wb = XLSX.utils.book_new();
@@ -204,8 +204,8 @@ export const ReportCard = ({ title, description, type, updatedAt }: ReportCardPr
         XLSX.utils.book_append_sheet(wb, ws, "Relatório");
         
         // Generate Excel file
-        const filename = `${title.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.xlsx`;
-        XLSX.writeFile(wb, filename);
+        const filename = `${title.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}`;
+        XLSX.writeFile(wb, filename + ".xlsx");
       }
       
       toast.success(`${title} baixado com sucesso!`);
