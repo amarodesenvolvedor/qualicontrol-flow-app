@@ -13,12 +13,18 @@ import { toast } from "sonner";
 const ReportsPage = () => {
   const { nonConformances, isLoading, refetch } = useNonConformances();
   const [activeTab, setActiveTab] = useState("standard");
+  const [refreshKey, setRefreshKey] = useState(0); // Add a refresh key state
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     toast.info("Atualizando relatórios...");
-    refetch().then(() => {
+    try {
+      await refetch();
+      setRefreshKey(prev => prev + 1); // Force re-render of components
       toast.success("Relatórios atualizados com sucesso!");
-    });
+    } catch (error) {
+      console.error("Erro ao atualizar relatórios:", error);
+      toast.error("Erro ao atualizar relatórios");
+    }
   };
 
   return (
@@ -32,8 +38,9 @@ const ReportsPage = () => {
               size="sm" 
               className="h-8 transition-all hover:-translate-y-1 hover:shadow-md duration-300" 
               onClick={handleRefresh}
+              disabled={isLoading}
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               Atualizar
             </Button>
           </div>
@@ -47,15 +54,15 @@ const ReportsPage = () => {
           </TabsList>
           
           <TabsContent value="standard" className="animate-fadeIn">
-            <StandardReportsTab />
+            <StandardReportsTab key={`standard-${refreshKey}`} /> {/* Add key based on refreshKey */}
           </TabsContent>
           
           <TabsContent value="custom" className="animate-fadeIn">
-            <CustomReportTab nonConformances={nonConformances} />
+            <CustomReportTab nonConformances={nonConformances} key={`custom-${refreshKey}`} /> {/* Add key based on refreshKey */}
           </TabsContent>
           
           <TabsContent value="scheduled" className="animate-fadeIn">
-            <ScheduledReportsTab nonConformances={nonConformances} />
+            <ScheduledReportsTab nonConformances={nonConformances} key={`scheduled-${refreshKey}`} /> {/* Add key based on refreshKey */}
           </TabsContent>
         </Tabs>
       </div>

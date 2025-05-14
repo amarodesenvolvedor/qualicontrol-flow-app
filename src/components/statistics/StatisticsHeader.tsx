@@ -1,17 +1,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RefreshCw } from "lucide-react";
 
 interface StatisticsHeaderProps {
   selectedYear: string;
   onYearChange: (year: string) => void;
   onRefresh: () => void;
+  isLoading?: boolean;
 }
 
 export const StatisticsHeader = ({ 
   selectedYear, 
   onYearChange, 
-  onRefresh 
+  onRefresh,
+  isLoading = false
 }: StatisticsHeaderProps) => {
   return (
     <div className="flex items-center justify-between">
@@ -27,7 +30,14 @@ export const StatisticsHeader = ({
             <SelectItem value="2023">2023</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" className="h-9" onClick={onRefresh}>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="h-9" 
+          onClick={onRefresh}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           Atualizar
         </Button>
       </div>
