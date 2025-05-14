@@ -12,10 +12,10 @@ export function isUrgent(nc: NonConformance) {
 
 // Helper function to check if a non-conformance is approaching deadline (within next 7 days)
 export function isApproachingDeadline(nc: NonConformance) {
-  if (!nc.deadline_date) return false;
-  const deadlineDate = new Date(nc.deadline_date);
+  if (!nc.response_date) return false;
+  const responseDate = new Date(nc.response_date);
   const now = new Date();
-  const diffTime = deadlineDate.getTime() - now.getTime();
+  const diffTime = responseDate.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays >= 0 && diffDays <= 7;
 }

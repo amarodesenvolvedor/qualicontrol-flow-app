@@ -7,32 +7,19 @@ import { useEffect } from "react";
 
 interface CategoryCardProps {
   department: string;
-  category: string;
   status: string;
   onDepartmentChange: (value: string) => void;
-  onCategoryChange: (value: string) => void;
   onStatusChange: (value: string) => void;
 }
 
 const CategoryCard = ({ 
   department, 
-  category, 
   status,
   onDepartmentChange, 
-  onCategoryChange,
   onStatusChange
 }: CategoryCardProps) => {
   const { departments, error: departmentsError } = useDepartments();
   
-  // Categorias traduzidas para português
-  const categories = [
-    { value: "quality", label: "Qualidade" },
-    { value: "safety", label: "Segurança" },
-    { value: "environment", label: "Meio Ambiente" },
-    { value: "maintenance", label: "Manutenção" },
-    { value: "operation", label: "Operação" }
-  ];
-
   const statusOptions = [
     { value: 'pending', label: 'Pendente' },
     { value: 'in-progress', label: 'Em Andamento' },
@@ -96,22 +83,6 @@ const CategoryCard = ({
                   ))}
                 </>
               )}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <Label htmlFor="category">Categoria</Label>
-          <Select value={category} onValueChange={onCategoryChange}>
-            <SelectTrigger id="category" className="mt-1.5">
-              <SelectValue placeholder="Selecione uma categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
             </SelectContent>
           </Select>
         </div>

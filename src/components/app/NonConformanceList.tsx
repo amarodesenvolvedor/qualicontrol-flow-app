@@ -112,7 +112,6 @@ const NonConformanceList = ({
                     <TableHead>Código</TableHead>
                     <TableHead>Título</TableHead>
                     <TableHead>Departamento</TableHead>
-                    <TableHead>Categoria</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead>Ações</TableHead>
@@ -124,7 +123,6 @@ const NonConformanceList = ({
                       <TableCell className="font-medium">{nc.code}</TableCell>
                       <TableCell>{nc.title}</TableCell>
                       <TableCell>{nc.department?.name || '-'}</TableCell>
-                      <TableCell>{nc.category}</TableCell>
                       <TableCell>
                         <Badge className={getStatusBadgeColor(nc.status)}>
                           {nc.status}

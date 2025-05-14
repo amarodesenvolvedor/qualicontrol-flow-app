@@ -39,11 +39,11 @@ export const NotificationWrapper = ({ children }: NotificationWrapperProps) => {
             });
           }
           
-          // Check if deadline is approaching (within 3 days)
-          if (updatedNonConformance.deadline_date) {
-            const deadline = new Date(updatedNonConformance.deadline_date);
+          // Check if response_date is approaching (within 3 days)
+          if (updatedNonConformance.response_date) {
+            const responseDate = new Date(updatedNonConformance.response_date);
             const today = new Date();
-            const diffTime = Math.abs(deadline.getTime() - today.getTime());
+            const diffTime = Math.abs(responseDate.getTime() - today.getTime());
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
             if (diffDays <= 3 && updatedNonConformance.status !== 'closed' && updatedNonConformance.status !== 'resolved') {

@@ -11,7 +11,7 @@ import { NonConformanceFormValues } from "@/utils/nonConformanceFormSchema";
 
 interface DateFieldProps {
   control: Control<NonConformanceFormValues>;
-  name: "occurrence_date" | "deadline_date" | "effectiveness_verification_date" | "completion_date";
+  name: "occurrence_date" | "response_date" | "action_verification_date" | "effectiveness_verification_date" | "completion_date";
   label: string;
   placeholder?: string;
   required?: boolean;
@@ -49,7 +49,7 @@ const DateField = ({ control, name, label, placeholder = "Selecione uma data", r
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={field.value}
+                selected={field.value as Date}
                 onSelect={field.onChange}
                 initialFocus
               />

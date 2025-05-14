@@ -46,9 +46,6 @@ export const exportNonConformanceToPDF = async (nonConformance: NonConformance):
     doc.text(`Departamento: ${nonConformance.department?.name || '-'}`, 20, y);
     y += lineHeight;
     
-    doc.text(`Categoria: ${nonConformance.category}`, 20, y);
-    y += lineHeight;
-    
     doc.text(`Responsável: ${nonConformance.responsible_name}`, 20, y);
     y += lineHeight;
     
@@ -64,7 +61,7 @@ export const exportNonConformanceToPDF = async (nonConformance: NonConformance):
     doc.text(`Ocorrência: ${format(new Date(nonConformance.occurrence_date), "dd/MM/yyyy")}`, 20, y);
     y += lineHeight;
     
-    doc.text(`Limite: ${nonConformance.deadline_date ? format(new Date(nonConformance.deadline_date), "dd/MM/yyyy") : "Não definida"}`, 20, y);
+    doc.text(`Resposta: ${nonConformance.response_date ? format(new Date(nonConformance.response_date), "dd/MM/yyyy") : "Não definida"}`, 20, y);
     y += lineHeight;
     
     doc.text(`Criação: ${format(new Date(nonConformance.created_at), "dd/MM/yyyy HH:mm")}`, 20, y);
@@ -204,7 +201,6 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     y = drawField("Departamento", nonConformance.department?.name || "N/A", y);
     y = drawField("Responsável", nonConformance.responsible_name, y);
     y = drawField("Data de Ocorrência", format(new Date(nonConformance.occurrence_date), "dd/MM/yyyy"), y);
-    y = drawField("Categoria", nonConformance.category, y);
     y = drawField("Local", nonConformance.location || "N/A", y);
     y += lineHeight;
     
@@ -266,11 +262,11 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     doc.text("6. PRAZO E RESPONSÁVEIS", 20, y);
     y += lineHeight * 1.2;
     
-    const deadlineDate = nonConformance.deadline_date 
-      ? format(new Date(nonConformance.deadline_date), "dd/MM/yyyy")
+    const responseDate = nonConformance.response_date 
+      ? format(new Date(nonConformance.response_date), "dd/MM/yyyy")
       : "Não definido";
       
-    y = drawField("Prazo para Conclusão", deadlineDate, y);
+    y = drawField("Prazo para Resposta", responseDate, y);
     y = drawField("Auditor", nonConformance.auditor_name, y);
     y += lineHeight * 2;
     

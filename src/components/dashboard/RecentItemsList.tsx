@@ -59,7 +59,7 @@ const RecentItemsList = ({ recentItems, isUrgent }: RecentItemsListProps) => {
                       </Badge>
                     </td>
                     <td className="p-2">{new Date(item.occurrence_date).toLocaleDateString('pt-BR')}</td>
-                    <td className="p-2">{item.deadline_date ? new Date(item.deadline_date).toLocaleDateString('pt-BR') : '-'}</td>
+                    <td className="p-2">{item.response_date ? new Date(item.response_date).toLocaleDateString('pt-BR') : '-'}</td>
                   </tr>
                 );
               })}

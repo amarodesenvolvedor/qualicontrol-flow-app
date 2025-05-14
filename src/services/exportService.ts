@@ -27,13 +27,6 @@ export const generateReportData = (nonConformances: any[], type: string) => {
         return acc;
       }, {});
       
-    case 'category':
-      return nonConformances.reduce((acc, nc) => {
-        const category = nc.category || 'Não categorizado';
-        acc[category] = (acc[category] || 0) + 1;
-        return acc;
-      }, {});
-      
     case 'severity':
       // Implementação de exemplo para gravidade (assumindo que seja um campo)
       // Ajuste conforme necessário baseado na estrutura real dos dados

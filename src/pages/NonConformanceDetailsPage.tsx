@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -162,16 +163,12 @@ const NonConformanceDetailsPage = () => {
                         <p>{nonConformance.department?.name || '-'}</p>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Categoria</h3>
-                        <p>{nonConformance.category}</p>
-                      </div>
-                      <div>
                         <h3 className="text-sm font-medium text-muted-foreground">Data de Ocorrência</h3>
                         <p>{format(new Date(nonConformance.occurrence_date), 'dd/MM/yyyy')}</p>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Data Limite</h3>
-                        <p>{nonConformance.deadline_date ? format(new Date(nonConformance.deadline_date), 'dd/MM/yyyy') : 'Não definida'}</p>
+                        <h3 className="text-sm font-medium text-muted-foreground">Data de Resposta</h3>
+                        <p>{nonConformance.response_date ? format(new Date(nonConformance.response_date), 'dd/MM/yyyy') : 'Não definida'}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground">Auditor</h3>
