@@ -9,8 +9,8 @@ interface TrendsTabProps {
 
 export const TrendsTab = ({ trendData }: TrendsTabProps) => {
   return (
-    <div className="grid gap-6">
-      <Card>
+    <div className="grid gap-6 animate-fade-in">
+      <Card className="rounded-xl shadow hover:shadow-md transition-all duration-300">
         <CardHeader>
           <CardTitle>Tendência de Não Conformidades</CardTitle>
           <CardDescription>Evolução mensal por status</CardDescription>

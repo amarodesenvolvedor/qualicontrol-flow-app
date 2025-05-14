@@ -14,6 +14,7 @@ interface InteractiveChartProps {
   type: "bar" | "pie" | "line";
   dataKey?: string;
   height?: number;
+  layout?: "vertical" | "horizontal";
 }
 
 export const InteractiveChart = ({
@@ -22,7 +23,8 @@ export const InteractiveChart = ({
   data,
   type = "bar",
   dataKey = "value",
-  height = 300
+  height = 300,
+  layout = "vertical"
 }: InteractiveChartProps) => {
   const [selectedItem, setSelectedItem] = useState<DataItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -62,6 +64,7 @@ export const InteractiveChart = ({
             type={type} 
             dataKey={dataKey} 
             height={height} 
+            layout={layout}
             onItemClick={handleChartClick}
           />
         );
@@ -85,7 +88,9 @@ export const InteractiveChart = ({
         <div className="text-center text-sm text-muted-foreground mb-2">
           Clique em um item no gráfico para ver detalhes
         </div>
-        {renderChart()}
+        <div className="transition-all duration-300">
+          {renderChart()}
+        </div>
       </CardContent>
 
       <DetailDialog 

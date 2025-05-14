@@ -8,3 +8,5 @@ export interface DataItem {
   percentage?: number;
   [key: string]: any;
 }
+
+export type ChartLayout = "vertical" | "horizontal";

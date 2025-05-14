@@ -25,25 +25,19 @@ export const OverviewTab = ({
   
   if (isLoading) {
     return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map(i => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-6 w-[250px]" />
-              <Skeleton className="h-4 w-[200px]" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-[300px] w-full" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid gap-6">
+        <Skeleton className="h-[400px] w-full rounded-xl" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-[300px] w-full rounded-xl" />
+          <Skeleton className="h-[300px] w-full rounded-xl" />
+        </div>
       </div>
     );
   }
   
   if (!hasData) {
     return (
-      <Card>
+      <Card className="rounded-xl shadow">
         <CardContent className="flex flex-col items-center justify-center py-10">
           <p className="mb-4 text-muted-foreground">Nenhuma não conformidade cadastrada ainda.</p>
           <Button onClick={() => navigate("/nao-conformidades/nova")}>
@@ -55,52 +49,61 @@ export const OverviewTab = ({
   }
   
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
+    <div className="grid gap-6 animate-fade-in">
+      {/* Horizontal Bar Chart for Departments - Full Width */}
+      <Card className="w-full rounded-xl shadow hover:shadow-md transition-all duration-300">
         <CardHeader>
           <CardTitle>Não Conformidades por Departamento</CardTitle>
           <CardDescription>Distribuição atual por área</CardDescription>
         </CardHeader>
-        <CardContent className="pt-2">
-          <InteractiveChart
-            title=""
-            data={departmentStats}
-            type="bar"
-            height={300}
-          />
+        <CardContent className="pt-2 overflow-x-auto">
+          <div className="min-h-[400px] min-w-[600px]">
+            <InteractiveChart
+              title=""
+              data={departmentStats}
+              type="bar"
+              layout="horizontal"
+              height={400}
+            />
+          </div>
         </CardContent>
       </Card>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Status das Não Conformidades</CardTitle>
-          <CardDescription>Distribuição por status atual</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2">
-          <InteractiveChart
-            title=""
-            data={statusStats}
-            type="pie"
-            height={300}
-          />
-        </CardContent>
-      </Card>
-      
-      <Card className="md:col-span-2 lg:col-span-1">
-        <CardHeader>
-          <CardTitle>Não Conformidades Mensais</CardTitle>
-          <CardDescription>Quantidade registrada por mês</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2">
-          <InteractiveChart
-            title=""
-            data={monthlyStats}
-            type="bar"
-            dataKey="value"
-            height={300}
-          />
-        </CardContent>
-      </Card>
+      {/* Two Charts Side by Side (or Stacked on Mobile) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Status Pie Chart */}
+        <Card className="rounded-xl shadow hover:shadow-md transition-all duration-300">
+          <CardHeader>
+            <CardTitle>Status das Não Conformidades</CardTitle>
+            <CardDescription>Distribuição por status atual</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <InteractiveChart
+              title=""
+              data={statusStats}
+              type="pie"
+              height={300}
+            />
+          </CardContent>
+        </Card>
+        
+        {/* Monthly Bar Chart */}
+        <Card className="rounded-xl shadow hover:shadow-md transition-all duration-300">
+          <CardHeader>
+            <CardTitle>Não Conformidades Mensais</CardTitle>
+            <CardDescription>Quantidade registrada por mês</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <InteractiveChart
+              title=""
+              data={monthlyStats}
+              type="bar"
+              dataKey="value"
+              height={300}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
