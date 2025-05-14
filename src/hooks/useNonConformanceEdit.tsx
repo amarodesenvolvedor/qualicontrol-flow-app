@@ -1,23 +1,16 @@
 
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
-import { useToast } from "@/hooks/use-toast";
-import { useNonConformances, NonConformance } from "@/hooks/useNonConformances";
-import { format } from "date-fns";
 import { nonConformanceFormSchema, NonConformanceFormValues } from "@/utils/nonConformanceFormSchema";
-import { exportAcacToPDF } from "@/services/exports/pdfExportService";
+import { useNonConformanceData } from "./useNonConformanceData";
+import { useNonConformanceSubmit } from "./useNonConformanceSubmit";
+import { useNonConformancePdfExport } from "./useNonConformancePdfExport";
 
 export const useNonConformanceEdit = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const { updateNonConformance } = useNonConformances();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { ncData, isLoading, error, id } = useNonConformanceData();
+  const { handleSubmit, handleCancel, isSubmitting } = useNonConformanceSubmit(id);
+  const { generateAcac } = useNonConformancePdfExport();
   
   const form = useForm<NonConformanceFormValues>({
     resolver: zodResolver(nonConformanceFormSchema),
@@ -32,48 +25,6 @@ export const useNonConformanceEdit = () => {
       auditor_name: "",
       status: 'pending' as const,
     }
-  });
-
-  const { data: ncData, isLoading, error } = useQuery({
-    queryKey: ['nonConformanceEdit', id],
-    queryFn: async () => {
-      if (!id) {
-        console.error('No ID provided for query');
-        return null;
-      }
-      
-      console.log('Fetching non-conformance with ID:', id);
-      try {
-        const { data, error } = await supabase
-          .from('non_conformances')
-          .select(`
-            *,
-            department:department_id (
-              id,
-              name
-            )
-          `)
-          .eq('id', id)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching non-conformance:', error);
-          throw error;
-        }
-        
-        if (!data) {
-          console.error('No non-conformance found with ID:', id);
-          return null;
-        }
-        
-        console.log('Fetched non-conformance data:', data);
-        return data as NonConformance;
-      } catch (err) {
-        console.error('Exception in fetch query:', err);
-        throw err;
-      }
-    },
-    enabled: !!id,
   });
 
   useEffect(() => {
@@ -98,117 +49,13 @@ export const useNonConformanceEdit = () => {
     }
   }, [ncData, form]);
 
-  const onSubmit = async (values: NonConformanceFormValues) => {
-    if (!id) {
-      console.error('No ID provided for update');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    console.log('Starting update for non-conformance ID:', id);
-    console.log('Form values to update:', values);
+  const onSubmit = form.handleSubmit((values) => {
+    handleSubmit(values);
+  });
 
-    try {
-      const updateData = {
-        code: values.code,
-        title: values.title,
-        description: values.description,
-        location: values.location || null,
-        department_id: values.department_id,
-        immediate_actions: values.immediate_actions || null,
-        responsible_name: values.responsible_name,
-        auditor_name: values.auditor_name,
-        occurrence_date: format(values.occurrence_date, 'yyyy-MM-dd'),
-        response_date: values.response_date ? format(values.response_date, 'yyyy-MM-dd') : null,
-        action_verification_date: values.action_verification_date 
-          ? format(values.action_verification_date, 'yyyy-MM-dd') 
-          : null,
-        effectiveness_verification_date: values.effectiveness_verification_date 
-          ? format(values.effectiveness_verification_date, 'yyyy-MM-dd') 
-          : null,
-        completion_date: values.completion_date 
-          ? format(values.completion_date, 'yyyy-MM-dd') 
-          : null,
-        status: values.status,
-      };
-      
-      console.log('Formatted update data:', updateData);
-      
-      await updateNonConformance.mutateAsync({
-        id,
-        data: updateData
-      });
-
-      toast({
-        title: "Não conformidade atualizada",
-        description: "Os dados foram salvos com sucesso.",
-      });
-      
-      navigate(`/nao-conformidades/${id}`);
-    } catch (error) {
-      console.error('Error updating non-conformance:', error);
-      toast({
-        title: "Erro ao salvar",
-        description: error instanceof Error ? `Não foi possível salvar as alterações: ${error.message}` : "Não foi possível salvar as alterações.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleCancel = () => {
-    navigate(`/nao-conformidades/${id}`);
-  };
-  
-  const generateAcac = async () => {
-    try {
-      // Get current form values
-      const formValues = form.getValues();
-      
-      // Format the data for ACAC PDF generation
-      const acacData: NonConformance = {
-        id: id || '',
-        code: formValues.code || null,
-        title: formValues.title,
-        description: formValues.description || null,
-        location: formValues.location || null,
-        department_id: formValues.department_id,
-        immediate_actions: formValues.immediate_actions || null,
-        responsible_name: formValues.responsible_name,
-        auditor_name: formValues.auditor_name,
-        occurrence_date: formValues.occurrence_date ? format(formValues.occurrence_date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-        response_date: formValues.response_date ? format(formValues.response_date, 'yyyy-MM-dd') : null,
-        action_verification_date: formValues.action_verification_date 
-          ? format(formValues.action_verification_date, 'yyyy-MM-dd') 
-          : null,
-        effectiveness_verification_date: formValues.effectiveness_verification_date 
-          ? format(formValues.effectiveness_verification_date, 'yyyy-MM-dd') 
-          : null,
-        completion_date: formValues.completion_date 
-          ? format(formValues.completion_date, 'yyyy-MM-dd') 
-          : null,
-        created_at: ncData?.created_at || format(new Date(), 'yyyy-MM-dd'),
-        status: formValues.status,
-        department: ncData?.department
-      };
-      
-      // Generate ACAC PDF
-      await exportAcacToPDF(acacData);
-      
-      // Show success notification
-      toast({
-        title: "ACAC gerado com sucesso",
-        description: "O documento ACAC foi baixado para o seu dispositivo.",
-      });
-    } catch (error) {
-      console.error("Erro ao gerar ACAC:", error);
-      toast({
-        title: "Erro ao gerar ACAC",
-        description: "Não foi possível gerar o documento ACAC. Tente novamente.",
-        variant: "destructive",
-      });
-    }
+  const handleGenerateAcac = () => {
+    const formValues = form.getValues();
+    generateAcac(formValues, ncData, id || '');
   };
 
   return {
@@ -216,10 +63,10 @@ export const useNonConformanceEdit = () => {
     ncData,
     isLoading,
     error,
-    onSubmit: form.handleSubmit(onSubmit),
+    onSubmit,
     handleCancel,
     isSubmitting,
     id,
-    generateAcac
+    generateAcac: handleGenerateAcac
   };
 };

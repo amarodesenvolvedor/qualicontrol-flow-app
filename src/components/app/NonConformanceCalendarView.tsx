@@ -53,7 +53,7 @@ const NonConformanceCalendarView = ({ nonConformances }: NonConformanceCalendarV
   const events: CalendarEvent[] = nonConformances.map(nc => ({
     id: nc.id,
     title: nc.title,
-    date: nc.deadline_date ? new Date(nc.deadline_date) : new Date(nc.occurrence_date),
+    date: nc.response_date ? new Date(nc.response_date) : new Date(nc.occurrence_date),
     type: 'nonconformance',
     status: mapStatusToSeverity(nc.status),
   }));
@@ -107,18 +107,18 @@ const NonConformanceCalendarView = ({ nonConformances }: NonConformanceCalendarV
                   <p>{selectedNonConformance.department?.name || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Categoria</p>
-                  <p>{selectedNonConformance.category}</p>
+                  <p className="text-sm font-medium">Localização</p>
+                  <p>{selectedNonConformance.location || '-'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Data de Ocorrência</p>
                   <p>{format(new Date(selectedNonConformance.occurrence_date), 'dd/MM/yyyy')}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Prazo</p>
-                  <p>{selectedNonConformance.deadline_date 
-                    ? format(new Date(selectedNonConformance.deadline_date), 'dd/MM/yyyy')
-                    : 'Sem prazo definido'}</p>
+                  <p className="text-sm font-medium">Data de Resposta</p>
+                  <p>{selectedNonConformance.response_date 
+                    ? format(new Date(selectedNonConformance.response_date), 'dd/MM/yyyy')
+                    : 'Sem data definida'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Responsável</p>

@@ -23,25 +23,10 @@ const NonConformanceFilters = ({
     { value: 'closed', label: 'Encerrado' }
   ];
 
-  const categoryOptions = [
-    { value: 'quality', label: 'Qualidade' },
-    { value: 'safety', label: 'Segurança' },
-    { value: 'environment', label: 'Meio Ambiente' },
-    { value: 'maintenance', label: 'Manutenção' },
-    { value: 'operation', label: 'Operação' }
-  ];
-
   const handleStatusChange = (values: string[]) => {
     onFilterChange({
       ...filters,
       status: values.length ? values[0] as NonConformanceFilter['status'] : undefined
-    });
-  };
-
-  const handleCategoryChange = (values: string[]) => {
-    onFilterChange({
-      ...filters,
-      category: values.length ? values.join(',') : undefined
     });
   };
 
@@ -72,16 +57,6 @@ const NonConformanceFilters = ({
           options={statusOptions}
           selectedValues={filters.status ? [filters.status] : []}
           onChange={handleStatusChange}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Categoria</label>
-        <MultiSelectFilter
-          label="Selecionar categorias"
-          options={categoryOptions}
-          selectedValues={filters.category ? filters.category.split(',') : []}
-          onChange={handleCategoryChange}
         />
       </div>
 
