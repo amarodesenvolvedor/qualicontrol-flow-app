@@ -6,6 +6,7 @@ import Layout from "@/components/app/Layout";
 import EditForm from "@/components/app/nonconformance/edit/EditForm";
 import { useNonConformanceEdit } from "@/hooks/useNonConformanceEdit";
 import { Toaster } from "@/components/ui/toaster";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const NonConformanceEditPage = () => {
   const { isLoading, error, ncData, id } = useNonConformanceEdit();
@@ -25,8 +26,15 @@ const NonConformanceEditPage = () => {
     return (
       <Layout>
         <div className="flex flex-col items-center py-8">
-          <p className="text-red-500 mb-4">Erro ao carregar dados ou não conformidade não encontrada</p>
-          <pre className="bg-gray-100 p-2 rounded text-xs mb-4">{error ? String(error) : 'Não conformidade não encontrada'}</pre>
+          <Alert variant="destructive" className="w-full max-w-2xl mb-4">
+            <AlertTitle>Erro ao carregar dados</AlertTitle>
+            <AlertDescription>
+              Não foi possível carregar os dados da não conformidade. Verifique se o registro ainda existe.
+            </AlertDescription>
+          </Alert>
+          <pre className="bg-gray-100 p-2 rounded text-xs mb-4 w-full max-w-2xl overflow-auto">
+            {error ? String(error) : 'Não conformidade não encontrada'}
+          </pre>
           <Button onClick={() => navigate('/nao-conformidades')}>Voltar para lista</Button>
         </div>
       </Layout>

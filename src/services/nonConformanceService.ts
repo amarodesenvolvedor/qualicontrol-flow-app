@@ -107,10 +107,30 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
   }
   
   try {
-    // Use update() with eq() instead of single() to avoid errors when no records are found
+    // First, check if the record exists
+    const { data: existingRecord, error: checkError } = await supabase
+      .from('non_conformances')
+      .select('id')
+      .eq('id', id)
+      .maybeSingle();
+      
+    if (checkError) {
+      console.error('Error checking existing record:', checkError);
+      throw new Error(`Error checking record existence: ${checkError.message}`);
+    }
+    
+    if (!existingRecord) {
+      console.error('Record not found with ID:', id);
+      throw new Error('Record not found for update');
+    }
+    
+    // Now perform the update
     const { data: updatedData, error } = await supabase
       .from('non_conformances')
-      .update(data)
+      .update({
+        ...data,
+        updated_at: new Date().toISOString() // Ensure updated_at is set
+      })
       .eq('id', id)
       .select(`
         *,
@@ -127,8 +147,8 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
     }
 
     if (!updatedData) {
-      console.error('No record found with ID:', id);
-      throw new Error('No record was updated. The record may not exist or you may not have permission to update it.');
+      console.error('No record returned after update with ID:', id);
+      throw new Error('No record was returned after update. The update may have failed.');
     }
 
     console.log('Successfully updated non-conformance:', updatedData);
