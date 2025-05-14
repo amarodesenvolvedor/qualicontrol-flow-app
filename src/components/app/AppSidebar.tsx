@@ -39,7 +39,7 @@ export function AppSidebar() {
     >
       <div className="flex items-center justify-between p-4">
         {!collapsed && (
-          <span className="text-xl font-bold text-sidebar-foreground">InduSafe</span>
+          <span className="text-xl font-bold text-sidebar-foreground">IntegraQMS</span>
         )}
         <SidebarTrigger className="self-end text-sidebar-foreground" />
       </div>

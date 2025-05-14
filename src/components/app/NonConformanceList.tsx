@@ -1,10 +1,8 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Eye, Filter } from "lucide-react";
 import { NonConformance } from "@/hooks/useNonConformances";
 import { 
@@ -18,6 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import StatusBadge from "./nonconformance/details/StatusBadge";
 
 interface NonConformanceListProps {
   nonConformances: NonConformance[];
@@ -37,16 +36,6 @@ const NonConformanceList = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const getStatusBadgeColor = (status: NonConformance['status']) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-500 hover:bg-yellow-600';
-      case 'in-progress': return 'bg-blue-500 hover:bg-blue-600';
-      case 'resolved': return 'bg-green-500 hover:bg-green-600';
-      case 'closed': return 'bg-gray-500 hover:bg-gray-600';
-      default: return 'bg-gray-500 hover:bg-gray-600';
-    }
-  };
 
   const handleView = (id: string) => {
     navigate(`/nao-conformidades/${id}`);
@@ -124,9 +113,7 @@ const NonConformanceList = ({
                       <TableCell>{nc.title}</TableCell>
                       <TableCell>{nc.department?.name || '-'}</TableCell>
                       <TableCell>
-                        <Badge className={getStatusBadgeColor(nc.status)}>
-                          {nc.status}
-                        </Badge>
+                        <StatusBadge status={nc.status} />
                       </TableCell>
                       <TableCell>{new Date(nc.occurrence_date).toLocaleDateString()}</TableCell>
                       <TableCell>
