@@ -14,6 +14,7 @@ import { jsPDF } from "jspdf";
 import * as XLSX from 'xlsx';
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { format } from "date-fns";
+import { generatePDFReport } from "@/services/exports/pdfExportService";
 
 interface ReportCardProps {
   title: string;
