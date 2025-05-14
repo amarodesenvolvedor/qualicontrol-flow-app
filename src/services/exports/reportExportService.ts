@@ -2,8 +2,7 @@
 import { jsPDF } from "jspdf";
 import * as XLSX from 'xlsx';
 import { format } from "date-fns";
-import { toast } from "sonner";
-import { useNonConformances } from "@/hooks/useNonConformances";
+import { toast } from "@/components/ui/use-toast";
 
 type ExportFormat = "pdf" | "excel";
 
