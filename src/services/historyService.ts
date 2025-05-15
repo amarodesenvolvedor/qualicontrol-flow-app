@@ -32,14 +32,14 @@ export const logHistory = async (
       ? JSON.stringify(newValue)
       : String(newValue);
 
-    // Get the correct table name based on entity type
-    const tableName = getHistoryTableName(entityType);
+    // Get the correct table name and ID column name based on entity type
+    const { tableName, idColumnName } = getHistoryTableInfo(entityType);
 
     // Use type assertion to tell TypeScript this is a valid table name
     const { data, error } = await supabase
       .from(tableName as any)
       .insert({
-        entity_id: entityId,
+        [idColumnName]: entityId,
         field_name: fieldName,
         old_value: oldValueString,
         new_value: newValueString,
@@ -59,17 +59,29 @@ export const logHistory = async (
   }
 };
 
-// Helper function to get the correct table name
-const getHistoryTableName = (entityType: EntityType): string => {
+// Helper function to get the correct table name and ID column name
+const getHistoryTableInfo = (entityType: EntityType): { tableName: string; idColumnName: string } => {
   switch (entityType) {
     case 'non_conformance':
-      return 'non_conformance_history';
+      return {
+        tableName: 'non_conformance_history',
+        idColumnName: 'non_conformance_id'
+      };
     case 'audit':
-      return 'audit_history';
+      return {
+        tableName: 'audit_history',
+        idColumnName: 'audit_id'
+      };
     case 'report':
-      return 'report_history';
+      return {
+        tableName: 'report_history',
+        idColumnName: 'report_id'
+      };
     default:
-      return 'non_conformance_history';
+      return {
+        tableName: 'non_conformance_history',
+        idColumnName: 'non_conformance_id'
+      };
   }
 };
 
@@ -81,14 +93,14 @@ const getHistoryTableName = (entityType: EntityType): string => {
  */
 export const getEntityHistory = async (entityType: EntityType, entityId: string) => {
   try {
-    // Get the correct table name based on entity type
-    const tableName = getHistoryTableName(entityType);
+    // Get the correct table name and ID column name based on entity type
+    const { tableName, idColumnName } = getHistoryTableInfo(entityType);
     
     // Use type assertion to tell TypeScript this is a valid table name
     const { data, error } = await supabase
       .from(tableName as any)
       .select('*')
-      .eq('entity_id', entityId)
+      .eq(idColumnName, entityId)
       .order('changed_at', { ascending: false });
     
     if (error) {

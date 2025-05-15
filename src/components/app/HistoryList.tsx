@@ -18,7 +18,9 @@ interface HistoryRecord {
   new_value: string | null;
   changed_at: string;
   changed_by: string | null;
-  entity_id: string;
+  non_conformance_id?: string;
+  audit_id?: string;
+  report_id?: string;
 }
 
 const HistoryList = ({ entityType, entityId }: HistoryListProps) => {
