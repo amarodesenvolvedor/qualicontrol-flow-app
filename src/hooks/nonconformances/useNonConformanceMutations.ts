@@ -7,7 +7,7 @@ import {
   deleteNonConformance as deleteNC,
   uploadFilesToStorage,
   fetchNonConformances
-} from '@/services/nonConformanceService';
+} from '@/services/nonConformance';
 import { NonConformanceCreateData, NonConformanceUpdateData, NonConformance } from '@/types/nonConformance';
 import { sendNonConformanceNotification } from '@/services/notificationService';
 import { logHistory } from '@/services/historyService';

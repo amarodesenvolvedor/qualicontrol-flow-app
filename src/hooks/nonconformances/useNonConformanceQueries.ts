@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { fetchNonConformances } from '@/services/nonConformanceService';
+import { fetchNonConformances } from '@/services/nonConformance';
 import { NonConformanceFilter } from '@/types/nonConformance';
 
 export const useNonConformanceQueries = () => {
