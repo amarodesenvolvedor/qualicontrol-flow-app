@@ -15,6 +15,11 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
   const handleSubmit = async (values: NonConformanceFormValues) => {
     if (!id) {
       console.error('No ID provided for update');
+      toast({
+        title: "Erro ao salvar",
+        description: "ID da não conformidade não encontrado.",
+        variant: "destructive",
+      });
       return;
     }
     

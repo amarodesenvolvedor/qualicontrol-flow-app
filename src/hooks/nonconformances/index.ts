@@ -2,7 +2,7 @@
 import { NonConformance, NonConformanceCreateData, NonConformanceUpdateData, NonConformanceFilter } from '@/types/nonConformance';
 import { useNonConformanceQueries } from './useNonConformanceQueries';
 import { useNonConformanceMutations } from './useNonConformanceMutations';
-import { fetchNonConformances } from '@/services/nonConformanceService';
+import { fetchNonConformances } from '@/services/nonConformance';
 
 export const useNonConformances = () => {
   const { 

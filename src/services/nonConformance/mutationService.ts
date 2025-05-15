@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { NonConformance, NonConformanceCreateData, NonConformanceUpdateData } from '@/types/nonConformance';
 
@@ -60,15 +59,27 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
       throw new Error('Record not found for update');
     }
     
-    // Now perform the update
-    // Fix: Use maybeSingle instead of single and add explicit catch for no data
-    const { data: updatedData, error } = await supabase
+    console.log('Record exists, proceeding with update:', existingRecord);
+    
+    // Perform the update with improved error handling
+    const updateResult = await supabase
       .from('non_conformances')
       .update({
         ...data,
-        updated_at: new Date().toISOString() // Ensure updated_at is set
+        updated_at: new Date().toISOString()
       })
-      .eq('id', id)
+      .eq('id', id);
+      
+    if (updateResult.error) {
+      console.error('Update operation failed:', updateResult.error);
+      throw new Error(`Update operation failed: ${updateResult.error.message}`);
+    }
+    
+    console.log('Update operation successful, now fetching updated record');
+    
+    // Always fetch the record after update to ensure we return the latest data
+    const { data: updatedRecord, error: fetchError } = await supabase
+      .from('non_conformances')
       .select(`
         *,
         department:department_id (
@@ -76,43 +87,21 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
           name
         )
       `)
+      .eq('id', id)
       .maybeSingle();
-
-    if (error) {
-      console.error('Supabase error updating non-conformance:', error);
-      throw new Error(`Error updating non-conformance: ${error.message}`);
-    }
-
-    if (!updatedData) {
-      // Fetch the record again to return it, since the update succeeded but didn't return data
-      const { data: refetchedData, error: refetchError } = await supabase
-        .from('non_conformances')
-        .select(`
-          *,
-          department:department_id (
-            id,
-            name
-          )
-        `)
-        .eq('id', id)
-        .maybeSingle();
-        
-      if (refetchError) {
-        console.error('Error fetching updated record:', refetchError);
-        throw new Error(`Update succeeded but couldn't fetch updated record: ${refetchError.message}`);
-      }
       
-      if (!refetchedData) {
-        console.error('No record found after successful update with ID:', id);
-        throw new Error('Update succeeded but record could not be found afterwards');
-      }
-      
-      console.log('Successfully refetched record after update:', refetchedData);
-      return refetchedData as NonConformance;
+    if (fetchError) {
+      console.error('Error fetching updated record:', fetchError);
+      throw new Error(`Update succeeded but couldn't fetch updated record: ${fetchError.message}`);
     }
-
-    console.log('Successfully updated non-conformance:', updatedData);
-    return updatedData as NonConformance;
+    
+    if (!updatedRecord) {
+      console.error('No record found after successful update with ID:', id);
+      throw new Error('Update succeeded but record could not be found afterwards');
+    }
+    
+    console.log('Successfully updated and retrieved non-conformance:', updatedRecord);
+    return updatedRecord as NonConformance;
   } catch (error) {
     console.error('Exception in updateNonConformance:', error);
     throw error;

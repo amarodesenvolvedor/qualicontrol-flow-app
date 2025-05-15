@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { 
@@ -6,8 +5,8 @@ import {
   updateNonConformance as updateNC,
   deleteNonConformance as deleteNC,
   uploadFilesToStorage,
-  fetchNonConformances
 } from '@/services/nonConformance';
+import { supabase } from '@/integrations/supabase/client';
 import { NonConformanceCreateData, NonConformanceUpdateData, NonConformance } from '@/types/nonConformance';
 import { sendNonConformanceNotification } from '@/services/notificationService';
 import { logHistory } from '@/services/historyService';
@@ -69,57 +68,63 @@ export const useNonConformanceMutations = () => {
         console.log("Sending update for ID:", id);
         console.log("Data to be updated:", data);
         
-        // Fetch the current state before updating
-        const currentData = await queryClient.fetchQuery({
-          queryKey: ['nonConformance', id],
-          queryFn: async () => {
-            console.log("Fetching current record");
-            const response = await fetchNonConformances({ searchTerm: id });
-            const record = response.find((nc: NonConformance) => nc.id === id);
-            console.log("Current record found:", record);
-            return record || null;
-          }
-        });
+        // Fetch the current record directly from Supabase for consistency
+        const { data: currentData, error: fetchError } = await supabase
+          .from('non_conformances')
+          .select(`*`)
+          .eq('id', id)
+          .maybeSingle();
+          
+        if (fetchError) {
+          console.error("Error fetching current record:", fetchError);
+          throw new Error(`Error fetching current record: ${fetchError.message}`);
+        }
         
         if (!currentData) {
-          console.error("Current record not found");
+          console.error("Current record not found for ID:", id);
           throw new Error("Record not found for update");
         }
         
-        // Improved error handling during update
-        try {
-          const result = await updateNC(id, data);
-          console.log("Update result:", result);
-          
-          // Log history for each changed field
-          if (currentData && result) {
-            Object.keys(data).forEach(key => {
-              const keyTyped = key as keyof typeof data;
-              const currentKeyTyped = key as keyof typeof currentData;
+        console.log("Current record found:", currentData);
+        
+        // Update the record using the service function
+        const result = await updateNC(id, data);
+        console.log("Update result:", result);
+        
+        // Log history for each changed field
+        if (currentData && result) {
+          Object.keys(data).forEach(key => {
+            const keyTyped = key as keyof typeof data;
+            const currentKeyTyped = key as keyof typeof currentData;
+            
+            // Check if the value has changed
+            const oldValue = currentData[currentKeyTyped];
+            const newValue = data[keyTyped];
+            
+            if (String(oldValue) !== String(newValue)) {
+              console.log(`Logging history for field ${key}:`, { 
+                old: oldValue, 
+                new: newValue 
+              });
               
-              if (data[keyTyped] !== currentData[currentKeyTyped]) {
-                try {
-                  logHistory(
-                    'non_conformance',
-                    id,
-                    key,
-                    currentData[currentKeyTyped] !== null ? String(currentData[currentKeyTyped]) : null,
-                    data[keyTyped] !== null ? String(data[keyTyped]) : null
-                  );
-                } catch (historyError) {
-                  console.error('Error logging history:', historyError);
-                  // Don't interrupt the process if history logging fails
-                }
+              try {
+                logHistory(
+                  'non_conformance',
+                  id,
+                  key,
+                  oldValue !== null ? String(oldValue) : null,
+                  newValue !== null ? String(newValue) : null
+                );
+              } catch (historyError) {
+                console.error('Error logging history:', historyError);
+                // Don't interrupt the process if history logging fails
               }
-            });
-          }
-          
-          return result;
-        } catch (updateError: any) {
-          console.error("Error during update operation:", updateError);
-          throw new Error(`Falha ao atualizar registro: ${updateError.message}`);
+            }
+          });
         }
-      } catch (error) {
+        
+        return result;
+      } catch (error: any) {
         console.error("Error in update mutation:", error);
         throw error;
       }
@@ -140,11 +145,13 @@ export const useNonConformanceMutations = () => {
           );
         } catch (notifyError) {
           console.error("Erro ao enviar notificação:", notifyError);
-          // Don't interrompe o processo se falhar a notificação
+          // Don't interrupt the process if notification fails
         }
       }
       
+      // Invalidate all related queries to ensure the UI updates
       queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
+      queryClient.invalidateQueries({ queryKey: ['nonConformance'] });
       queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit'] });
     },
     onError: (error: any) => {
