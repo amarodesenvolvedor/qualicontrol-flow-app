@@ -1,6 +1,8 @@
+
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { NavLink, useLocation } from "react-router-dom";
-import { BarChart3, ClipboardList, PieChart, Settings, Home, FileText, FileSearch } from "lucide-react";
+import { BarChart3, ClipboardList, PieChart, Settings, Home, FileText, FileSearch, HelpCircle } from "lucide-react";
+
 export function AppSidebar() {
   const {
     state
@@ -101,6 +103,15 @@ export function AppSidebar() {
                   <NavLink to="/configuracoes" className={getNavCls}>
                     <Settings className="mr-2 h-5 w-5" />
                     {!collapsed && <span>Configurações</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/ajuda" className={getNavCls}>
+                    <HelpCircle className="mr-2 h-5 w-5" />
+                    {!collapsed && <span>Ajuda</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

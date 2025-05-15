@@ -15,6 +15,7 @@ import ReportsPage from "./pages/ReportsPage";
 import StatisticsPage from "./pages/StatisticsPage";
 import ExportPage from "./pages/ExportPage";
 import SettingsPage from "./pages/SettingsPage";
+import HelpPage from "./pages/HelpPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -74,6 +75,11 @@ const App = () => (
           <Route path="/configuracoes" element={
             <ProtectedRoute>
               <SettingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/ajuda" element={
+            <ProtectedRoute>
+              <HelpPage />
             </ProtectedRoute>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
