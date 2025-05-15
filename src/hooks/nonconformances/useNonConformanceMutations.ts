@@ -5,7 +5,8 @@ import {
   createNonConformance as createNC, 
   updateNonConformance as updateNC,
   deleteNonConformance as deleteNC,
-  uploadFilesToStorage
+  uploadFilesToStorage,
+  fetchNonConformances
 } from '@/services/nonConformanceService';
 import { NonConformanceCreateData, NonConformanceUpdateData, NonConformance } from '@/types/nonConformance';
 import { sendNonConformanceNotification } from '@/services/notificationService';
