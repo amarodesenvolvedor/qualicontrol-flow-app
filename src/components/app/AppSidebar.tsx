@@ -1,46 +1,22 @@
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { NavLink, useLocation } from "react-router-dom";
-import {
-  BarChart3,
-  ClipboardList,
-  PieChart,
-  Settings,
-  Home,
-  FileText,
-  FileSearch,
-} from "lucide-react";
-
+import { BarChart3, ClipboardList, PieChart, Settings, Home, FileText, FileSearch } from "lucide-react";
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const {
+    state
+  } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
-
   const isActive = (path: string) => currentPath === path;
-  const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-sidebar-accent text-sidebar-primary font-medium" : "hover:bg-sidebar-accent/50";
-
-  return (
-    <Sidebar
-      className={collapsed ? "w-16" : "w-64"}
-      collapsible="icon"
-    >
+  const getNavCls = ({
+    isActive
+  }: {
+    isActive: boolean;
+  }) => isActive ? "bg-sidebar-accent text-sidebar-primary font-medium" : "hover:bg-sidebar-accent/50";
+  return <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
       <div className="flex items-center justify-between p-4">
-        {!collapsed && (
-          <span className="text-xl font-bold text-sidebar-foreground">IntegraQMS</span>
-        )}
+        {!collapsed && <span className="text-xl font-bold text-sidebar-foreground">IntegraQMS - SEW</span>}
         <SidebarTrigger className="self-end text-sidebar-foreground" />
       </div>
 
@@ -132,8 +108,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-    </Sidebar>
-  );
+    </Sidebar>;
 }
-
 export default AppSidebar;
