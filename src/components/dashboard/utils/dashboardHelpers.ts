@@ -20,6 +20,15 @@ export function isApproachingDeadline(nc: NonConformance) {
   return diffDays >= 0 && diffDays <= 7;
 }
 
+// Helper function to check if a non-conformance is past its deadline
+export function isPastDeadline(nc: NonConformance) {
+  if (!nc.response_date) return false;
+  const responseDate = new Date(nc.response_date);
+  const now = new Date();
+  const diffTime = responseDate.getTime() - now.getTime();
+  return diffTime < 0 && nc.status !== "closed";
+}
+
 // Helper function to prepare monthly data
 export function prepareMonthlyData(data: NonConformance[]) {
   const months: Record<string, { name: string; pending: number; inProgress: number; completed: number; total: number }> = {};

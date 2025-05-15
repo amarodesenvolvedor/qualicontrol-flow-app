@@ -1,12 +1,13 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { FileText, AlertCircle, Clock, CheckCircle } from "lucide-react";
+import { FileText, AlertCircle, Clock, CheckCircle, AlertTriangle } from "lucide-react";
 
 interface KPICardsProps {
   totalCount: number;
   openCount: number;
   completedCount: number;
   dueCount: number;
+  overdueCount: number;
   animateValues: boolean;
 }
 
@@ -15,10 +16,11 @@ const DashboardKPICards = ({
   openCount, 
   completedCount, 
   dueCount, 
+  overdueCount,
   animateValues 
 }: KPICardsProps) => {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
       <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Total</CardTitle>
@@ -76,6 +78,21 @@ const DashboardKPICards = ({
           <p className="text-xs text-muted-foreground">Prazos próximos</p>
           <div className="mt-2 h-1 w-full bg-muted">
             <div className="h-1 bg-blue-500" style={{ width: `${totalCount ? (dueCount / totalCount) * 100 : 0}%` }}></div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">Vencidas</CardTitle>
+          <AlertTriangle className="h-4 w-4 text-red-500" />
+        </CardHeader>
+        <CardContent>
+          <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
+            {overdueCount}
+          </div>
+          <p className="text-xs text-muted-foreground">Prazo expirado</p>
+          <div className="mt-2 h-1 w-full bg-muted">
+            <div className="h-1 bg-red-500" style={{ width: `${totalCount ? (overdueCount / totalCount) * 100 : 0}%` }}></div>
           </div>
         </CardContent>
       </Card>

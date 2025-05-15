@@ -4,7 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { COLORS } from "@/components/dashboard/utils/dashboardConstants";
-import { isUrgent, isApproachingDeadline, prepareMonthlyData } from "@/components/dashboard/utils/dashboardHelpers";
+import { 
+  isUrgent, 
+  isApproachingDeadline, 
+  isPastDeadline, 
+  prepareMonthlyData 
+} from "@/components/dashboard/utils/dashboardHelpers";
 
 // Dashboard components
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -65,7 +70,8 @@ const Dashboard = () => {
   const totalCount = filteredNonConformances.length;
   const openCount = filteredNonConformances.filter(nc => nc.status !== "closed").length;
   const completedCount = filteredNonConformances.filter(nc => nc.status === "closed").length;
-  const dueCount = filteredNonConformances.filter(nc => isApproachingDeadline(nc)).length;
+  const overdueCount = filteredNonConformances.filter(nc => isPastDeadline(nc)).length;
+  const dueCount = filteredNonConformances.filter(nc => isApproachingDeadline(nc) && !isPastDeadline(nc)).length;
 
   // Animation effect for counts
   useEffect(() => {
@@ -93,6 +99,7 @@ const Dashboard = () => {
         openCount={openCount}
         completedCount={completedCount}
         dueCount={dueCount}
+        overdueCount={overdueCount}
         animateValues={animateValues}
       />
 
