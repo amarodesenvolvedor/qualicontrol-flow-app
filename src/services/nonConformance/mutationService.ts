@@ -61,6 +61,7 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
     }
     
     // Now perform the update
+    // Fix: Use maybeSingle instead of single and add explicit catch for no data
     const { data: updatedData, error } = await supabase
       .from('non_conformances')
       .update({
@@ -83,8 +84,31 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
     }
 
     if (!updatedData) {
-      console.error('No record returned after update with ID:', id);
-      throw new Error('No record was returned after update. The update may have failed.');
+      // Fetch the record again to return it, since the update succeeded but didn't return data
+      const { data: refetchedData, error: refetchError } = await supabase
+        .from('non_conformances')
+        .select(`
+          *,
+          department:department_id (
+            id,
+            name
+          )
+        `)
+        .eq('id', id)
+        .maybeSingle();
+        
+      if (refetchError) {
+        console.error('Error fetching updated record:', refetchError);
+        throw new Error(`Update succeeded but couldn't fetch updated record: ${refetchError.message}`);
+      }
+      
+      if (!refetchedData) {
+        console.error('No record found after successful update with ID:', id);
+        throw new Error('Update succeeded but record could not be found afterwards');
+      }
+      
+      console.log('Successfully refetched record after update:', refetchedData);
+      return refetchedData as NonConformance;
     }
 
     console.log('Successfully updated non-conformance:', updatedData);

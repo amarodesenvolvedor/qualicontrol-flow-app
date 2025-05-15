@@ -86,33 +86,39 @@ export const useNonConformanceMutations = () => {
           throw new Error("Record not found for update");
         }
         
-        const result = await updateNC(id, data);
-        console.log("Update result:", result);
-        
-        // Log history for each changed field
-        if (currentData) {
-          Object.keys(data).forEach(key => {
-            const keyTyped = key as keyof typeof data;
-            const currentKeyTyped = key as keyof typeof currentData;
-            
-            if (data[keyTyped] !== currentData[currentKeyTyped]) {
-              try {
-                logHistory(
-                  'non_conformance',
-                  id,
-                  key,
-                  String(currentData[currentKeyTyped]),
-                  String(data[keyTyped])
-                );
-              } catch (historyError) {
-                console.error('Error logging history:', historyError);
-                // Don't interrupt the process if history logging fails
+        // Improved error handling during update
+        try {
+          const result = await updateNC(id, data);
+          console.log("Update result:", result);
+          
+          // Log history for each changed field
+          if (currentData && result) {
+            Object.keys(data).forEach(key => {
+              const keyTyped = key as keyof typeof data;
+              const currentKeyTyped = key as keyof typeof currentData;
+              
+              if (data[keyTyped] !== currentData[currentKeyTyped]) {
+                try {
+                  logHistory(
+                    'non_conformance',
+                    id,
+                    key,
+                    currentData[currentKeyTyped] !== null ? String(currentData[currentKeyTyped]) : null,
+                    data[keyTyped] !== null ? String(data[keyTyped]) : null
+                  );
+                } catch (historyError) {
+                  console.error('Error logging history:', historyError);
+                  // Don't interrupt the process if history logging fails
+                }
               }
-            }
-          });
+            });
+          }
+          
+          return result;
+        } catch (updateError: any) {
+          console.error("Error during update operation:", updateError);
+          throw new Error(`Falha ao atualizar registro: ${updateError.message}`);
         }
-        
-        return result;
       } catch (error) {
         console.error("Error in update mutation:", error);
         throw error;
