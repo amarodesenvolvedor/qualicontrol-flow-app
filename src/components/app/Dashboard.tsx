@@ -8,7 +8,8 @@ import {
   isUrgent, 
   isApproachingDeadline, 
   isPastDeadline, 
-  prepareMonthlyData 
+  prepareMonthlyData,
+  isWithinSelectedDateRange 
 } from "@/components/dashboard/utils/dashboardHelpers";
 
 // Dashboard components
@@ -27,16 +28,16 @@ const Dashboard = () => {
   const [animateValues, setAnimateValues] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Filter nonconformances by selected year
+  // Filter non-conformances by selected year
   const filteredNonConformances = nonConformances.filter(nc => {
     if (filterYear === 'all') return true;
-    const createdYear = new Date(nc.created_at).getFullYear().toString();
+    const createdYear = new Date(nc.occurrence_date).getFullYear().toString();
     return createdYear === filterYear;
   });
 
   // Get available years from data for the filter
   const availableYears = Array.from(
-    new Set(nonConformances.map(nc => new Date(nc.created_at).getFullYear()))
+    new Set(nonConformances.map(nc => new Date(nc.occurrence_date).getFullYear()))
   ).sort((a, b) => b - a); // Sort descending (most recent first)
 
   // Prepare data based on filtered non-conformances
@@ -66,12 +67,21 @@ const Dashboard = () => {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
 
-  // Total counts for KPIs
+  // Total counts for KPIs based on the new rules
+  // 1. Total: All non-conformances within the selected date range (based on "occurrence_date")
   const totalCount = filteredNonConformances.length;
+  
+  // 2. Em Aberto: All non-conformances with Status different from "closed"
   const openCount = filteredNonConformances.filter(nc => nc.status !== "closed").length;
+  
+  // 3. Concluídas: All non-conformances with Status equal to "closed"
   const completedCount = filteredNonConformances.filter(nc => nc.status === "closed").length;
+  
+  // 4. A Vencer: All non-conformances with Status "pending" and Response Date within 4 days from today
+  const dueCount = filteredNonConformances.filter(nc => isApproachingDeadline(nc)).length;
+  
+  // 5. Vencidas: All non-conformances with Status "pending" and Response Date before today's date
   const overdueCount = filteredNonConformances.filter(nc => isPastDeadline(nc)).length;
-  const dueCount = filteredNonConformances.filter(nc => isApproachingDeadline(nc) && !isPastDeadline(nc)).length;
 
   // Animation effect for counts
   useEffect(() => {

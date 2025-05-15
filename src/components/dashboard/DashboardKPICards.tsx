@@ -30,7 +30,7 @@ const DashboardKPICards = ({
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
             {totalCount}
           </div>
-          <p className="text-xs text-muted-foreground">Não conformidades registradas</p>
+          <p className="text-xs text-muted-foreground">Não conformidades no período</p>
           <div className="mt-2 h-1 w-full bg-muted">
             <div className="h-1 bg-primary" style={{ width: `100%` }}></div>
           </div>
@@ -45,7 +45,7 @@ const DashboardKPICards = ({
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
             {openCount}
           </div>
-          <p className="text-xs text-muted-foreground">Não conformidades em análise</p>
+          <p className="text-xs text-muted-foreground">Status diferente de "Encerrado"</p>
           <div className="mt-2 h-1 w-full bg-muted">
             <div className="h-1 bg-amber-500" style={{ width: `${totalCount ? (openCount / totalCount) * 100 : 0}%` }}></div>
           </div>
@@ -60,7 +60,7 @@ const DashboardKPICards = ({
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
             {completedCount}
           </div>
-          <p className="text-xs text-muted-foreground">Não conformidades resolvidas</p>
+          <p className="text-xs text-muted-foreground">Status igual a "Encerrado"</p>
           <div className="mt-2 h-1 w-full bg-muted">
             <div className="h-1 bg-green-500" style={{ width: `${totalCount ? (completedCount / totalCount) * 100 : 0}%` }}></div>
           </div>
@@ -75,7 +75,7 @@ const DashboardKPICards = ({
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
             {dueCount}
           </div>
-          <p className="text-xs text-muted-foreground">Prazos próximos</p>
+          <p className="text-xs text-muted-foreground">Pendentes com prazo em até 4 dias</p>
           <div className="mt-2 h-1 w-full bg-muted">
             <div className="h-1 bg-blue-500" style={{ width: `${totalCount ? (dueCount / totalCount) * 100 : 0}%` }}></div>
           </div>
@@ -90,7 +90,7 @@ const DashboardKPICards = ({
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
             {overdueCount}
           </div>
-          <p className="text-xs text-muted-foreground">Prazo expirado</p>
+          <p className="text-xs text-muted-foreground">Pendentes com prazo expirado</p>
           <div className="mt-2 h-1 w-full bg-muted">
             <div className="h-1 bg-red-500" style={{ width: `${totalCount ? (overdueCount / totalCount) * 100 : 0}%` }}></div>
           </div>
