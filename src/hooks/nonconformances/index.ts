@@ -8,11 +8,12 @@ export const useNonConformances = () => {
   const { 
     nonConformances, 
     isLoading, 
-    isError, 
     error, 
     refetch,
     filters,
-    setFilters 
+    setFilters,
+    fetchNonConformanceById,
+    responsibleNames
   } = useNonConformanceQueries();
 
   const {
@@ -25,7 +26,6 @@ export const useNonConformances = () => {
   return {
     nonConformances,
     isLoading,
-    isError,
     error,
     refetch,
     createNonConformance,
@@ -34,6 +34,8 @@ export const useNonConformances = () => {
     uploadFiles,
     filters,
     setFilters,
+    fetchNonConformanceById,
+    responsibleNames
   };
 };
 
