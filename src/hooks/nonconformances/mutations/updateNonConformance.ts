@@ -35,7 +35,7 @@ export const useUpdateNonConformance = () => {
         
         console.log("Current record found:", currentData);
         
-        // Update the record using the service function
+        // Update the record using the service function - explicitly await the result
         const result = await updateNC(id, data);
         console.log("Update result:", result);
         
@@ -54,7 +54,7 @@ export const useUpdateNonConformance = () => {
           
         if (verifyError) {
           console.warn("Warning: Verification fetch after update failed:", verifyError);
-          // We don't throw here since the update might have succeeded
+          // Don't throw here since the update might have succeeded
         } else if (verifyData) {
           console.log("Verification successful, updated record exists:", verifyData);
           
@@ -90,6 +90,9 @@ export const useUpdateNonConformance = () => {
             const oldValue = currentData[currentKeyTyped];
             const newValue = data[keyTyped];
             
+            // Skip undefined new values (they shouldn't be sent to update)
+            if (newValue === undefined) return;
+            
             // Convert to string for comparison as dates might be in different formats
             const oldValueStr = oldValue !== null ? String(oldValue) : null;
             const newValueStr = newValue !== null ? String(newValue) : null;
@@ -101,6 +104,7 @@ export const useUpdateNonConformance = () => {
               });
               
               try {
+                // Log the change to history
                 logHistory(
                   'non_conformance',
                   id,
@@ -142,14 +146,11 @@ export const useUpdateNonConformance = () => {
         }
       }
       
-      // Invalidate all related queries to ensure the UI updates
-      // Use setTimeout to ensure this happens after the current execution context
-      setTimeout(() => {
-        console.log("Invalidating queries after successful update");
-        queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
-        queryClient.invalidateQueries({ queryKey: ['nonConformance', result.id] });
-        queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit', result.id] });
-      }, 100);
+      // Invalidate all related queries immediately (no setTimeout)
+      console.log("Invalidating queries after successful update");
+      queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
+      queryClient.invalidateQueries({ queryKey: ['nonConformance', result.id] });
+      queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit', result.id] });
     },
     onError: (error: any) => {
       console.error("Error in update:", error);

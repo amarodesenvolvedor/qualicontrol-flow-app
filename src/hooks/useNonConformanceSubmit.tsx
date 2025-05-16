@@ -28,11 +28,11 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
     console.log('Form values to update:', values);
 
     try {
-      // Improved date formatting to include full ISO string with timezone
+      // Improved date formatting that ensures consistent ISO string format
       const formatDateSafely = (date: Date | undefined): string | null => {
         if (!date) return null;
         try {
-          // Use ISO string format which includes timezone information
+          // Always use ISO string to ensure timezone information is preserved
           return date.toISOString();
         } catch (err) {
           console.error('Date formatting error:', err, date);
@@ -59,6 +59,7 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
       
       console.log('Formatted update data with ISO dates:', updateData);
       
+      // Wait for the update to complete and get the result
       const updatedRecord = await updateNonConformance.mutateAsync({
         id,
         data: updateData
@@ -77,7 +78,8 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
         return;
       }
       
-      // Double-check that the status was actually updated by comparing with the form value
+      // Double-check that the values were actually updated by comparing with the form values
+      // This will help identify if any fields were not properly saved
       if (updatedRecord?.status !== values.status) {
         console.warn('Status mismatch after update!', {
           requested: values.status,
