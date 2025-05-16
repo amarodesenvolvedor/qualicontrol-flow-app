@@ -8,9 +8,15 @@ import { NonConformanceFilter } from '@/types/nonConformance';
 export const useQueries = () => {
   const [filters, setFilters] = useState<NonConformanceFilter>({});
   
-  const { data: nonConformances, isLoading, error, refetch } = useNonConformanceList(filters);
+  const { 
+    data: nonConformances = [], 
+    isLoading, 
+    error, 
+    refetch 
+  } = useNonConformanceList(filters);
+  
   const { fetchNonConformanceById } = useNonConformanceDetails();
-  const { data: responsibleNames } = useResponsibleNames();
+  const { data: responsibleNames = [] } = useResponsibleNames();
 
   return {
     nonConformances,

@@ -9,11 +9,15 @@ export const useNonConformanceList = (filters: NonConformanceFilter) => {
     queryFn: async () => {
       try {
         const data = await fetchNonConformances(filters);
-        return data;
+        // Ensure we always return an array
+        return Array.isArray(data) ? data : [];
       } catch (err) {
         console.error('Error fetching non-conformances:', err);
-        throw err;
+        // Return empty array on error instead of throwing
+        return [];
       }
     },
+    // Always return an array when selecting data
+    select: (data): NonConformance[] => Array.isArray(data) ? data : [],
   });
 };
