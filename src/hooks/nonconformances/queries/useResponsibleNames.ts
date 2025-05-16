@@ -16,6 +16,8 @@ export const useResponsibleNames = () => {
         return [];
       }
     },
+    // Always return an array, even if the query returns undefined
+    select: (data) => Array.isArray(data) ? data : [],
     staleTime: 5 * 60 * 1000, // 5 minutes cache
   });
 };
