@@ -7,7 +7,8 @@ export const useResponsibleNames = () => {
     queryKey: ['responsibleNames'],
     queryFn: async () => {
       try {
-        return await fetchResponsibleNames();
+        const names = await fetchResponsibleNames();
+        return names || []; // Ensure we always return an array
       } catch (err) {
         console.error('Error fetching responsible names:', err);
         throw err;

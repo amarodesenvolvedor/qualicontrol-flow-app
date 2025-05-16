@@ -18,7 +18,7 @@ const CategoryCard = ({
   onDepartmentChange, 
   onStatusChange
 }: CategoryCardProps) => {
-  const { departments, error: departmentsError } = useDepartments();
+  const { departments = [], error: departmentsError } = useDepartments();
   
   const statusOptions = [
     { value: 'pending', label: 'Pendente' },
@@ -27,19 +27,20 @@ const CategoryCard = ({
     { value: 'closed', label: 'Encerrado' }
   ];
 
+  // Ensure departments is an array before filtering
   // Separar departamentos por tipo
-  const corporateDepartments = departments.filter(dept => dept.group_type === "corporate");
-  const regionalDepartments = departments.filter(dept => dept.group_type === "regional");
+  const corporateDepartments = departments ? departments.filter(dept => dept.group_type === "corporate") : [];
+  const regionalDepartments = departments ? departments.filter(dept => dept.group_type === "regional") : [];
 
   // Garante que um departamento válido seja selecionado se houverem dados disponíveis
   useEffect(() => {
-    if (departments.length > 0 && !department && !departmentsError) {
+    if (departments && departments.length > 0 && !department && !departmentsError) {
       onDepartmentChange(departments[0].id);
     }
   }, [departments, department, onDepartmentChange, departmentsError]);
 
   // Log para depuração
-  console.log("Departments loaded:", departments.length);
+  console.log("Departments loaded:", departments ? departments.length : 0);
   console.log("Selected department:", department);
   if (departmentsError) {
     console.error("Error loading departments:", departmentsError);
