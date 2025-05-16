@@ -3,10 +3,18 @@ import { NonConformance } from "@/hooks/useNonConformances";
 import { DataItem } from "@/components/charts/types";
 
 export const generateTrendData = (nonConformances: NonConformance[]): DataItem[] => {
+  // Ensure nonConformances is an array
+  if (!Array.isArray(nonConformances)) {
+    console.warn("generateTrendData received non-array input:", nonConformances);
+    return [];
+  }
+  
   // Agrupar por mês e por status
   const monthStatusMap = new Map();
   
   nonConformances.forEach(nc => {
+    if (!nc || !nc.occurrence_date) return;
+    
     const date = new Date(nc.occurrence_date);
     const month = date.toLocaleString('pt-BR', { month: 'short' });
     
@@ -20,7 +28,9 @@ export const generateTrendData = (nonConformances: NonConformance[]): DataItem[]
     }
     
     const statusCount = monthStatusMap.get(month);
-    statusCount[nc.status] = (statusCount[nc.status] || 0) + 1;
+    if (nc.status) {
+      statusCount[nc.status] = (statusCount[nc.status] || 0) + 1;
+    }
   });
   
   // Convert to DataItem format with proper types

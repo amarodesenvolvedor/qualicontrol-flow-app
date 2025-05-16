@@ -3,11 +3,19 @@ import { NonConformance } from "@/hooks/useNonConformances";
 import { DataItem } from "@/components/charts/types";
 
 export const generateDepartmentData = (nonConformances: NonConformance[]): DataItem[] => {
+  // Ensure nonConformances is an array
+  if (!Array.isArray(nonConformances)) {
+    console.warn("generateDepartmentData received non-array input:", nonConformances);
+    return [];
+  }
+  
   const departmentMap = new Map();
   const departmentIds = new Map();
   const departmentDescriptions = new Map();
   
   nonConformances.forEach(nc => {
+    if (!nc) return;
+    
     const deptName = nc.department?.name || "Não especificado";
     if (!departmentMap.has(deptName)) {
       departmentMap.set(deptName, 0);
@@ -15,8 +23,8 @@ export const generateDepartmentData = (nonConformances: NonConformance[]): DataI
       departmentDescriptions.set(deptName, []);
     }
     departmentMap.set(deptName, departmentMap.get(deptName) + 1);
-    departmentIds.get(deptName).push(nc.id);
-    departmentDescriptions.get(deptName).push(nc.title);
+    if (nc.id) departmentIds.get(deptName).push(nc.id);
+    if (nc.title) departmentDescriptions.get(deptName).push(nc.title);
   });
   
   return Array.from(departmentMap.entries()).map(([name, value]) => ({
@@ -28,6 +36,12 @@ export const generateDepartmentData = (nonConformances: NonConformance[]): DataI
 };
 
 export const generateStatusData = (nonConformances: NonConformance[]): DataItem[] => {
+  // Ensure nonConformances is an array
+  if (!Array.isArray(nonConformances)) {
+    console.warn("generateStatusData received non-array input:", nonConformances);
+    return [];
+  }
+  
   const statusMap = new Map();
   const statusIds = new Map();
   const statusDescriptions = new Map();
@@ -39,6 +53,8 @@ export const generateStatusData = (nonConformances: NonConformance[]): DataItem[
   };
   
   nonConformances.forEach(nc => {
+    if (!nc || !nc.status) return;
+    
     const statusName = nc.status === 'pending' ? 'Pendente' :
                      nc.status === 'in-progress' ? 'Em Andamento' :
                      nc.status === 'resolved' ? 'Resolvida' :
@@ -50,8 +66,8 @@ export const generateStatusData = (nonConformances: NonConformance[]): DataItem[
       statusDescriptions.set(statusName, []);
     }
     statusMap.set(statusName, statusMap.get(statusName) + 1);
-    statusIds.get(statusName).push(nc.id);
-    statusDescriptions.get(statusName).push(nc.title);
+    if (nc.id) statusIds.get(statusName).push(nc.id);
+    if (nc.title) statusDescriptions.get(statusName).push(nc.title);
   });
   
   return Array.from(statusMap.entries()).map(([name, value]) => {
@@ -71,6 +87,12 @@ export const generateStatusData = (nonConformances: NonConformance[]): DataItem[
 };
 
 export const generateMonthlyData = (nonConformances: NonConformance[]): DataItem[] => {
+  // Ensure nonConformances is an array
+  if (!Array.isArray(nonConformances)) {
+    console.warn("generateMonthlyData received non-array input:", nonConformances);
+    return [];
+  }
+  
   const monthlyMap = new Map();
   const monthlyIds = new Map();
   const monthlyDescriptions = new Map();
@@ -89,12 +111,14 @@ export const generateMonthlyData = (nonConformances: NonConformance[]): DataItem
   
   // Contar não conformidades por mês
   nonConformances.forEach(nc => {
+    if (!nc || !nc.occurrence_date) return;
+    
     const date = new Date(nc.occurrence_date);
     const month = months[date.getMonth()];
     
     monthlyMap.set(month, monthlyMap.get(month) + 1);
-    monthlyIds.get(month).push(nc.id);
-    monthlyDescriptions.get(month).push(nc.title);
+    if (nc.id) monthlyIds.get(month).push(nc.id);
+    if (nc.title) monthlyDescriptions.get(month).push(nc.title);
   });
   
   return Array.from(monthlyMap.entries()).map(([month, value]) => ({

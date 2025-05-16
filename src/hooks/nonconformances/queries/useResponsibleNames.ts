@@ -8,10 +8,12 @@ export const useResponsibleNames = () => {
     queryFn: async () => {
       try {
         const names = await fetchResponsibleNames();
-        return names || []; // Ensure we always return an array
+        // Ensure we always return an array
+        return Array.isArray(names) ? names : [];
       } catch (err) {
         console.error('Error fetching responsible names:', err);
-        throw err;
+        // Return empty array on error instead of throwing
+        return [];
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes cache
