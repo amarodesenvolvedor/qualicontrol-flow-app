@@ -1,11 +1,20 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { NonConformance } from "@/hooks/useNonConformances";
+import { useEffect } from "react";
 
 export const useNonConformanceData = () => {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
+  
+  // Force refresh on mount
+  useEffect(() => {
+    if (id) {
+      queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit', id] });
+    }
+  }, [id, queryClient]);
 
   const { data: ncData, isLoading, error } = useQuery({
     queryKey: ['nonConformanceEdit', id],
@@ -46,7 +55,8 @@ export const useNonConformanceData = () => {
         throw err;
       }
     },
-    enabled: !!id,
+    staleTime: 0, // Always consider data stale to force refetch
+    refetchOnMount: 'always' // Always refetch on mount
   });
 
   return { ncData, isLoading, error, id };

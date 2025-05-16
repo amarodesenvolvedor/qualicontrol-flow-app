@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { NonConformance, NonConformanceCreateData, NonConformanceUpdateData } from '@/types/nonConformance';
 
@@ -61,25 +62,19 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
     
     console.log('Record exists, proceeding with update:', existingRecord);
     
-    // Perform the update with improved error handling
-    const updateResult = await supabase
-      .from('non_conformances')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id);
-      
-    if (updateResult.error) {
-      console.error('Update operation failed:', updateResult.error);
-      throw new Error(`Update operation failed: ${updateResult.error.message}`);
-    }
+    // Format the update data - ensure proper date formatting
+    const updateData = {
+      ...data,
+      updated_at: new Date().toISOString()
+    };
     
-    console.log('Update operation successful, now fetching updated record');
+    console.log('Formatted update data to send:', updateData);
     
-    // Always fetch the record after update to ensure we return the latest data
-    const { data: updatedRecord, error: fetchError } = await supabase
+    // Perform the update AND immediately select the result in a single operation
+    const { data: updatedData, error: updateError } = await supabase
       .from('non_conformances')
+      .update(updateData)
+      .eq('id', id)
       .select(`
         *,
         department:department_id (
@@ -87,21 +82,20 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
           name
         )
       `)
-      .eq('id', id)
       .maybeSingle();
       
-    if (fetchError) {
-      console.error('Error fetching updated record:', fetchError);
-      throw new Error(`Update succeeded but couldn't fetch updated record: ${fetchError.message}`);
+    if (updateError) {
+      console.error('Update operation failed:', updateError);
+      throw new Error(`Update operation failed: ${updateError.message}`);
     }
     
-    if (!updatedRecord) {
-      console.error('No record found after successful update with ID:', id);
-      throw new Error('Update succeeded but record could not be found afterwards');
+    if (!updatedData) {
+      console.error('No data returned after update for ID:', id);
+      throw new Error('Update appeared to succeed but no record was returned');
     }
     
-    console.log('Successfully updated and retrieved non-conformance:', updatedRecord);
-    return updatedRecord as NonConformance;
+    console.log('Successfully updated and retrieved non-conformance:', updatedData);
+    return updatedData as NonConformance;
   } catch (error) {
     console.error('Exception in updateNonConformance:', error);
     throw error;

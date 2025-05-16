@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { 
@@ -91,6 +92,12 @@ export const useNonConformanceMutations = () => {
         const result = await updateNC(id, data);
         console.log("Update result:", result);
         
+        // Verify the result has expected keys
+        if (!result || !result.id) {
+          console.error("Invalid result returned from update:", result);
+          throw new Error("Update failed: Invalid or missing result data");
+        }
+        
         // Log history for each changed field
         if (currentData && result) {
           Object.keys(data).forEach(key => {
@@ -101,7 +108,11 @@ export const useNonConformanceMutations = () => {
             const oldValue = currentData[currentKeyTyped];
             const newValue = data[keyTyped];
             
-            if (String(oldValue) !== String(newValue)) {
+            // Convert to string for comparison as dates might be in different formats
+            const oldValueStr = oldValue !== null ? String(oldValue) : null;
+            const newValueStr = newValue !== null ? String(newValue) : null;
+            
+            if (oldValueStr !== newValueStr) {
               console.log(`Logging history for field ${key}:`, { 
                 old: oldValue, 
                 new: newValue 
@@ -151,8 +162,8 @@ export const useNonConformanceMutations = () => {
       
       // Invalidate all related queries to ensure the UI updates
       queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
-      queryClient.invalidateQueries({ queryKey: ['nonConformance'] });
-      queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit'] });
+      queryClient.invalidateQueries({ queryKey: ['nonConformance', result.id] });
+      queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit', result.id] });
     },
     onError: (error: any) => {
       console.error("Error in update:", error);

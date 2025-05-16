@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { NonConformanceFormValues } from "@/utils/nonConformanceFormSchema";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 
 export const useNonConformanceSubmit = (id: string | undefined) => {
   const navigate = useNavigate();
@@ -28,6 +29,17 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
     console.log('Form values to update:', values);
 
     try {
+      // Format dates properly for the database
+      const formatDateSafely = (date: Date | undefined): string | null => {
+        if (!date) return null;
+        try {
+          return format(date, 'yyyy-MM-dd');
+        } catch (err) {
+          console.error('Date formatting error:', err, date);
+          return null;
+        }
+      };
+
       const updateData = {
         code: values.code,
         title: values.title,
@@ -37,31 +49,38 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
         immediate_actions: values.immediate_actions || null,
         responsible_name: values.responsible_name,
         auditor_name: values.auditor_name,
-        occurrence_date: format(values.occurrence_date, 'yyyy-MM-dd'),
-        response_date: values.response_date ? format(values.response_date, 'yyyy-MM-dd') : null,
-        action_verification_date: values.action_verification_date 
-          ? format(values.action_verification_date, 'yyyy-MM-dd') 
-          : null,
-        effectiveness_verification_date: values.effectiveness_verification_date 
-          ? format(values.effectiveness_verification_date, 'yyyy-MM-dd') 
-          : null,
-        completion_date: values.completion_date 
-          ? format(values.completion_date, 'yyyy-MM-dd') 
-          : null,
+        occurrence_date: formatDateSafely(values.occurrence_date),
+        response_date: formatDateSafely(values.response_date),
+        action_verification_date: formatDateSafely(values.action_verification_date),
+        effectiveness_verification_date: formatDateSafely(values.effectiveness_verification_date),
+        completion_date: formatDateSafely(values.completion_date),
         status: values.status,
       };
       
       console.log('Formatted update data:', updateData);
       
-      await updateNonConformance.mutateAsync({
+      const updatedRecord = await updateNonConformance.mutateAsync({
         id,
         data: updateData
       });
 
-      toast({
-        title: "Não conformidade atualizada",
-        description: "Os dados foram salvos com sucesso.",
-      });
+      console.log('Update response received:', updatedRecord);
+      
+      // Double-check that the status was actually updated by comparing with the form value
+      if (updatedRecord?.status !== values.status) {
+        console.warn('Status mismatch after update!', {
+          requested: values.status,
+          received: updatedRecord?.status
+        });
+        sonnerToast.warning('Aviso', {
+          description: 'Alguns campos podem não ter sido atualizados corretamente. Verifique os dados.'
+        });
+      } else {
+        toast({
+          title: "Não conformidade atualizada",
+          description: "Os dados foram salvos com sucesso.",
+        });
+      }
       
       navigate(`/nao-conformidades/${id}`);
     } catch (error) {

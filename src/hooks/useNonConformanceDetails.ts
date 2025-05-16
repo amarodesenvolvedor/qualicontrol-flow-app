@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { NonConformance } from "@/types/nonConformance";
 import { toast } from "sonner";
@@ -10,14 +10,24 @@ import { exportNonConformanceToExcel } from "@/services/exports/excelExportServi
 
 export const useNonConformanceDetails = () => {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const [nonConformance, setNonConformance] = useState<NonConformance | null>(null);
   const [activeTab, setActiveTab] = useState("details");
+
+  // Force refetch on component mount to ensure we have the latest data
+  useEffect(() => {
+    if (id) {
+      queryClient.invalidateQueries({ queryKey: ['nonConformance', id] });
+    }
+  }, [id, queryClient]);
 
   // Fetch non-conformance data from Supabase
   const { data: ncData, isLoading, error } = useQuery({
     queryKey: ['nonConformance', id],
     queryFn: async () => {
       if (!id) return null;
+      
+      console.log('Fetching details for non-conformance ID:', id);
       
       const { data, error } = await supabase
         .from('non_conformances')
@@ -32,13 +42,18 @@ export const useNonConformanceDetails = () => {
         .single();
 
       if (error) throw error;
+      
+      console.log('Fetched non-conformance details:', data);
       return data as NonConformance;
     },
+    staleTime: 0, // Always consider the data stale to force refetch
+    refetchOnMount: 'always' // Always refetch when component mounts
   });
 
   // Update state when data is loaded
   useEffect(() => {
     if (ncData) {
+      console.log('Setting non-conformance state from query data:', ncData);
       setNonConformance(ncData);
     }
   }, [ncData]);
