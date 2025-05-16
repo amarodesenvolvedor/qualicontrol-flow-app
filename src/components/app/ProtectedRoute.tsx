@@ -10,6 +10,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
   
+  console.log("ProtectedRoute - isLoading:", isLoading, "user:", !!user);
+  
+  // Only show loading indicator while actually loading
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -18,11 +21,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
   
+  // Once loading is complete, check if user exists
   if (!user) {
-    // Redirect to login page
+    console.log("Redirecting to auth page from:", location.pathname);
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
   
+  // User is authenticated, show the protected content
   return <>{children}</>;
 };
 

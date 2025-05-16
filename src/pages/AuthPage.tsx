@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,11 +18,12 @@ import { OfflineAlert } from "@/components/auth/OfflineAlert";
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
   const { 
     signIn, 
     signUp, 
-    isLoading, 
+    isLoading: authActionLoading, 
     error, 
     checkSupabaseConnectivity, 
     connectivityStatus, 
@@ -34,11 +35,20 @@ const AuthPage = () => {
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState("login");
   const [showConnectivityHelp, setShowConnectivityHelp] = useState(false);
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
   
   useEffect(() => {
-    // Redirecionar para a página principal se já estiver autenticado
-    if (isAuthenticated) {
-      navigate("/");
+    console.log("AuthPage - isLoading:", isLoading, "isAuthenticated:", isAuthenticated, "redirectAttempted:", redirectAttempted);
+    
+    // Only redirect if:
+    // 1. We're not currently loading authentication status
+    // 2. User is authenticated
+    // 3. We haven't already attempted to redirect (to prevent loops)
+    if (!isLoading && isAuthenticated && !redirectAttempted) {
+      console.log("Authenticated user on auth page, redirecting to home");
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/";
+      setRedirectAttempted(true);
+      navigate(from, { replace: true });
     }
     
     // Verificar a conectividade
@@ -49,7 +59,7 @@ const AuthPage = () => {
     }, 30000); // Check every 30 seconds if offline
     
     return () => clearInterval(intervalId);
-  }, [isAuthenticated, navigate, connectivityStatus]);
+  }, [isLoading, isAuthenticated, navigate, connectivityStatus, location, redirectAttempted]);
   
   const checkConnectivity = async () => {
     await checkSupabaseConnectivity();
@@ -64,6 +74,15 @@ const AuthPage = () => {
     e.preventDefault();
     await signUp(email, password);
   };
+  
+  // Show loading state while determining auth status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
@@ -97,7 +116,7 @@ const AuthPage = () => {
             <OfflineAlert
               retryAttempt={retryAttempt}
               maxRetryAttempts={maxRetryAttempts}
-              isLoading={isLoading}
+              isLoading={authActionLoading}
               onRetry={checkConnectivity}
             />
           )}
@@ -115,7 +134,7 @@ const AuthPage = () => {
                 password={password}
                 setPassword={setPassword}
                 error={error}
-                isLoading={isLoading}
+                isLoading={authActionLoading}
                 connectivityStatus={connectivityStatus}
                 onSubmit={handleLogin}
               />
@@ -128,7 +147,7 @@ const AuthPage = () => {
                 password={password}
                 setPassword={setPassword}
                 error={error}
-                isLoading={isLoading}
+                isLoading={authActionLoading}
                 connectivityStatus={connectivityStatus}
                 onSubmit={handleSignUp}
               />

@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  isAuthenticated: boolean; // Adicionando propriedade isAuthenticated
+  isAuthenticated: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -19,23 +19,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+    // Initialize auth state
+    const initAuth = async () => {
+      try {
+        // Set up auth state listener FIRST
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (event, session) => {
+            console.log("Auth state changed:", event, session?.user?.email);
+            setSession(session);
+            setUser(session?.user ?? null);
+            setIsLoading(false);
+          }
+        );
+
+        // THEN check for existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session check:", session?.user?.email || "No session");
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
+
+        return () => subscription.unsubscribe();
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        setIsLoading(false);
       }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    };
+    
+    initAuth();
   }, []);
   
   const signOut = async () => {
@@ -46,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     isLoading,
-    isAuthenticated: !!user, // Definindo isAuthenticated com base na existência do usuário
+    isAuthenticated: !!user,
     signOut
   };
   
