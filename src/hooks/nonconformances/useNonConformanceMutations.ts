@@ -118,8 +118,8 @@ export const useNonConformanceMutations = () => {
             
             // Skip null values and date fields which might have format differences
             if (data[typedKey] === null || 
-                key.includes('date') ||
-                typedKey === 'updated_at') {
+                key.includes('date') || 
+                key === 'updated_at') { // Fix: Check key string directly instead of typedKey === 'updated_at'
               return false;
             }
             
