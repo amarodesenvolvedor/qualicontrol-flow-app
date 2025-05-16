@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { NonConformanceFormValues } from "@/utils/nonConformanceFormSchema";
 import { useToast } from "@/hooks/use-toast";
@@ -29,11 +28,12 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
     console.log('Form values to update:', values);
 
     try {
-      // Format dates properly for the database
+      // Improved date formatting to include full ISO string with timezone
       const formatDateSafely = (date: Date | undefined): string | null => {
         if (!date) return null;
         try {
-          return format(date, 'yyyy-MM-dd');
+          // Use ISO string format which includes timezone information
+          return date.toISOString();
         } catch (err) {
           console.error('Date formatting error:', err, date);
           return null;
@@ -57,7 +57,7 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
         status: values.status,
       };
       
-      console.log('Formatted update data:', updateData);
+      console.log('Formatted update data with ISO dates:', updateData);
       
       const updatedRecord = await updateNonConformance.mutateAsync({
         id,
@@ -65,6 +65,17 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
       });
 
       console.log('Update response received:', updatedRecord);
+      
+      // Enhanced validation of the update result
+      if (!updatedRecord) {
+        console.error('No record returned after update!');
+        toast({
+          title: "Erro ao salvar",
+          description: "A atualização foi processada, mas não foi possível confirmar as alterações.",
+          variant: "destructive",
+        });
+        return;
+      }
       
       // Double-check that the status was actually updated by comparing with the form value
       if (updatedRecord?.status !== values.status) {

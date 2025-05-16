@@ -6,11 +6,13 @@ import { nonConformanceFormSchema, NonConformanceFormValues } from "@/utils/nonC
 import { useNonConformanceData } from "./useNonConformanceData";
 import { useNonConformanceSubmit } from "./useNonConformanceSubmit";
 import { useNonConformancePdfExport } from "./useNonConformancePdfExport";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useNonConformanceEdit = () => {
   const { ncData, isLoading, error, id } = useNonConformanceData();
   const { handleSubmit, handleCancel, isSubmitting } = useNonConformanceSubmit(id);
   const { generateAcac } = useNonConformancePdfExport();
+  const queryClient = useQueryClient();
   
   const form = useForm<NonConformanceFormValues>({
     resolver: zodResolver(nonConformanceFormSchema),
@@ -26,6 +28,14 @@ export const useNonConformanceEdit = () => {
       status: 'pending' as const,
     }
   });
+
+  // Force invalidate the query when the component mounts to ensure we have fresh data
+  useEffect(() => {
+    if (id) {
+      console.log('Invalidating queries for fresh data on mount');
+      queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit', id] });
+    }
+  }, [id, queryClient]);
 
   useEffect(() => {
     if (ncData) {

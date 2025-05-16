@@ -4,14 +4,16 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { NonConformance } from "@/hooks/useNonConformances";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 export const useNonConformanceData = () => {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   
-  // Force refresh on mount
+  // Force refresh on mount and set a shorter staleTime
   useEffect(() => {
     if (id) {
+      console.log('Invalidating cache for non-conformance data on mount');
       queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit', id] });
     }
   }, [id, queryClient]);
@@ -26,6 +28,26 @@ export const useNonConformanceData = () => {
       
       console.log('Fetching non-conformance with ID:', id);
       try {
+        // First, check if the record exists to provide a better error message
+        const { count, error: countError } = await supabase
+          .from('non_conformances')
+          .select('id', { count: 'exact', head: true })
+          .eq('id', id);
+          
+        if (countError) {
+          console.error('Error checking if record exists:', countError);
+          throw countError;
+        }
+        
+        if (count === 0) {
+          console.error('No record found with ID:', id);
+          toast.error('Registro não encontrado', {
+            description: 'A não conformidade solicitada não foi encontrada no banco de dados.'
+          });
+          return null;
+        }
+
+        // Now fetch the full record
         const { data, error } = await supabase
           .from('non_conformances')
           .select(`
@@ -36,7 +58,7 @@ export const useNonConformanceData = () => {
             )
           `)
           .eq('id', id)
-          .maybeSingle();
+          .single();
 
         if (error) {
           console.error('Error fetching non-conformance:', error);
@@ -56,7 +78,8 @@ export const useNonConformanceData = () => {
       }
     },
     staleTime: 0, // Always consider data stale to force refetch
-    refetchOnMount: 'always' // Always refetch on mount
+    refetchOnMount: 'always', // Always refetch on mount
+    retry: 1, // Retry once in case of temporary network issues
   });
 
   return { ncData, isLoading, error, id };

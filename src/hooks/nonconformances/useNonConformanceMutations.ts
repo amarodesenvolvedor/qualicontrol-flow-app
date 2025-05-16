@@ -74,7 +74,7 @@ export const useNonConformanceMutations = () => {
           .from('non_conformances')
           .select(`*`)
           .eq('id', id)
-          .maybeSingle();
+          .single();
           
         if (fetchError) {
           console.error("Error fetching current record:", fetchError);
@@ -96,6 +96,41 @@ export const useNonConformanceMutations = () => {
         if (!result || !result.id) {
           console.error("Invalid result returned from update:", result);
           throw new Error("Update failed: Invalid or missing result data");
+        }
+        
+        // Explicitly verify the update was successful by fetching again
+        const { data: verifyData, error: verifyError } = await supabase
+          .from('non_conformances')
+          .select(`*`)
+          .eq('id', id)
+          .single();
+          
+        if (verifyError) {
+          console.warn("Warning: Verification fetch after update failed:", verifyError);
+          // We don't throw here since the update might have succeeded
+        } else if (verifyData) {
+          console.log("Verification successful, updated record exists:", verifyData);
+          
+          // Check if some fields didn't update as expected
+          const mismatchFields = Object.keys(data).filter(key => {
+            const typedKey = key as keyof typeof data;
+            const verifyKey = key as keyof typeof verifyData;
+            
+            // Skip null values and date fields which might have format differences
+            if (data[typedKey] === null || 
+                key.includes('date') ||
+                typedKey === 'updated_at') {
+              return false;
+            }
+            
+            return data[typedKey] !== undefined && 
+                  verifyData[verifyKey] !== undefined && 
+                  String(data[typedKey]) !== String(verifyData[verifyKey]);
+          });
+          
+          if (mismatchFields.length > 0) {
+            console.warn("Warning: Some fields may not have updated correctly:", mismatchFields);
+          }
         }
         
         // Log history for each changed field
@@ -161,9 +196,13 @@ export const useNonConformanceMutations = () => {
       }
       
       // Invalidate all related queries to ensure the UI updates
-      queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
-      queryClient.invalidateQueries({ queryKey: ['nonConformance', result.id] });
-      queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit', result.id] });
+      // Use setTimeout to ensure this happens after the current execution context
+      setTimeout(() => {
+        console.log("Invalidating queries after successful update");
+        queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
+        queryClient.invalidateQueries({ queryKey: ['nonConformance', result.id] });
+        queryClient.invalidateQueries({ queryKey: ['nonConformanceEdit', result.id] });
+      }, 100);
     },
     onError: (error: any) => {
       console.error("Error in update:", error);

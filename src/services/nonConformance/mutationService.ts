@@ -48,7 +48,7 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
       .from('non_conformances')
       .select('id')
       .eq('id', id)
-      .maybeSingle();
+      .single();
       
     if (checkError) {
       console.error('Error checking existing record:', checkError);
@@ -70,11 +70,23 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
     
     console.log('Formatted update data to send:', updateData);
     
-    // Perform the update AND immediately select the result in a single operation
-    const { data: updatedData, error: updateError } = await supabase
+    // IMPROVEMENT: Separate the update and select operations for better error handling
+    // Step 1: Perform the update operation
+    const { error: updateError } = await supabase
       .from('non_conformances')
       .update(updateData)
-      .eq('id', id)
+      .eq('id', id);
+      
+    if (updateError) {
+      console.error('Update operation failed:', updateError);
+      throw new Error(`Update operation failed: ${updateError.message}`);
+    }
+    
+    console.log('Update successful, now fetching the updated record');
+    
+    // Step 2: Fetch the updated record in a separate operation
+    const { data: updatedData, error: selectError } = await supabase
+      .from('non_conformances')
       .select(`
         *,
         department:department_id (
@@ -82,11 +94,12 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
           name
         )
       `)
-      .maybeSingle();
-      
-    if (updateError) {
-      console.error('Update operation failed:', updateError);
-      throw new Error(`Update operation failed: ${updateError.message}`);
+      .eq('id', id)
+      .single();
+    
+    if (selectError) {
+      console.error('Error fetching updated record:', selectError);
+      throw new Error(`Update succeeded but could not fetch updated record: ${selectError.message}`);
     }
     
     if (!updatedData) {
