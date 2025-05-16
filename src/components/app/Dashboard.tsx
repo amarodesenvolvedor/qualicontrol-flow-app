@@ -23,34 +23,37 @@ import DepartmentAnalysisTab from "@/components/dashboard/tabs/DepartmentAnalysi
 import RecentItemsList from "@/components/dashboard/RecentItemsList";
 
 const Dashboard = () => {
-  const { nonConformances, isLoading, refetch } = useNonConformances();
+  const { nonConformances = [], isLoading, refetch } = useNonConformances();
   const [filterYear, setFilterYear] = useState<string>(new Date().getFullYear().toString());
   const [animateValues, setAnimateValues] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Filter non-conformances by selected year
-  const filteredNonConformances = nonConformances.filter(nc => {
+  const filteredNonConformances = Array.isArray(nonConformances) ? nonConformances.filter(nc => {
+    if (!nc || !nc.occurrence_date) return false;
     if (filterYear === 'all') return true;
     const createdYear = new Date(nc.occurrence_date).getFullYear().toString();
     return createdYear === filterYear;
-  });
+  }) : [];
 
   // Get available years from data for the filter
-  const availableYears = Array.from(
-    new Set(nonConformances.map(nc => new Date(nc.occurrence_date).getFullYear()))
-  ).sort((a, b) => b - a); // Sort descending (most recent first)
+  const availableYears = Array.isArray(nonConformances) ? Array.from(
+    new Set(nonConformances.filter(nc => nc && nc.occurrence_date).map(nc => new Date(nc.occurrence_date).getFullYear()))
+  ).sort((a, b) => b - a) : []; // Sort descending (most recent first)
 
   // Prepare data based on filtered non-conformances
   const statusData = [
-    { name: "Concluídas", value: filteredNonConformances.filter(nc => nc.status === "closed").length, color: COLORS.completed },
-    { name: "Em Andamento", value: filteredNonConformances.filter(nc => nc.status === "in-progress").length, color: COLORS.inProgress },
-    { name: "Críticas", value: filteredNonConformances.filter(nc => nc.status === "pending" && isUrgent(nc)).length, color: COLORS.critical },
-    { name: "Pendentes", value: filteredNonConformances.filter(nc => nc.status === "pending" && !isUrgent(nc)).length, color: COLORS.pending },
+    { name: "Concluídas", value: filteredNonConformances.filter(nc => nc && nc.status === "closed").length, color: COLORS.completed },
+    { name: "Em Andamento", value: filteredNonConformances.filter(nc => nc && nc.status === "in-progress").length, color: COLORS.inProgress },
+    { name: "Críticas", value: filteredNonConformances.filter(nc => nc && nc.status === "pending" && isUrgent(nc)).length, color: COLORS.critical },
+    { name: "Pendentes", value: filteredNonConformances.filter(nc => nc && nc.status === "pending" && !isUrgent(nc)).length, color: COLORS.pending },
   ];
 
   // Group by department
   const departmentsMap: Record<string, number> = {};
   filteredNonConformances.forEach(nc => {
+    if (!nc || !nc.department) return;
+    
     const deptName = nc.department?.name || "Sem departamento";
     departmentsMap[deptName] = (departmentsMap[deptName] || 0) + 1;
   });
@@ -64,6 +67,7 @@ const Dashboard = () => {
 
   // Recent items
   const recentItems = filteredNonConformances
+    .filter(nc => nc && nc.created_at)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
 
@@ -72,16 +76,16 @@ const Dashboard = () => {
   const totalCount = filteredNonConformances.length;
   
   // 2. Em Aberto: All non-conformances with Status different from "closed"
-  const openCount = filteredNonConformances.filter(nc => nc.status !== "closed").length;
+  const openCount = filteredNonConformances.filter(nc => nc && nc.status !== "closed").length;
   
   // 3. Concluídas: All non-conformances with Status equal to "closed"
-  const completedCount = filteredNonConformances.filter(nc => nc.status === "closed").length;
+  const completedCount = filteredNonConformances.filter(nc => nc && nc.status === "closed").length;
   
   // 4. A Vencer: All non-conformances with Status "pending" and Response Date within 4 days from today
-  const dueCount = filteredNonConformances.filter(nc => isApproachingDeadline(nc)).length;
+  const dueCount = filteredNonConformances.filter(nc => nc && isApproachingDeadline(nc)).length;
   
   // 5. Vencidas: All non-conformances with Status "pending" and Response Date before today's date
-  const overdueCount = filteredNonConformances.filter(nc => isPastDeadline(nc)).length;
+  const overdueCount = filteredNonConformances.filter(nc => nc && isPastDeadline(nc)).length;
 
   // Animation effect for counts
   useEffect(() => {
