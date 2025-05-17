@@ -14,19 +14,51 @@ import * as XLSX from 'xlsx';
 export const exportNonConformanceToExcel = async (
   nonConformance: NonConformance,
   options?: {
-    includeFields?: (keyof NonConformance)[]
+    includeFields?: (keyof NonConformance)[];
+    companyName?: string;
   }
 ): Promise<void> => {
   try {
+    const companyName = options?.companyName || 'Sistema de Gestão';
+    
     // Determine which fields to include
     const fields = options?.includeFields || [
-      'code', 'title', 'description', 'status', 'category',
+      'code', 'title', 'description', 'status', 
       'department_id', 'responsible_name', 'auditor_name', 
-      'occurrence_date', 'deadline_date', 'created_at'
+      'occurrence_date', 'response_date', 'completion_date', 'created_at'
     ];
     
+    // Traduzir os nomes dos campos para português
+    const fieldTranslations: Record<string, string> = {
+      'code': 'Código',
+      'title': 'Título',
+      'description': 'Descrição',
+      'status': 'Status',
+      'department_id': 'Departamento',
+      'responsible_name': 'Responsável',
+      'auditor_name': 'Auditor',
+      'occurrence_date': 'Data de Ocorrência',
+      'response_date': 'Data de Resposta',
+      'completion_date': 'Data de Conclusão',
+      'created_at': 'Data de Criação',
+      'location': 'Local',
+      'immediate_actions': 'Ações Imediatas'
+    };
+    
+    // Traduzir status
+    const statusTranslations: Record<string, string> = {
+      'pending': 'Pendente',
+      'in-progress': 'Em Andamento',
+      'resolved': 'Resolvido',
+      'closed': 'Concluído',
+      'critical': 'Crítico'
+    };
+    
+    // Criar cabeçalho traduzido
+    const translatedHeaders = fields.map(field => fieldTranslations[field as string] || field);
+    
     // Create worksheet data
-    const wsData = [fields]; // Header row
+    const wsData = [translatedHeaders]; // Header row
     
     // Format data row
     const dataRow: any[] = [];
@@ -38,6 +70,11 @@ export const exportNonConformanceToExcel = async (
       // Format dates for readability
       if (typeof value === 'string' && field.toString().includes('date') && value) {
         value = format(new Date(value), 'dd/MM/yyyy');
+      }
+      
+      // Traduzir status
+      if (field === 'status' && typeof value === 'string') {
+        value = statusTranslations[value] || value;
       }
       
       // Handle department special case
@@ -54,11 +91,37 @@ export const exportNonConformanceToExcel = async (
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     
+    // Estilizar o cabeçalho (negrito)
+    const headerStyle = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "4F81BD" } }
+    };
+    
+    // Aplicar estilo às células do cabeçalho (isso é apenas indicativo, o XLSX-js tem limitações com estilos)
+    const headerRange = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+      const cell = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (!ws[cell]) continue;
+      ws[cell].s = headerStyle;
+    }
+    
     // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "NonConformance");
+    XLSX.utils.book_append_sheet(wb, ws, "Não Conformidade");
+    
+    // Adicionar uma planilha de metadados
+    const metadataWs = XLSX.utils.aoa_to_sheet([
+      ['Informações do Relatório'],
+      ['Empresa', companyName],
+      ['Data de Geração', format(new Date(), 'dd/MM/yyyy HH:mm')],
+      ['Tipo de Documento', 'Relatório de Não Conformidade'],
+      ['Código', nonConformance.code || 'N/A'],
+      ['Status', statusTranslations[nonConformance.status] || nonConformance.status]
+    ]);
+    
+    XLSX.utils.book_append_sheet(wb, metadataWs, "Informações");
     
     // Generate Excel file
-    XLSX.writeFile(wb, `${nonConformance.code}_data.xlsx`);
+    XLSX.writeFile(wb, `${nonConformance.code}_${format(new Date(), "yyyyMMdd")}.xlsx`);
     
     return Promise.resolve();
   } catch (error) {
@@ -75,9 +138,29 @@ export const exportNonConformanceToExcel = async (
  */
 export const exportAuditToExcel = async (audit: AuditReport): Promise<void> => {
   try {
+    // Mapear campos do relatório de auditoria
+    const fieldTranslations: Record<string, string> = {
+      'id': 'ID',
+      'title': 'Título',
+      'status': 'Status',
+      'description': 'Descrição',
+      'audit_date': 'Data da Auditoria',
+      'created_at': 'Data de Criação',
+      'department_id': 'Departamento'
+    };
+    
+    // Traduzir status
+    const statusTranslations: Record<string, string> = {
+      'pending': 'Pendente',
+      'in-progress': 'Em Andamento',
+      'completed': 'Concluído',
+      'closed': 'Concluído'
+    };
+    
     // Create worksheet data
     const fields = ['id', 'title', 'status', 'description', 'audit_date', 'created_at', 'department_id'];
-    const wsData = [fields]; // Header row
+    const translatedHeaders = fields.map(field => fieldTranslations[field] || field);
+    const wsData = [translatedHeaders]; // Header row
     
     // Format data row
     const dataRow: any[] = [];
@@ -90,6 +173,11 @@ export const exportAuditToExcel = async (audit: AuditReport): Promise<void> => {
         value = format(new Date(value), 'dd/MM/yyyy');
       }
       
+      // Traduzir status
+      if (field === 'status' && typeof value === 'string') {
+        value = statusTranslations[value] || value;
+      }
+      
       dataRow.push(value);
     });
     
@@ -99,11 +187,37 @@ export const exportAuditToExcel = async (audit: AuditReport): Promise<void> => {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     
+    // Estilo para cabeçalho
+    const headerStyle = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "4F81BD" } }
+    };
+    
+    // Aplicar estilo às células do cabeçalho
+    const headerRange = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+      const cell = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (!ws[cell]) continue;
+      ws[cell].s = headerStyle;
+    }
+    
     // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Audit");
+    XLSX.utils.book_append_sheet(wb, ws, "Auditoria");
+    
+    // Adicionar planilha de metadados
+    const metadataWs = XLSX.utils.aoa_to_sheet([
+      ['Informações do Relatório de Auditoria'],
+      ['Empresa', 'Sistema de Gestão'],
+      ['Data de Geração', format(new Date(), 'dd/MM/yyyy HH:mm')],
+      ['Tipo de Documento', 'Relatório de Auditoria'],
+      ['ID da Auditoria', audit.id],
+      ['Status', statusTranslations[audit.status] || audit.status]
+    ]);
+    
+    XLSX.utils.book_append_sheet(wb, metadataWs, "Informações");
     
     // Generate Excel file
-    XLSX.writeFile(wb, `Audit_${audit.id}_data.xlsx`);
+    XLSX.writeFile(wb, `Audit_${audit.id}_${format(new Date(), "yyyyMMdd")}.xlsx`);
     
     return Promise.resolve();
   } catch (error) {

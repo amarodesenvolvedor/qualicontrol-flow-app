@@ -82,8 +82,35 @@ export const generateExcelReport = async (reportType: string, data: any[]): Prom
   // Create worksheet
   const ws = XLSX.utils.aoa_to_sheet(wsData);
   
+  // Apply header styling
+  if (wsData.length > 0) {
+    // Estilizar o cabeçalho (bold e cor azul)
+    const headerRange = { s: { c: 0, r: 0 }, e: { c: headers.length - 1, r: 0 } };
+    for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+      const cell = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (!ws[cell]) continue;
+      if (!ws[cell].s) ws[cell].s = {};
+      ws[cell].s.font = { bold: true, color: { rgb: "FFFFFF" } };
+      ws[cell].s.fill = { fgColor: { rgb: "4F81BD" } };
+    }
+  }
+  
+  // Format column widths
+  const colWidths = headers.map(() => ({ wch: 15 })); // Default width
+  ws['!cols'] = colWidths;
+  
   // Add worksheet to workbook
   XLSX.utils.book_append_sheet(wb, ws, reportType.slice(0, 30));
+  
+  // Add metadata sheet
+  const metadataWs = XLSX.utils.aoa_to_sheet([
+    ['Informações do Relatório'],
+    ['Tipo de Relatório', reportType],
+    ['Data de Geração', format(new Date(), 'dd/MM/yyyy HH:mm')],
+    ['Número de Registros', data.length.toString()],
+    ['Empresa', 'Sistema de Gestão de Não Conformidades']
+  ]);
+  XLSX.utils.book_append_sheet(wb, metadataWs, "Info");
   
   // Generate Excel file
   XLSX.writeFile(wb, `${reportType.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.xlsx`);
@@ -92,16 +119,21 @@ export const generateExcelReport = async (reportType: string, data: any[]): Prom
 export const generatePDFReport = async (reportType: string, data: any[]): Promise<void> => {
   // Create PDF document
   const doc = new jsPDF();
+  addHeaderToPDF(doc, reportType);
+  
+  const pageWidth = doc.internal.pageSize.getWidth();
   const lineHeight = 10;
-  let y = 20;
+  let y = 40; // Start below header
   
   // Add title
   doc.setFontSize(18);
-  doc.text(reportType, 20, y);
+  doc.setTextColor(41, 65, 148); // Azul corporativo
+  doc.text(reportType, pageWidth / 2, y, { align: 'center' });
   y += lineHeight * 2;
   
   // Add date info
   doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
   doc.text(`Data de geração: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, 20, y);
   y += lineHeight * 1.5;
   
@@ -114,11 +146,19 @@ export const generatePDFReport = async (reportType: string, data: any[]): Promis
     if (headers.length <= 2 || data.length <= 5) {
       // Simple listing format for small datasets
       data.forEach((item, index) => {
+        // Add item box with light background
+        doc.setFillColor(245, 245, 250);
+        doc.rect(15, y - 5, pageWidth - 30, lineHeight * 4, 'F');
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(15, y - 5, pageWidth - 30, lineHeight * 4, 'S');
+        
         doc.setFontSize(14);
+        doc.setTextColor(41, 65, 148);
         doc.text(`Item ${index + 1}`, 20, y);
         y += lineHeight;
         
         doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
         Object.entries(item).forEach(([key, value]) => {
           const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
           doc.text(`${formattedKey}: ${value}`, 30, y);
@@ -128,38 +168,85 @@ export const generatePDFReport = async (reportType: string, data: any[]): Promis
         y += lineHeight / 2;
         
         // Add new page if needed
-        if (y > 280) {
+        if (y > 250) {
+          addFooterToPDF(doc, reportType, 1, 1); // Add footer before new page
           doc.addPage();
-          y = 20;
+          addHeaderToPDF(doc, reportType); // Add header to new page
+          y = 40; // Reset Y position
         }
       });
     } else {
-      // Create summary for larger datasets
-      doc.setFontSize(14);
-      doc.text(`Resumo (${data.length} registros)`, 20, y);
-      y += lineHeight * 1.5;
+      // Create table-like format for larger datasets
+      // Table header
+      doc.setFillColor(41, 65, 148);
+      doc.rect(15, y, pageWidth - 30, lineHeight, 'F');
       
-      // List first few items as samples
-      const sampleSize = Math.min(5, data.length);
-      for (let i = 0; i < sampleSize; i++) {
+      // Header text
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      
+      // Calculate column widths (simplified)
+      const colWidth = (pageWidth - 30) / Math.min(headers.length, 4); // Max 4 columns to show
+      
+      // Draw header cells
+      headers.slice(0, 4).forEach((header, i) => {
+        const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
+        doc.text(formattedHeader, 20 + (i * colWidth), y + 7);
+      });
+      
+      y += lineHeight + 2;
+      
+      // Draw rows (first 10)
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "normal");
+      
+      const maxToShow = Math.min(10, data.length);
+      for (let i = 0; i < maxToShow; i++) {
         const item = data[i];
-        doc.setFontSize(12);
         
-        // Get the first 3-4 key properties to display
-        const keysToShow = headers.slice(0, 4);
-        const itemText = keysToShow.map(key => `${key}: ${item[key]}`).join(', ');
-        doc.text(`- ${itemText}`, 30, y);
+        // Alternate row background
+        if (i % 2 === 0) {
+          doc.setFillColor(245, 245, 250);
+          doc.rect(15, y - 5, pageWidth - 30, lineHeight, 'F');
+        }
+        
+        // Row data
+        headers.slice(0, 4).forEach((header, j) => {
+          const text = String(item[header]).slice(0, 20) + (String(item[header]).length > 20 ? '...' : '');
+          doc.text(text, 20 + (j * colWidth), y);
+        });
+        
         y += lineHeight;
         
-        if (y > 280) {
+        // Add new page if needed
+        if (y > 250 && i < maxToShow - 1) {
+          addFooterToPDF(doc, reportType, 1, 1);
           doc.addPage();
-          y = 20;
+          addHeaderToPDF(doc, reportType);
+          y = 40;
+          
+          // Redraw header on new page
+          doc.setFillColor(41, 65, 148);
+          doc.rect(15, y, pageWidth - 30, lineHeight, 'F');
+          
+          doc.setTextColor(255, 255, 255);
+          doc.setFont("helvetica", "bold");
+          headers.slice(0, 4).forEach((header, i) => {
+            const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
+            doc.text(formattedHeader, 20 + (i * colWidth), y + 7);
+          });
+          
+          y += lineHeight + 2;
+          doc.setTextColor(0, 0, 0);
+          doc.setFont("helvetica", "normal");
         }
       }
       
-      if (data.length > sampleSize) {
+      // Indicate if there are more records
+      if (data.length > maxToShow) {
         y += lineHeight / 2;
-        doc.text(`... e mais ${data.length - sampleSize} registros`, 30, y);
+        doc.text(`... e mais ${data.length - maxToShow} registros`, 20, y);
       }
     }
   } else {
@@ -167,6 +254,70 @@ export const generatePDFReport = async (reportType: string, data: any[]): Promis
     doc.text("Nenhum dado disponível para este relatório", 20, y);
   }
   
+  // Add summary
+  y += lineHeight * 2;
+  doc.setFontSize(14);
+  doc.setTextColor(41, 65, 148);
+  doc.text("Resumo", 20, y);
+  y += lineHeight;
+  
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  doc.text(`Total de registros: ${data.length}`, 20, y);
+  
+  // Add footer to all pages
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    addFooterToPDF(doc, reportType, i, pageCount);
+  }
+  
   // Save the PDF
   doc.save(`${reportType.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.pdf`);
 };
+
+// Função auxiliar para adicionar cabeçalho ao PDF
+function addHeaderToPDF(doc: jsPDF, title: string) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Desenhar uma barra de cabeçalho
+  doc.setFillColor(41, 65, 148); // Azul corporativo
+  doc.rect(0, 0, pageWidth, 20, 'F');
+  
+  // Adicionar título no cabeçalho
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("Sistema de Gestão de Não Conformidades", 10, 13);
+  
+  // Adicionar data no cabeçalho
+  const today = format(new Date(), "dd/MM/yyyy");
+  doc.setFontSize(10);
+  doc.text(`Emitido em: ${today}`, pageWidth - 15, 13, { align: "right" });
+  
+  // Adicionar linha separadora abaixo do cabeçalho
+  doc.setDrawColor(200, 200, 200);
+  doc.line(10, 22, pageWidth - 10, 22);
+  
+  // Resetar cores para o conteúdo
+  doc.setTextColor(0, 0, 0);
+}
+
+// Função auxiliar para adicionar rodapé ao PDF
+function addFooterToPDF(doc: jsPDF, reportType: string, currentPage: number, totalPages: number) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  
+  // Adicionar linha separadora acima do rodapé
+  doc.setDrawColor(200, 200, 200);
+  doc.line(10, pageHeight - 15, pageWidth - 10, pageHeight - 15);
+  
+  // Adicionar texto do rodapé
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Relatório: ${reportType}`, 10, pageHeight - 10);
+  
+  // Adicionar número da página
+  doc.text(`Página ${currentPage} de ${totalPages}`, pageWidth - 20, pageHeight - 10, { align: "right" });
+}

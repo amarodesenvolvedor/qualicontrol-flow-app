@@ -37,39 +37,56 @@ const ReportsPage = () => {
   return (
     <Layout>
       <div className="flex flex-col gap-6 animate-fadeIn">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Relatórios</h1>
+        <div className="flex items-center justify-between bg-white p-4 rounded-lg border shadow-sm">
+          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Relatórios
+          </h1>
           <div className="flex items-center gap-2">
             <Button 
               variant="outline" 
               size="sm" 
-              className="h-8 transition-all hover:-translate-y-1 hover:shadow-md duration-300" 
+              className="h-9 transition-all hover:-translate-y-1 hover:shadow-md duration-300 border-blue-200" 
               onClick={handleRefresh}
               disabled={isLoading}
             >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin text-blue-500' : 'text-blue-500'}`} />
               Atualizar
             </Button>
           </div>
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="animate-fadeIn">
-          <TabsList className="mb-4">
-            <TabsTrigger value="standard">Relatórios Padrão</TabsTrigger>
-            <TabsTrigger value="custom">Relatórios Personalizados</TabsTrigger>
-            <TabsTrigger value="scheduled">Relatórios Agendados</TabsTrigger>
+          <TabsList className="mb-4 bg-white border shadow-sm p-1">
+            <TabsTrigger 
+              value="standard" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-indigo-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm"
+            >
+              Relatórios Padrão
+            </TabsTrigger>
+            <TabsTrigger 
+              value="custom" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-indigo-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm"
+            >
+              Relatórios Personalizados
+            </TabsTrigger>
+            <TabsTrigger 
+              value="scheduled" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-indigo-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm"
+            >
+              Relatórios Agendados
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="standard" className="animate-fadeIn">
-            <StandardReportsTab key={`standard-${refreshKey}`} /> {/* Add key based on refreshKey */}
+            <StandardReportsTab key={`standard-${refreshKey}`} />
           </TabsContent>
           
           <TabsContent value="custom" className="animate-fadeIn">
-            <CustomReportTab nonConformances={nonConformances} key={`custom-${refreshKey}`} /> {/* Add key based on refreshKey */}
+            <CustomReportTab nonConformances={nonConformances} key={`custom-${refreshKey}`} />
           </TabsContent>
           
           <TabsContent value="scheduled" className="animate-fadeIn">
-            <ScheduledReportsTab nonConformances={nonConformances} key={`scheduled-${refreshKey}`} /> {/* Add key based on refreshKey */}
+            <ScheduledReportsTab nonConformances={nonConformances} key={`scheduled-${refreshKey}`} />
           </TabsContent>
         </Tabs>
       </div>

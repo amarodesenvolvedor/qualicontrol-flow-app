@@ -15,7 +15,11 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     const doc = new jsPDF();
     const lineHeight = 10;
     let y = 20;
-
+    
+    // Adicionar um cabeçalho profissional
+    addHeaderToPDF(doc, 'ANÁLISE DE CAUSA E AÇÃO CORRETIVA');
+    y += 25; // Espaço após o cabeçalho
+    
     // Add title
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
@@ -27,10 +31,8 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     y += lineHeight * 2;
 
     // Add section: Informações Gerais
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("1. INFORMAÇÕES GERAIS", 20, y);
-    y += lineHeight * 1.2;
+    addSectionWithBackground(doc, "1. INFORMAÇÕES GERAIS", y);
+    y += lineHeight * 1.8;
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
@@ -51,10 +53,8 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     y += lineHeight;
     
     // Add section: Descrição da Não Conformidade
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("2. DESCRIÇÃO DA NÃO CONFORMIDADE", 20, y);
-    y += lineHeight * 1.2;
+    addSectionWithBackground(doc, "2. DESCRIÇÃO DA NÃO CONFORMIDADE", y);
+    y += lineHeight * 1.8;
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
@@ -64,10 +64,8 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     y += lineHeight * (descriptionLines.length + 1.5);
     
     // Add section: Ações Imediatas
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("3. AÇÕES IMEDIATAS TOMADAS", 20, y);
-    y += lineHeight * 1.2;
+    addSectionWithBackground(doc, "3. AÇÕES IMEDIATAS TOMADAS", y);
+    y += lineHeight * 1.8;
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
@@ -77,16 +75,15 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     y += lineHeight * (actionsLines.length + 1.5);
     
     // Check if we need a new page
-    if (y > 250) {
+    if (y > 220) {
       doc.addPage();
-      y = 20;
+      y = 40; // Leave space for header
+      addHeaderToPDF(doc, 'ANÁLISE DE CAUSA E AÇÃO CORRETIVA');
     }
     
     // Add section: Análise de Causa
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("4. ANÁLISE DE CAUSA", 20, y);
-    y += lineHeight * 1.2;
+    addSectionWithBackground(doc, "4. ANÁLISE DE CAUSA", y);
+    y += lineHeight * 1.8;
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
@@ -94,10 +91,8 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     y += lineHeight * 3;
     
     // Add section: Ação Corretiva
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("5. AÇÃO CORRETIVA", 20, y);
-    y += lineHeight * 1.2;
+    addSectionWithBackground(doc, "5. AÇÃO CORRETIVA", y);
+    y += lineHeight * 1.8;
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
@@ -105,10 +100,8 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     y += lineHeight * 3;
     
     // Add section: Prazo e Responsáveis
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("6. PRAZO E RESPONSÁVEIS", 20, y);
-    y += lineHeight * 1.2;
+    addSectionWithBackground(doc, "6. PRAZO E RESPONSÁVEIS", y);
+    y += lineHeight * 1.8;
     
     const responseDate = nonConformance.response_date 
       ? format(new Date(nonConformance.response_date), "dd/MM/yyyy")
@@ -118,11 +111,15 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     y = drawField("Auditor", nonConformance.auditor_name || "N/A", y);
     y += lineHeight * 2;
     
+    if (y > 220) {
+      doc.addPage();
+      y = 40; // Leave space for header
+      addHeaderToPDF(doc, 'ANÁLISE DE CAUSA E AÇÃO CORRETIVA');
+    }
+    
     // Add section: Verificação da Eficácia
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("7. VERIFICAÇÃO DA EFICÁCIA", 20, y);
-    y += lineHeight * 1.2;
+    addSectionWithBackground(doc, "7. VERIFICAÇÃO DA EFICÁCIA", y);
+    y += lineHeight * 1.8;
     
     const effectivenessDate = nonConformance.effectiveness_verification_date 
       ? format(new Date(nonConformance.effectiveness_verification_date), "dd/MM/yyyy")
@@ -142,14 +139,11 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
       y += lineHeight;
     }
     
-    // Add footer
+    // Add footer to all pages
     const pageCount = doc.getNumberOfPages();
-    doc.setFontSize(10);
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      doc.setFont("helvetica", "italic");
-      doc.text(`ACAC - ${nonConformance.code || 'S/N'} - Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, 20, doc.internal.pageSize.getHeight() - 10);
-      doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.getWidth() - 30, doc.internal.pageSize.getHeight() - 10);
+      addFooterToPDF(doc, `ACAC - ${nonConformance.code || 'S/N'}`, i, pageCount);
     }
     
     // Save the PDF with ACAC specific filename
@@ -161,3 +155,65 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     throw error;
   }
 };
+
+// Função auxiliar para adicionar cabeçalho ao PDF
+function addHeaderToPDF(doc: jsPDF, title: string) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Desenhar uma barra de cabeçalho
+  doc.setFillColor(41, 65, 148); // Azul corporativo
+  doc.rect(0, 0, pageWidth, 20, 'F');
+  
+  // Adicionar título no cabeçalho
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text(title, 10, 13);
+  
+  // Adicionar data no cabeçalho
+  const today = format(new Date(), "dd/MM/yyyy");
+  doc.setFontSize(10);
+  doc.text(`Emitido em: ${today}`, pageWidth - 15, 13, { align: "right" });
+  
+  // Adicionar linha separadora abaixo do cabeçalho
+  doc.setDrawColor(200, 200, 200);
+  doc.line(10, 22, pageWidth - 10, 22);
+  
+  // Resetar cores para o conteúdo
+  doc.setTextColor(0, 0, 0);
+}
+
+// Função auxiliar para adicionar rodapé ao PDF
+function addFooterToPDF(doc: jsPDF, documentCode: string, currentPage: number, totalPages: number) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  
+  // Adicionar linha separadora acima do rodapé
+  doc.setDrawColor(200, 200, 200);
+  doc.line(10, pageHeight - 15, pageWidth - 10, pageHeight - 15);
+  
+  // Adicionar texto do rodapé
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100, 100, 100);
+  doc.text(`${documentCode} - Sistema de Gestão de Não Conformidades`, 10, pageHeight - 10);
+  
+  // Adicionar número da página
+  doc.text(`Página ${currentPage} de ${totalPages}`, pageWidth - 20, pageHeight - 10, { align: "right" });
+}
+
+// Função para adicionar título de seção com fundo colorido
+function addSectionWithBackground(doc: jsPDF, title: string, y: number) {
+  // Desenhar retângulo de fundo
+  doc.setFillColor(240, 240, 250); // Azul muito claro
+  doc.rect(10, y - 7, doc.internal.pageSize.getWidth() - 20, 10, 'F');
+  
+  // Adicionar título da seção
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(41, 65, 148); // Azul corporativo
+  doc.text(title, 20, y);
+  
+  // Resetar cores para o conteúdo
+  doc.setTextColor(0, 0, 0);
+}
