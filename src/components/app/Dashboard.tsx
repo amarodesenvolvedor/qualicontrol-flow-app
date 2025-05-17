@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
@@ -21,16 +20,25 @@ import OverviewTab from "@/components/dashboard/tabs/OverviewTab";
 import TrendsTab from "@/components/dashboard/tabs/TrendsTab";
 import DepartmentAnalysisTab from "@/components/dashboard/tabs/DepartmentAnalysisTab";
 import RecentItemsList from "@/components/dashboard/RecentItemsList";
+import { DateRangeFilter } from "@/components/shared/filters/DateRangeFilter";
 
 const Dashboard = () => {
   const { nonConformances = [], isLoading, refetch } = useNonConformances();
   const [filterYear, setFilterYear] = useState<string>(new Date().getFullYear().toString());
   const [animateValues, setAnimateValues] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null } | null>(null);
 
-  // Filter non-conformances by selected year
+  // Filter non-conformances by selected year or date range
   const filteredNonConformances = Array.isArray(nonConformances) ? nonConformances.filter(nc => {
     if (!nc || !nc.occurrence_date) return false;
+    
+    // If we have a date range filter, use that instead of year filter
+    if (dateRange && (dateRange.from || dateRange.to)) {
+      return isWithinSelectedDateRange(nc, dateRange.from, dateRange.to);
+    }
+    
+    // Otherwise, use the year filter
     if (filterYear === 'all') return true;
     const createdYear = new Date(nc.occurrence_date).getFullYear().toString();
     return createdYear === filterYear;
@@ -98,6 +106,14 @@ const Dashboard = () => {
     document.documentElement.classList.toggle('dark');
   };
 
+  // Handle date range change
+  const handleDateRangeChange = (range: { from: Date | null; to: Date | null } | null) => {
+    setDateRange(range);
+    if (range && (range.from || range.to)) {
+      setFilterYear('all'); // Clear year filter when date range is selected
+    }
+  };
+
   return (
     <div className={`space-y-6 transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       <DashboardHeader 
@@ -107,6 +123,14 @@ const Dashboard = () => {
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
       />
+      
+      <div className="p-4 bg-card rounded-lg border shadow-sm">
+        <h3 className="text-sm font-medium mb-2">Filtro por Período</h3>
+        <DateRangeFilter 
+          value={dateRange} 
+          onChange={handleDateRangeChange} 
+        />
+      </div>
 
       <DashboardKPICards 
         totalCount={totalCount}

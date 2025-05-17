@@ -1,4 +1,3 @@
-
 import { NonConformance } from "@/types/nonConformance";
 import { startOfDay, endOfDay, addDays, isWithinInterval } from "date-fns";
 
@@ -34,29 +33,41 @@ export function isPastDeadline(nc: NonConformance) {
   return responseDate < now && nc.status === "pending";
 }
 
-// Helper function to check if a non-conformance is within the selected date range
-export function isWithinSelectedDateRange(nc: NonConformance, fromDate: Date | null, toDate: Date | null) {
-  if (!fromDate && !toDate) return true;
+/**
+ * Checks if a non-conformance falls within the selected date range
+ * 
+ * @param nc The non-conformance to check
+ * @param startDate The start date of the range (optional)
+ * @param endDate The end date of the range (optional)
+ * @returns True if the non-conformance is within range, false otherwise
+ */
+export const isWithinSelectedDateRange = (
+  nc: any, 
+  startDate: Date | null, 
+  endDate: Date | null
+): boolean => {
+  if (!nc || !nc.occurrence_date) return false;
   
   const occurrenceDate = new Date(nc.occurrence_date);
   
-  if (fromDate && toDate) {
-    return isWithinInterval(occurrenceDate, {
-      start: startOfDay(fromDate),
-      end: endOfDay(toDate)
-    });
+  // If we have a start date and the occurrence date is before it, return false
+  if (startDate && occurrenceDate < startDate) {
+    return false;
   }
   
-  if (fromDate && !toDate) {
-    return occurrenceDate >= startOfDay(fromDate);
+  // If we have an end date and the occurrence date is after it, return false
+  if (endDate) {
+    const endOfDay = new Date(endDate);
+    endOfDay.setHours(23, 59, 59, 999); // Set to end of day
+    
+    if (occurrenceDate > endOfDay) {
+      return false;
+    }
   }
   
-  if (!fromDate && toDate) {
-    return occurrenceDate <= endOfDay(toDate);
-  }
-  
+  // If we've made it this far, the date is within range
   return true;
-}
+};
 
 // Helper function to prepare monthly data
 export function prepareMonthlyData(data: NonConformance[]) {
