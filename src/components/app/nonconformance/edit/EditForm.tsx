@@ -7,6 +7,7 @@ import SelectField from "./SelectField";
 import DateField from "./DateField";
 import EditFormActions from "./EditFormActions";
 import { useNonConformanceEdit } from "@/hooks/useNonConformanceEdit";
+import { useEffect } from "react";
 
 const EditForm = () => {
   const { form, onSubmit, handleCancel, isSubmitting, generateAcac } = useNonConformanceEdit();
@@ -23,6 +24,17 @@ const EditForm = () => {
     value: dept.id,
     label: dept.name
   }));
+  
+  // Monitor status changes for debugging
+  useEffect(() => {
+    const statusSubscription = form.watch((value, { name }) => {
+      if (name === 'status') {
+        console.log('Status field changed:', value.status);
+      }
+    });
+    
+    return () => statusSubscription.unsubscribe();
+  }, [form]);
 
   return (
     <Form {...form}>

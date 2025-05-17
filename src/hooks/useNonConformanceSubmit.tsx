@@ -28,17 +28,28 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
     console.log('Form values to update:', values);
 
     try {
-      // Improved date formatting that ensures consistent ISO string format
+      // Standardized date formatting to ensure consistent ISO format
       const formatDateSafely = (date: Date | undefined): string | null => {
         if (!date) return null;
         try {
-          // Always use ISO string to ensure timezone information is preserved
-          return date.toISOString();
+          // Use ISO string to ensure consistent format
+          return new Date(date).toISOString();
         } catch (err) {
           console.error('Date formatting error:', err, date);
           return null;
         }
       };
+
+      // Validate critical fields before submission
+      if (!values.status) {
+        throw new Error('Status é um campo obrigatório');
+      }
+      
+      // Special validation for status field
+      if (values.status !== 'pending' && values.status !== 'in-progress' && 
+          values.status !== 'resolved' && values.status !== 'closed') {
+        throw new Error(`Status inválido: ${values.status}`);
+      }
 
       const updateData = {
         code: values.code,
@@ -69,33 +80,27 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
       
       // Enhanced validation of the update result
       if (!updatedRecord) {
-        console.error('No record returned after update!');
-        toast({
-          title: "Erro ao salvar",
-          description: "A atualização foi processada, mas não foi possível confirmar as alterações.",
-          variant: "destructive",
-        });
-        return;
+        throw new Error('Nenhum registro retornado após atualização');
       }
       
-      // Double-check that the values were actually updated by comparing with the form values
-      // This will help identify if any fields were not properly saved
-      if (updatedRecord?.status !== values.status) {
-        console.warn('Status mismatch after update!', {
+      // Specific check for the status field
+      if (updatedRecord.status !== values.status) {
+        console.error('Status mismatch after update!', {
           requested: values.status,
-          received: updatedRecord?.status
+          received: updatedRecord.status
         });
-        sonnerToast.warning('Aviso', {
-          description: 'Alguns campos podem não ter sido atualizados corretamente. Verifique os dados.'
-        });
-      } else {
-        toast({
-          title: "Não conformidade atualizada",
-          description: "Os dados foram salvos com sucesso.",
-        });
+        throw new Error(`O status não foi atualizado corretamente. Esperado: ${values.status}, Recebido: ${updatedRecord.status}`);
       }
       
-      navigate(`/nao-conformidades/${id}`);
+      toast({
+        title: "Não conformidade atualizada",
+        description: "Os dados foram salvos com sucesso.",
+      });
+      
+      // Delay navigation slightly to ensure all operations complete
+      setTimeout(() => {
+        navigate(`/nao-conformidades/${id}`);
+      }, 500);
     } catch (error) {
       console.error('Error updating non-conformance:', error);
       toast({
@@ -103,6 +108,7 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
         description: error instanceof Error ? `Não foi possível salvar as alterações: ${error.message}` : "Não foi possível salvar as alterações.",
         variant: "destructive",
       });
+      // Stay on the page so user can retry
     } finally {
       setIsSubmitting(false);
     }

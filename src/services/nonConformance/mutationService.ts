@@ -46,7 +46,7 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
     // First, check if the record exists
     const { data: existingRecord, error: checkError } = await supabase
       .from('non_conformances')
-      .select('id')
+      .select('id, status')
       .eq('id', id)
       .single();
       
@@ -61,6 +61,7 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
     }
     
     console.log('Record exists, proceeding with update:', existingRecord);
+    console.log('Current status:', existingRecord.status, 'New status:', data.status);
     
     // Format the update data - ensure proper date formatting
     const updateData = {
@@ -70,7 +71,6 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
     
     console.log('Formatted update data to send:', updateData);
     
-    // IMPROVEMENT: Separate the update and select operations for better error handling
     // Step 1: Perform the update operation
     const { error: updateError } = await supabase
       .from('non_conformances')
@@ -85,20 +85,69 @@ export const updateNonConformance = async (id: string, data: NonConformanceUpdat
     console.log('Update successful, now fetching the updated record');
     
     // Step 2: Fetch the updated record in a separate operation
-    const { data: updatedData, error: selectError } = await supabase
-      .from('non_conformances')
-      .select(`
-        *,
-        department:department_id (
-          id,
-          name
-        )
-      `)
-      .eq('id', id)
-      .single();
+    // Retry up to 3 times if needed to ensure we get the updated data
+    let updatedData = null;
+    let selectError = null;
+    let retries = 0;
+    const maxRetries = 3;
+    
+    while (!updatedData && retries < maxRetries) {
+      const response = await supabase
+        .from('non_conformances')
+        .select(`
+          *,
+          department:department_id (
+            id,
+            name
+          )
+        `)
+        .eq('id', id)
+        .single();
+      
+      updatedData = response.data;
+      selectError = response.error;
+      
+      if (selectError || !updatedData) {
+        console.warn(`Retry ${retries + 1}/${maxRetries}: Error fetching updated record:`, selectError);
+        retries++;
+        // Wait briefly before retrying
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } else {
+        // Check if the status field was actually updated
+        if (data.status && updatedData.status !== data.status) {
+          console.error('Status field not updated correctly!', { 
+            existing: existingRecord.status,
+            requested: data.status, 
+            received: updatedData.status 
+          });
+          
+          // Try forcing the update directly for the status field
+          console.log('Trying to force update the status field...');
+          await supabase
+            .from('non_conformances')
+            .update({ status: data.status })
+            .eq('id', id);
+            
+          // Fetch one more time
+          const finalCheck = await supabase
+            .from('non_conformances')
+            .select('*')
+            .eq('id', id)
+            .single();
+            
+          if (finalCheck.data && finalCheck.data.status === data.status) {
+            console.log('Status field updated successfully on second attempt');
+            updatedData = finalCheck.data;
+          } else {
+            console.error('Status field still not updated correctly!');
+          }
+        }
+        break;
+      }
+    }
     
     if (selectError) {
-      console.error('Error fetching updated record:', selectError);
+      console.error('Error fetching updated record after maximum retries:', selectError);
       throw new Error(`Update succeeded but could not fetch updated record: ${selectError.message}`);
     }
     

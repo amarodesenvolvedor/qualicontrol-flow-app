@@ -53,31 +53,46 @@ export const useUpdateNonConformance = () => {
           .single();
           
         if (verifyError) {
-          console.warn("Warning: Verification fetch after update failed:", verifyError);
-          // Don't throw here since the update might have succeeded
-        } else if (verifyData) {
-          console.log("Verification successful, updated record exists:", verifyData);
-          
-          // Check if some fields didn't update as expected
-          const mismatchFields = Object.keys(data).filter(key => {
-            const typedKey = key as keyof typeof data;
-            const verifyKey = key as keyof typeof verifyData;
-            
-            // Skip null values and date fields which might have format differences
-            if (data[typedKey] === null || 
-                key.includes('date') || 
-                key === 'updated_at') {
-              return false;
-            }
-            
-            return data[typedKey] !== undefined && 
-                  verifyData[verifyKey] !== undefined && 
-                  String(data[typedKey]) !== String(verifyData[verifyKey]);
+          console.error("Verification fetch after update failed:", verifyError);
+          throw new Error(`Verification failed: ${verifyError.message}`);
+        }
+        
+        if (!verifyData) {
+          console.error("Verification failed: No data returned");
+          throw new Error("Verification failed: Record not found after update");
+        }
+        
+        console.log("Verification successful, updated record exists:", verifyData);
+        
+        // Special check for status field since it's critical and commonly causing issues
+        if (data.status && verifyData.status !== data.status) {
+          console.error("Status field did not update correctly!", {
+            requested: data.status,
+            actual: verifyData.status
           });
+          throw new Error(`Status field update failed: Expected ${data.status}, got ${verifyData.status}`);
+        }
+        
+        // Check if some fields didn't update as expected, but don't throw errors
+        // since the critical status field check is done separately
+        const mismatchFields = Object.keys(data).filter(key => {
+          const typedKey = key as keyof typeof data;
+          const verifyKey = key as keyof typeof verifyData;
           
-          if (mismatchFields.length > 0) {
-            console.warn("Warning: Some fields may not have updated correctly:", mismatchFields);
+          // Skip null values and date fields which might have format differences
+          if (data[typedKey] === null || 
+              key.includes('date') || 
+              key === 'updated_at') {
+            return false;
           }
+          
+          return data[typedKey] !== undefined && 
+                verifyData[verifyKey] !== undefined && 
+                verifyData[verifyKey] !== data[typedKey];
+        });
+        
+        if (mismatchFields.length > 0) {
+          console.warn("Warning: Some fields may not have updated correctly:", mismatchFields);
         }
         
         // Log history for each changed field
@@ -86,21 +101,14 @@ export const useUpdateNonConformance = () => {
             const keyTyped = key as keyof typeof data;
             const currentKeyTyped = key as keyof typeof currentData;
             
-            // Check if the value has changed
-            const oldValue = currentData[currentKeyTyped];
-            const newValue = data[keyTyped];
-            
             // Skip undefined new values (they shouldn't be sent to update)
-            if (newValue === undefined) return;
+            if (data[keyTyped] === undefined) return;
             
-            // Convert to string for comparison as dates might be in different formats
-            const oldValueStr = oldValue !== null ? String(oldValue) : null;
-            const newValueStr = newValue !== null ? String(newValue) : null;
-            
-            if (oldValueStr !== newValueStr) {
+            // Use direct value comparison for fields that aren't dates
+            if (!key.includes('date') && currentData[currentKeyTyped] !== data[keyTyped]) {
               console.log(`Logging history for field ${key}:`, { 
-                old: oldValue, 
-                new: newValue 
+                old: currentData[currentKeyTyped], 
+                new: data[keyTyped]
               });
               
               try {
@@ -109,12 +117,35 @@ export const useUpdateNonConformance = () => {
                   'non_conformance',
                   id,
                   key,
-                  oldValue !== null ? String(oldValue) : null,
-                  newValue !== null ? String(newValue) : null
+                  currentData[currentKeyTyped] !== null ? String(currentData[currentKeyTyped]) : null,
+                  data[keyTyped] !== null ? String(data[keyTyped]) : null
                 );
               } catch (historyError) {
                 console.error('Error logging history:', historyError);
-                // Don't interrupt the process if history logging fails
+              }
+            }
+            // For date fields, convert to ISO strings for comparison if they're not already strings
+            else if (key.includes('date')) {
+              const oldDateStr = currentData[currentKeyTyped] !== null ? 
+                  (typeof currentData[currentKeyTyped] === 'string' ? currentData[currentKeyTyped] : new Date(currentData[currentKeyTyped] as any).toISOString()) : 
+                  null;
+                  
+              const newDateStr = data[keyTyped] !== null ? 
+                  (typeof data[keyTyped] === 'string' ? data[keyTyped] : new Date(data[keyTyped] as any).toISOString()) : 
+                  null;
+              
+              // Only log if different
+              if (oldDateStr !== newDateStr) {
+                console.log(`Logging history for date field ${key}:`, { 
+                  old: oldDateStr, 
+                  new: newDateStr 
+                });
+                
+                try {
+                  logHistory('non_conformance', id, key, oldDateStr, newDateStr);
+                } catch (historyError) {
+                  console.error('Error logging history for date field:', historyError);
+                }
               }
             }
           });
@@ -142,11 +173,10 @@ export const useUpdateNonConformance = () => {
           );
         } catch (notifyError) {
           console.error("Erro ao enviar notificação:", notifyError);
-          // Don't interrupt the process if notification fails
         }
       }
       
-      // Invalidate all related queries immediately (no setTimeout)
+      // Invalidate all related queries immediately
       console.log("Invalidating queries after successful update");
       queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
       queryClient.invalidateQueries({ queryKey: ['nonConformance', result.id] });
