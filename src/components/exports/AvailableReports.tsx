@@ -3,7 +3,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpDown, Calendar, Download, FileSpreadsheet, FileText } from "lucide-react";
-import { ExportItem } from "./ExportItem";
+import ExportItem from "./ExportItem";
 
 interface AvailableReportsProps {
   nonConformancesCount: number;
@@ -23,7 +23,7 @@ export const AvailableReports = ({ nonConformancesCount, auditReportsCount, hand
           title="Não Conformidades Completo" 
           description={`Relatório completo com todos os dados de não conformidades (${nonConformancesCount} registros)`}
           icon={<FileSpreadsheet className="h-6 w-6" />}
-          tag="Completo"
+          count={nonConformancesCount}
           onExport={() => handleExport("Não Conformidades Completo")}
         />
         
@@ -31,7 +31,7 @@ export const AvailableReports = ({ nonConformancesCount, auditReportsCount, hand
           title="Ações Corretivas" 
           description="Listagem de todas as ações corretivas e seus status"
           icon={<FileText className="h-6 w-6" />}
-          tag="Detalhado"
+          count={nonConformancesCount}
           onExport={() => handleExport("Ações Corretivas")}
         />
         
@@ -39,7 +39,7 @@ export const AvailableReports = ({ nonConformancesCount, auditReportsCount, hand
           title="Indicadores de Desempenho" 
           description="KPIs e métricas de desempenho relacionadas às não conformidades"
           icon={<ArrowUpDown className="h-6 w-6" />}
-          tag="Indicadores"
+          count={nonConformancesCount}
           onExport={() => handleExport("Indicadores de Desempenho")}
         />
         
@@ -47,7 +47,7 @@ export const AvailableReports = ({ nonConformancesCount, auditReportsCount, hand
           title="Cronograma de Auditorias" 
           description={`Planejamento de auditorias e seus respectivos resultados (${auditReportsCount} registros)`}
           icon={<Calendar className="h-6 w-6" />}
-          tag="Agenda"
+          count={auditReportsCount}
           onExport={() => handleExport("Cronograma de Auditorias")}
         />
       </CardContent>
