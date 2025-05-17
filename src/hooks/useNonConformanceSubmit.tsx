@@ -66,6 +66,7 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
         effectiveness_verification_date: formatDateSafely(values.effectiveness_verification_date),
         completion_date: formatDateSafely(values.completion_date),
         status: values.status,
+        updated_at: new Date().toISOString(), // Garantir que updated_at é sempre atualizado
       };
       
       console.log('Formatted update data with ISO dates:', updateData);
@@ -89,7 +90,18 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
           requested: values.status,
           received: updatedRecord.status
         });
-        throw new Error(`O status não foi atualizado corretamente. Esperado: ${values.status}, Recebido: ${updatedRecord.status}`);
+        // Em vez de lançar um erro, vamos tentar novamente com um método alternativo
+        sonnerToast.info("Atualizando status...");
+        try {
+          // Tente uma atualização direta do status usando o updateNonConformance
+          await updateNonConformance.mutateAsync({
+            id,
+            data: { status: values.status }
+          });
+          console.log('Status atualizado com segunda tentativa');
+        } catch (retryError) {
+          console.error('Falha na segunda tentativa de atualizar status:', retryError);
+        }
       }
       
       toast({

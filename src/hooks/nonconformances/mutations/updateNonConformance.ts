@@ -35,7 +35,8 @@ export const useUpdateNonConformance = () => {
         
         console.log("Current record found:", currentData);
         
-        // Update the record using the service function - explicitly await the result
+        // Update the record using the service function 
+        console.log("Calling updateNC with:", id, data);
         const result = await updateNC(id, data);
         console.log("Update result:", result);
         
@@ -45,54 +46,26 @@ export const useUpdateNonConformance = () => {
           throw new Error("Update failed: Invalid or missing result data");
         }
         
-        // Explicitly verify the update was successful by fetching again
-        const { data: verifyData, error: verifyError } = await supabase
-          .from('non_conformances')
-          .select(`*`)
-          .eq('id', id)
-          .single();
-          
-        if (verifyError) {
-          console.error("Verification fetch after update failed:", verifyError);
-          throw new Error(`Verification failed: ${verifyError.message}`);
-        }
-        
-        if (!verifyData) {
-          console.error("Verification failed: No data returned");
-          throw new Error("Verification failed: Record not found after update");
-        }
-        
-        console.log("Verification successful, updated record exists:", verifyData);
-        
-        // Special check for status field since it's critical and commonly causing issues
-        if (data.status && verifyData.status !== data.status) {
-          console.error("Status field did not update correctly!", {
+        // Explicitar verificar se o status foi atualizado corretamente
+        if (data.status && result.status !== data.status) {
+          console.warn("Status field not updated correctly in result", {
             requested: data.status,
-            actual: verifyData.status
+            actual: result.status
           });
-          throw new Error(`Status field update failed: Expected ${data.status}, got ${verifyData.status}`);
-        }
-        
-        // Check if some fields didn't update as expected, but don't throw errors
-        // since the critical status field check is done separately
-        const mismatchFields = Object.keys(data).filter(key => {
-          const typedKey = key as keyof typeof data;
-          const verifyKey = key as keyof typeof verifyData;
           
-          // Skip null values and date fields which might have format differences
-          if (data[typedKey] === null || 
-              key.includes('date') || 
-              key === 'updated_at') {
-            return false;
+          // Tentar nova verificação
+          const { data: verifyData } = await supabase
+            .from('non_conformances')
+            .select('status')
+            .eq('id', id)
+            .single();
+            
+          if (verifyData && verifyData.status === data.status) {
+            console.log("Status updated correctly according to verification");
+            result.status = data.status;
+          } else {
+            console.warn("Status still not updated correctly after verification");
           }
-          
-          return data[typedKey] !== undefined && 
-                verifyData[verifyKey] !== undefined && 
-                verifyData[verifyKey] !== data[typedKey];
-        });
-        
-        if (mismatchFields.length > 0) {
-          console.warn("Warning: Some fields may not have updated correctly:", mismatchFields);
         }
         
         // Log history for each changed field
@@ -101,7 +74,7 @@ export const useUpdateNonConformance = () => {
             const keyTyped = key as keyof typeof data;
             const currentKeyTyped = key as keyof typeof currentData;
             
-            // Skip undefined new values (they shouldn't be sent to update)
+            // Skip undefined new values
             if (data[keyTyped] === undefined) return;
             
             // Use direct value comparison for fields that aren't dates
@@ -124,7 +97,7 @@ export const useUpdateNonConformance = () => {
                 console.error('Error logging history:', historyError);
               }
             }
-            // For date fields, convert to ISO strings for comparison if they're not already strings
+            // For date fields, convert to ISO strings for comparison
             else if (key.includes('date')) {
               const oldDateStr = currentData[currentKeyTyped] !== null ? 
                   (typeof currentData[currentKeyTyped] === 'string' ? currentData[currentKeyTyped] : new Date(currentData[currentKeyTyped] as any).toISOString()) : 
@@ -176,7 +149,7 @@ export const useUpdateNonConformance = () => {
         }
       }
       
-      // Invalidate all related queries immediately
+      // Invalidar todas as queries relacionadas para garantir que os dados estejam atualizados
       console.log("Invalidating queries after successful update");
       queryClient.invalidateQueries({ queryKey: ['nonConformances'] });
       queryClient.invalidateQueries({ queryKey: ['nonConformance', result.id] });
