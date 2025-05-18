@@ -37,7 +37,7 @@ const ReportsPage = () => {
   return (
     <Layout>
       <div className="flex flex-col gap-6 animate-fadeIn">
-        <div className="flex items-center justify-between bg-white p-4 rounded-lg border shadow-sm">
+        <div className="flex items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
           <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Relatórios
           </h1>
@@ -56,7 +56,7 @@ const ReportsPage = () => {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="animate-fadeIn">
-          <TabsList className="mb-4 bg-white border shadow-sm p-1">
+          <TabsList className="mb-4 bg-card border shadow-sm p-1">
             <TabsTrigger 
               value="standard" 
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-indigo-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm"

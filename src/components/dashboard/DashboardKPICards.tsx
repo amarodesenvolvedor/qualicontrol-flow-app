@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { FileText, AlertCircle, Clock, CheckCircle, AlertTriangle } from "lucide-react";
 interface KPICardsProps {
@@ -37,7 +38,7 @@ const DashboardKPICards = ({
       <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Em Aberto</CardTitle>
-          <AlertCircle className="h-4 w-4 text-amber-500" />
+          <AlertCircle className="h-4 w-4 text-amber-500 dark:text-amber-400" />
         </CardHeader>
         <CardContent>
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
@@ -54,7 +55,7 @@ const DashboardKPICards = ({
       <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
-          <CheckCircle className="h-4 w-4 text-green-500" />
+          <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400" />
         </CardHeader>
         <CardContent>
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
@@ -71,7 +72,7 @@ const DashboardKPICards = ({
       <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">A Vencer</CardTitle>
-          <Clock className="h-4 w-4 text-blue-500" />
+          <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" />
         </CardHeader>
         <CardContent>
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>
@@ -88,7 +89,7 @@ const DashboardKPICards = ({
       <Card className="card-glow transition-all hover:shadow-md hover:-translate-y-1 duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Vencidas</CardTitle>
-          <AlertTriangle className="h-4 w-4 text-red-500" />
+          <AlertTriangle className="h-4 w-4 text-red-500 dark:text-red-400" />
         </CardHeader>
         <CardContent>
           <div className={`text-3xl font-bold ${animateValues ? 'animate-fade-in' : ''}`}>

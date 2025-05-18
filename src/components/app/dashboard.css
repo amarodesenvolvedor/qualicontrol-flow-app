@@ -48,36 +48,13 @@
   pointer-events: none;
 }
 
-/* Status badge colors */
-.status-badge {
-  border-radius: 9999px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+/* Dark mode card glow */
+.dark .card-glow:hover {
+  box-shadow: 0 0 15px 5px rgba(14, 165, 233, 0.1);
 }
 
-.status-completed {
-  background-color: #DCFCE7;
-  color: #166534;
-  border-color: #BBF7D0;
-}
-
-.status-in-progress {
-  background-color: #FEF3C7;
-  color: #854D0E;
-  border-color: #FDE68A;
-}
-
-.status-critical {
-  background-color: #FEE2E2;
-  color: #991B1B;
-  border-color: #FECACA;
-}
-
-.status-pending {
-  background-color: #DBEAFE;
-  color: #1E40AF;
-  border-color: #BFDBFE;
+.dark .card-glow::before {
+  background: linear-gradient(225deg, rgba(14, 165, 233, 0.1) 0%, transparent 60%);
 }
 
 /* Animation keyframes */

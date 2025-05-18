@@ -22,7 +22,7 @@ export const AvailableReports = ({ nonConformancesCount, auditReportsCount, hand
         <ExportItem 
           title="Não Conformidades Completo" 
           description={`Relatório completo com todos os dados de não conformidades (${nonConformancesCount} registros)`}
-          icon={<FileSpreadsheet className="h-6 w-6" />}
+          icon={<FileSpreadsheet className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
           count={nonConformancesCount}
           onExport={() => handleExport("Não Conformidades Completo")}
         />
@@ -30,7 +30,7 @@ export const AvailableReports = ({ nonConformancesCount, auditReportsCount, hand
         <ExportItem 
           title="Ações Corretivas" 
           description="Listagem de todas as ações corretivas e seus status"
-          icon={<FileText className="h-6 w-6" />}
+          icon={<FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
           count={nonConformancesCount}
           onExport={() => handleExport("Ações Corretivas")}
         />
@@ -38,7 +38,7 @@ export const AvailableReports = ({ nonConformancesCount, auditReportsCount, hand
         <ExportItem 
           title="Indicadores de Desempenho" 
           description="KPIs e métricas de desempenho relacionadas às não conformidades"
-          icon={<ArrowUpDown className="h-6 w-6" />}
+          icon={<ArrowUpDown className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
           count={nonConformancesCount}
           onExport={() => handleExport("Indicadores de Desempenho")}
         />
@@ -46,7 +46,7 @@ export const AvailableReports = ({ nonConformancesCount, auditReportsCount, hand
         <ExportItem 
           title="Cronograma de Auditorias" 
           description={`Planejamento de auditorias e seus respectivos resultados (${auditReportsCount} registros)`}
-          icon={<Calendar className="h-6 w-6" />}
+          icon={<Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
           count={auditReportsCount}
           onExport={() => handleExport("Cronograma de Auditorias")}
         />

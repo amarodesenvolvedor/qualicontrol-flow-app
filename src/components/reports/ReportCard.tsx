@@ -54,9 +54,9 @@ export const ReportCard = ({ title, description, type, updatedAt }: ReportCardPr
       className="transition-all hover:shadow-md duration-300 hover:-translate-y-1 border-t-4 rounded-md overflow-hidden group"
       style={{ borderTopColor: getBorderColor(type) }}
     >
-      <CardHeader className="pb-2 bg-gradient-to-b from-slate-50 to-white">
+      <CardHeader className="pb-2 bg-card/50">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-800">{title}</CardTitle>
+          <CardTitle className="text-lg font-semibold text-foreground">{title}</CardTitle>
           <Badge 
             variant={getBadgeVariant(type)} 
             className="ml-2 font-medium bg-opacity-90 shadow-sm"
