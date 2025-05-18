@@ -42,25 +42,25 @@ export const UserPreferencesForm = ({ preferences, onSave, isSaving }: UserPrefe
             
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="emailNotifications">Notificações por Email</Label>
+                <Label htmlFor="emailnotifications">Notificações por Email</Label>
                 <p className="text-sm text-muted-foreground">Receba alertas sobre não conformidades por email</p>
               </div>
               <Switch 
-                id="emailNotifications" 
-                checked={formData.emailNotifications}
-                onCheckedChange={(checked) => handleSwitchChange('emailNotifications', checked)}
+                id="emailnotifications" 
+                checked={formData.emailnotifications}
+                onCheckedChange={(checked) => handleSwitchChange('emailnotifications', checked)}
               />
             </div>
             
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="systemNotifications">Notificações no Sistema</Label>
+                <Label htmlFor="systemnotifications">Notificações no Sistema</Label>
                 <p className="text-sm text-muted-foreground">Receba alertas dentro do sistema</p>
               </div>
               <Switch 
-                id="systemNotifications" 
-                checked={formData.systemNotifications}
-                onCheckedChange={(checked) => handleSwitchChange('systemNotifications', checked)}
+                id="systemnotifications" 
+                checked={formData.systemnotifications}
+                onCheckedChange={(checked) => handleSwitchChange('systemnotifications', checked)}
               />
             </div>
           </div>
@@ -72,13 +72,13 @@ export const UserPreferencesForm = ({ preferences, onSave, isSaving }: UserPrefe
             
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="darkMode">Modo Escuro</Label>
+                <Label htmlFor="darkmode">Modo Escuro</Label>
                 <p className="text-sm text-muted-foreground">Ativa o tema escuro na interface</p>
               </div>
               <Switch 
-                id="darkMode" 
-                checked={formData.darkMode}
-                onCheckedChange={(checked) => handleSwitchChange('darkMode', checked)}
+                id="darkmode" 
+                checked={formData.darkmode}
+                onCheckedChange={(checked) => handleSwitchChange('darkmode', checked)}
               />
             </div>
           </div>

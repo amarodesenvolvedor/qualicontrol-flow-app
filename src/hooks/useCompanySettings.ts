@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const useCompanySettings = () => {
   const [companySettings, setCompanySettings] = useState<CompanySettings>({
-    companyName: "",
+    companyname: "",
     cnpj: "",
     address: "",
     city: "",
@@ -63,7 +63,7 @@ export const useCompanySettings = () => {
           .from("company_settings")
           .update({
             ...settings,
-            updatedAt: new Date().toISOString(),
+            updatedat: new Date().toISOString(), // Changed from updatedAt to updatedat
           })
           .eq("id", existingData.id);
       } else {
@@ -72,8 +72,8 @@ export const useCompanySettings = () => {
           .from("company_settings")
           .insert({
             ...settings,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdat: new Date().toISOString(), // Changed from createdAt to createdat
+            updatedat: new Date().toISOString(), // Changed from updatedAt to updatedat
           });
       }
 

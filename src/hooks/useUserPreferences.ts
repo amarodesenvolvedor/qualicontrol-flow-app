@@ -6,9 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const useUserPreferences = () => {
   const [preferences, setPreferences] = useState<UserPreferences>({
-    emailNotifications: true,
-    systemNotifications: true,
-    darkMode: false,
+    emailnotifications: true, // Changed from emailNotifications
+    systemnotifications: true, // Changed from systemNotifications
+    darkmode: false, // Changed from darkMode
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -28,16 +28,16 @@ export const useUserPreferences = () => {
       const { data, error } = await supabase
         .from("user_preferences")
         .select("*")
-        .eq("userId", userId)
+        .eq("userid", userId) // Changed from userId to userid
         .maybeSingle();
 
       if (error) {
         console.error("Erro ao buscar preferências:", error);
       } else if (data) {
         setPreferences({
-          emailNotifications: data.emailNotifications,
-          systemNotifications: data.systemNotifications,
-          darkMode: data.darkMode,
+          emailnotifications: data.emailnotifications, // Changed from emailNotifications
+          systemnotifications: data.systemnotifications, // Changed from systemNotifications
+          darkmode: data.darkmode, // Changed from darkMode
         });
       }
     } catch (error) {
@@ -62,7 +62,7 @@ export const useUserPreferences = () => {
       const { data: existingData } = await supabase
         .from("user_preferences")
         .select("id")
-        .eq("userId", userId)
+        .eq("userid", userId) // Changed from userId to userid
         .maybeSingle();
 
       let result;
@@ -73,7 +73,7 @@ export const useUserPreferences = () => {
           .from("user_preferences")
           .update({
             ...newPreferences,
-            updatedAt: new Date().toISOString(),
+            updatedat: new Date().toISOString(), // Changed from updatedAt to updatedat
           })
           .eq("id", existingData.id);
       } else {
@@ -82,9 +82,9 @@ export const useUserPreferences = () => {
           .from("user_preferences")
           .insert({
             ...newPreferences,
-            userId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            userid: userId, // Changed from userId to userid
+            createdat: new Date().toISOString(), // Changed from createdAt to createdat
+            updatedat: new Date().toISOString(), // Changed from updatedAt to updatedat
           });
       }
 

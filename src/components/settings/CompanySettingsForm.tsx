@@ -44,10 +44,10 @@ export const CompanySettingsForm = ({ settings, onSave, isSaving }: CompanySetti
             
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="company-companyName">Nome da Empresa</Label>
+                <Label htmlFor="company-companyname">Nome da Empresa</Label>
                 <Input 
-                  id="company-companyName" 
-                  value={formData.companyName} 
+                  id="company-companyname" 
+                  value={formData.companyname} 
                   onChange={handleChange}
                 />
               </div>
