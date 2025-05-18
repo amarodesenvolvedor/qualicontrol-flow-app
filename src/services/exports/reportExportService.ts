@@ -91,10 +91,10 @@ export const exportToPDF = (
   // Create a PDF document
   const doc = new jsPDF();
   
-  // Define corporate colors
-  const primaryColor = [41, 65, 148]; // Corporate blue RGB
-  const secondaryColor = [100, 100, 100]; // Gray for text
-  const lightBackground = [245, 245, 250]; // Light background for sections
+  // Define corporate colors as arrays with explicit types
+  const primaryColor: [number, number, number] = [41, 65, 148]; // Corporate blue RGB
+  const secondaryColor: [number, number, number] = [100, 100, 100]; // Gray for text
+  const lightBackground: [number, number, number] = [245, 245, 250]; // Light background for sections
   
   // Add stylized header
   addHeaderToPDF(doc, "Sistema de Gestão de Não Conformidades");
@@ -106,7 +106,7 @@ export const exportToPDF = (
   let y = 30; // Start position after header
   
   // Title section with color background
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
@@ -117,12 +117,12 @@ export const exportToPDF = (
   y += 20;
   
   // Report metadata section
-  doc.setFillColor(...lightBackground);
+  doc.setFillColor(lightBackground[0], lightBackground[1], lightBackground[2]);
   doc.rect(margin - 10, y - 5, pageWidth - (margin - 10) * 2, 40, 'F');
   doc.setDrawColor(200, 200, 200);
   doc.rect(margin - 10, y - 5, pageWidth - (margin - 10) * 2, 40, 'S');
   
-  doc.setTextColor(...secondaryColor);
+  doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
   doc.text(`Tipo: ${type}`, margin, y);
@@ -142,7 +142,7 @@ export const exportToPDF = (
   y += descriptionLines.length * 6 + 10;
   
   // Report data section header
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
@@ -162,7 +162,7 @@ export const exportToPDF = (
     Object.entries(reportData).forEach(([key, value], index) => {
       // Alternating row colors
       if (alternateRow) {
-        doc.setFillColor(...lightBackground);
+        doc.setFillColor(lightBackground[0], lightBackground[1], lightBackground[2]);
         doc.rect(margin - 5, y - 4, pageWidth - (margin - 5) * 2, 8, 'F');
       }
       alternateRow = !alternateRow;
@@ -193,7 +193,7 @@ export const exportToPDF = (
         
         // Show first 5 items as sample
         if (items.length > 0) {
-          doc.setFillColor(...lightBackground);
+          doc.setFillColor(lightBackground[0], lightBackground[1], lightBackground[2]);
           doc.rect(margin - 5, y - 4, pageWidth - (margin - 5) * 2, items.length * 8 + 10, 'F');
           doc.setDrawColor(200, 200, 200);
           doc.rect(margin - 5, y - 4, pageWidth - (margin - 5) * 2, items.length * 8 + 10, 'S');
