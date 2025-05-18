@@ -36,7 +36,7 @@ export const useCompanySettings = () => {
           variant: "destructive",
         });
       } else if (data) {
-        setCompanySettings(data);
+        setCompanySettings(data as CompanySettings);
       }
     } catch (error) {
       console.error("Erro ao buscar configurações:", error);

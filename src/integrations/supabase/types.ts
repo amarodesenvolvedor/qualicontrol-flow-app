@@ -65,6 +65,48 @@ export type Database = {
           },
         ]
       }
+      company_settings: {
+        Row: {
+          address: string
+          cep: string
+          city: string
+          cnpj: string
+          companyname: string
+          createdat: string
+          email: string
+          id: string
+          phone: string
+          state: string
+          updatedat: string
+        }
+        Insert: {
+          address?: string
+          cep?: string
+          city?: string
+          cnpj?: string
+          companyname?: string
+          createdat?: string
+          email?: string
+          id?: string
+          phone?: string
+          state?: string
+          updatedat?: string
+        }
+        Update: {
+          address?: string
+          cep?: string
+          city?: string
+          cnpj?: string
+          companyname?: string
+          createdat?: string
+          email?: string
+          id?: string
+          phone?: string
+          state?: string
+          updatedat?: string
+        }
+        Relationships: []
+      }
       departments: {
         Row: {
           created_at: string
@@ -238,6 +280,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          createdat: string
+          darkmode: boolean
+          emailnotifications: boolean
+          id: string
+          systemnotifications: boolean
+          updatedat: string
+          userid: string
+        }
+        Insert: {
+          createdat?: string
+          darkmode?: boolean
+          emailnotifications?: boolean
+          id?: string
+          systemnotifications?: boolean
+          updatedat?: string
+          userid: string
+        }
+        Update: {
+          createdat?: string
+          darkmode?: boolean
+          emailnotifications?: boolean
+          id?: string
+          systemnotifications?: boolean
+          updatedat?: string
+          userid?: string
+        }
+        Relationships: []
       }
     }
     Views: {
