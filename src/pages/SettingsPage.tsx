@@ -1,35 +1,30 @@
 
 import Layout from "@/components/app/Layout";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { CompanySettingsForm } from "@/components/settings/CompanySettingsForm";
+import { UserPreferencesForm } from "@/components/settings/UserPreferencesForm";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const SettingsPage = () => {
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [systemNotifications, setSystemNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const { toast } = useToast();
-
-  const handleSavePreferences = () => {
-    toast({
-      title: "Preferências salvas",
-      description: "Suas configurações foram atualizadas com sucesso.",
-    });
-  };
-
-  const handleSaveCompanySettings = () => {
-    toast({
-      title: "Informações da empresa salvas",
-      description: "Os dados da empresa foram atualizados com sucesso.",
-    });
-  };
-
+  const [activeTab, setActiveTab] = useState("preferences");
+  const { 
+    companySettings,
+    saveCompanySettings,
+    isLoading: isLoadingCompany,
+    isSaving: isSavingCompany
+  } = useCompanySettings();
+  
+  const { 
+    preferences,
+    saveUserPreferences,
+    isLoading: isLoadingPreferences,
+    isSaving: isSavingPreferences
+  } = useUserPreferences();
+  
   return (
     <Layout>
       <div className="flex flex-col gap-6">
@@ -37,7 +32,11 @@ const SettingsPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
         </div>
 
-        <Tabs defaultValue="preferences">
+        <Tabs 
+          defaultValue="preferences" 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+        >
           <TabsList className="mb-4">
             <TabsTrigger value="preferences">Preferências</TabsTrigger>
             <TabsTrigger value="company">Dados da Empresa</TabsTrigger>
@@ -46,131 +45,62 @@ const SettingsPage = () => {
           </TabsList>
           
           <TabsContent value="preferences">
-            <Card>
-              <CardHeader>
-                <CardTitle>Preferências do Usuário</CardTitle>
-                <CardDescription>Configure suas preferências pessoais no sistema</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">Notificações</h3>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="email-notifications">Notificações por Email</Label>
-                      <p className="text-sm text-muted-foreground">Receba alertas sobre não conformidades por email</p>
+            {isLoadingPreferences ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle><Skeleton className="h-6 w-48" /></CardTitle>
+                  <CardDescription><Skeleton className="h-4 w-64" /></CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="h-5 w-32" />
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-48" />
+                          <Skeleton className="h-3 w-64" />
+                        </div>
+                        <Skeleton className="h-6 w-12 rounded-full" />
+                      </div>
                     </div>
-                    <Switch 
-                      id="email-notifications" 
-                      checked={emailNotifications}
-                      onCheckedChange={setEmailNotifications}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="system-notifications">Notificações no Sistema</Label>
-                      <p className="text-sm text-muted-foreground">Receba alertas dentro do sistema</p>
-                    </div>
-                    <Switch 
-                      id="system-notifications" 
-                      checked={systemNotifications}
-                      onCheckedChange={setSystemNotifications}
-                    />
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">Aparência</h3>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="dark-mode">Modo Escuro</Label>
-                      <p className="text-sm text-muted-foreground">Ativa o tema escuro na interface</p>
-                    </div>
-                    <Switch 
-                      id="dark-mode" 
-                      checked={darkMode}
-                      onCheckedChange={setDarkMode}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button onClick={handleSavePreferences}>Salvar Preferências</Button>
-              </CardFooter>
-            </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            ) : (
+              <UserPreferencesForm 
+                preferences={preferences}
+                onSave={saveUserPreferences}
+                isSaving={isSavingPreferences}
+              />
+            )}
           </TabsContent>
           
           <TabsContent value="company">
-            <Card>
-              <CardHeader>
-                <CardTitle>Dados da Empresa</CardTitle>
-                <CardDescription>Configure as informações da sua organização</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">Informações Básicas</h3>
-                  
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="company-name">Nome da Empresa</Label>
-                      <Input id="company-name" defaultValue="InduSafe Ltda." />
+            {isLoadingCompany ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle><Skeleton className="h-6 w-48" /></CardTitle>
+                  <CardDescription><Skeleton className="h-4 w-64" /></CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="h-5 w-32" />
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                      </div>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="company-cnpj">CNPJ</Label>
-                      <Input id="company-cnpj" defaultValue="12.345.678/0001-90" />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="company-address">Endereço</Label>
-                    <Input id="company-address" defaultValue="Av. Industrial, 1000 - Distrito Industrial" />
-                  </div>
-                  
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="company-city">Cidade</Label>
-                      <Input id="company-city" defaultValue="São Paulo" />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="company-state">Estado</Label>
-                      <Input id="company-state" defaultValue="SP" />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="company-cep">CEP</Label>
-                      <Input id="company-cep" defaultValue="00000-000" />
-                    </div>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">Contato</h3>
-                  
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="company-email">Email</Label>
-                      <Input id="company-email" type="email" defaultValue="contato@indusafe.com.br" />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="company-phone">Telefone</Label>
-                      <Input id="company-phone" defaultValue="(11) 1234-5678" />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button onClick={handleSaveCompanySettings}>Salvar Informações da Empresa</Button>
-              </CardFooter>
-            </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            ) : (
+              <CompanySettingsForm 
+                settings={companySettings}
+                onSave={saveCompanySettings}
+                isSaving={isSavingCompany}
+              />
+            )}
           </TabsContent>
           
           <TabsContent value="users">
