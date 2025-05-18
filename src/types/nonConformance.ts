@@ -21,6 +21,8 @@ export type NonConformance = {
   department?: Department;
   created_by?: string | null;
   updated_at?: string;
+  root_cause_analysis?: string | null;
+  corrective_action?: string | null;
 };
 
 export type NonConformanceCreateData = Omit<NonConformance, 'id' | 'created_at' | 'department' | 'created_by' | 'updated_at'>;
