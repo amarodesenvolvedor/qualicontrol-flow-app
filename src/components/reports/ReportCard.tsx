@@ -21,7 +21,7 @@ export const ReportCard = ({ title, description, type, updatedAt }: ReportCardPr
     handleReportExport(format, title, description, type, updatedAt, nonConformances);
   };
 
-  // Determinar a cor do badge com base no tipo
+  // Determinar a cor do badge e do indicador superior com base no tipo
   const getBadgeVariant = (reportType: string) => {
     switch (reportType) {
       case "Semanal":
@@ -35,13 +35,32 @@ export const ReportCard = ({ title, description, type, updatedAt }: ReportCardPr
     }
   };
 
+  // Determinar a cor do indicador superior com base no tipo
+  const getBorderColor = (reportType: string) => {
+    switch (reportType) {
+      case "Semanal":
+        return "#8B5CF6"; // Purple
+      case "Mensal":
+        return "#0EA5E9"; // Blue
+      case "Trimestral":
+        return "#F97316"; // Orange
+      default:
+        return "#8B5CF6";
+    }
+  };
+
   return (
-    <Card className="transition-all hover:shadow-md duration-300 hover:-translate-y-1 border-t-4 rounded-md overflow-hidden"
-         style={{ borderTopColor: type === "Semanal" ? "#8B5CF6" : type === "Mensal" ? "#0EA5E9" : "#F97316" }}>
-      <CardHeader className="pb-2">
+    <Card 
+      className="transition-all hover:shadow-md duration-300 hover:-translate-y-1 border-t-4 rounded-md overflow-hidden group"
+      style={{ borderTopColor: getBorderColor(type) }}
+    >
+      <CardHeader className="pb-2 bg-gradient-to-b from-slate-50 to-white">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-          <Badge variant={getBadgeVariant(type)} className="ml-2 font-medium">
+          <CardTitle className="text-lg font-semibold text-gray-800">{title}</CardTitle>
+          <Badge 
+            variant={getBadgeVariant(type)} 
+            className="ml-2 font-medium bg-opacity-90 shadow-sm"
+          >
             {type}
           </Badge>
         </div>
