@@ -48,6 +48,7 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     
     y = drawField("Departamento", nonConformance.department?.name || "N/A", y);
     y = drawField("Responsável", nonConformance.responsible_name || "N/A", y);
+    y = drawField("Auditor", nonConformance.auditor_name || "N/A", y); // Movido para esta seção
     y = drawField("Data de Ocorrência", nonConformance.occurrence_date ? format(new Date(nonConformance.occurrence_date), "dd/MM/yyyy") : "N/A", y);
     y = drawField("Local", nonConformance.location || "N/A", y);
     y += lineHeight;
@@ -87,8 +88,24 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text("Espaço para preenchimento manual ou anexo posterior.", 20, y);
-    y += lineHeight * 3;
+    
+    // Se houver conteúdo para análise de causa, exibir. Caso contrário, desenhar linhas para preenchimento manual
+    if (nonConformance.root_cause_analysis) {
+      const analysisLines = doc.splitTextToSize(nonConformance.root_cause_analysis, 170);
+      doc.text(analysisLines, 20, y);
+      y += lineHeight * (analysisLines.length + 1.5);
+    } else {
+      // Desenhar linhas para preenchimento manual
+      doc.text("", 20, y); // Espaço em branco
+      y += lineHeight * 0.5;
+      
+      // Desenhar 4 linhas para preenchimento manual
+      for (let i = 0; i < 4; i++) {
+        doc.line(20, y, 190, y);
+        y += lineHeight;
+      }
+      y += lineHeight * 0.5;
+    }
     
     // Add section: Ação Corretiva
     addSectionWithBackground(doc, "5. AÇÃO CORRETIVA", y);
@@ -96,8 +113,24 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text("Espaço para preenchimento manual ou anexo posterior.", 20, y);
-    y += lineHeight * 3;
+    
+    // Se houver conteúdo para ação corretiva, exibir. Caso contrário, desenhar linhas para preenchimento manual
+    if (nonConformance.corrective_action) {
+      const correctiveLines = doc.splitTextToSize(nonConformance.corrective_action, 170);
+      doc.text(correctiveLines, 20, y);
+      y += lineHeight * (correctiveLines.length + 1.5);
+    } else {
+      // Desenhar linhas para preenchimento manual
+      doc.text("", 20, y); // Espaço em branco
+      y += lineHeight * 0.5;
+      
+      // Desenhar 4 linhas para preenchimento manual
+      for (let i = 0; i < 4; i++) {
+        doc.line(20, y, 190, y);
+        y += lineHeight;
+      }
+      y += lineHeight * 0.5;
+    }
     
     // Add section: Prazo e Responsáveis
     addSectionWithBackground(doc, "6. PRAZO E RESPONSÁVEIS", y);
@@ -108,7 +141,6 @@ export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<v
       : "Não definido";
       
     y = drawField("Prazo para Resposta", responseDate, y);
-    y = drawField("Auditor", nonConformance.auditor_name || "N/A", y);
     y += lineHeight * 2;
     
     if (y > 220) {

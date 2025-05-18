@@ -34,7 +34,10 @@ export const useNonConformancePdfExport = () => {
           : null,
         created_at: ncData?.created_at || format(new Date(), 'yyyy-MM-dd'),
         status: formValues.status,
-        department: ncData?.department
+        department: ncData?.department,
+        // Adicionar campos opcionais para análise de causa e ação corretiva
+        root_cause_analysis: formValues.root_cause_analysis || null,
+        corrective_action: formValues.corrective_action || null
       };
       
       // Generate ACAC PDF
