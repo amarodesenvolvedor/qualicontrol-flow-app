@@ -37,7 +37,7 @@ export const NewScheduledAuditForm = ({
     responsible_auditor: '',
     week_number: currentWeek,
     year: currentYear,
-    status: 'scheduled',
+    status: 'programada',
     notes: ''
   });
 
@@ -144,17 +144,16 @@ export const NewScheduledAuditForm = ({
           <Label htmlFor="status">Status</Label>
           <Select 
             value={formData.status} 
-            onValueChange={(value) => handleChange('status', value as "scheduled" | "in_progress" | "completed" | "cancelled")}
+            onValueChange={(value) => handleChange('status', value as "programada" | "agendada" | "concluida" | "atrasada")}
             required
           >
             <SelectTrigger id="status">
               <SelectValue placeholder="Selecione o status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="scheduled">Agendada</SelectItem>
-              <SelectItem value="in_progress">Em Andamento</SelectItem>
-              <SelectItem value="completed">Concluída</SelectItem>
-              <SelectItem value="cancelled">Cancelada</SelectItem>
+              <SelectItem value="programada">Programada</SelectItem>
+              <SelectItem value="agendada">Agendada</SelectItem>
+              <SelectItem value="concluida">Concluída</SelectItem>
             </SelectContent>
           </Select>
         </div>

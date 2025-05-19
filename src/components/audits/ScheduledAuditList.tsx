@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScheduledAudit } from '@/types/audit';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Calendar, Check, Clock, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Calendar, Check, Clock, Edit, MoreHorizontal, Trash2, AlertCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useScheduledAudits } from '@/hooks/useScheduledAudits';
 import { format } from 'date-fns';
@@ -36,14 +36,14 @@ export const ScheduledAuditList = ({
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'scheduled':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800">Agendada</Badge>;
-      case 'in_progress':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Em Andamento</Badge>;
-      case 'completed':
+      case 'programada':
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800">Programada</Badge>;
+      case 'agendada':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Agendada</Badge>;
+      case 'concluida':
         return <Badge variant="outline" className="bg-green-100 text-green-800">Concluída</Badge>;
-      case 'cancelled':
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800">Cancelada</Badge>;
+      case 'atrasada':
+        return <Badge variant="outline" className="bg-red-100 text-red-800">Atrasada</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -88,7 +88,7 @@ export const ScheduledAuditList = ({
         </TableHeader>
         <TableBody>
           {scheduledAudits.map((audit) => (
-            <TableRow key={audit.id}>
+            <TableRow key={audit.id} className={audit.status === 'atrasada' ? 'bg-red-50' : ''}>
               <TableCell className="font-medium">{audit.department?.name}</TableCell>
               <TableCell>{audit.responsible_auditor}</TableCell>
               <TableCell>
@@ -109,15 +109,15 @@ export const ScheduledAuditList = ({
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Ações</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => onStatusChange(audit.id, 'scheduled')}>
+                    <DropdownMenuItem onClick={() => onStatusChange(audit.id, 'programada')}>
                       <Calendar className="mr-2 h-4 w-4" />
+                      Marcar como Programada
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onStatusChange(audit.id, 'agendada')}>
+                      <Clock className="mr-2 h-4 w-4" />
                       Marcar como Agendada
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onStatusChange(audit.id, 'in_progress')}>
-                      <Clock className="mr-2 h-4 w-4" />
-                      Marcar como Em Andamento
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onStatusChange(audit.id, 'completed')}>
+                    <DropdownMenuItem onClick={() => onStatusChange(audit.id, 'concluida')}>
                       <Check className="mr-2 h-4 w-4" />
                       Marcar como Concluída
                     </DropdownMenuItem>

@@ -1,3 +1,4 @@
+
 export interface AuditReport {
   id: string;
   title: string;
@@ -46,7 +47,7 @@ export interface ScheduledAudit {
   responsible_auditor: string;
   week_number: number;
   year: number;
-  status: "scheduled" | "in_progress" | "completed" | "cancelled";
+  status: "programada" | "agendada" | "concluida" | "atrasada";
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -62,6 +63,6 @@ export interface ScheduledAuditInput {
   responsible_auditor: string;
   week_number: number;
   year: number;
-  status: "scheduled" | "in_progress" | "completed" | "cancelled";
+  status: "programada" | "agendada" | "concluida" | "atrasada";
   notes?: string;
 }

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ScheduledAudit } from '@/types/audit';
-import { getScheduledAuditsTable } from './utils';
+import { getScheduledAuditsTable, isAuditOverdue } from './utils';
 
 export type ScheduledAuditFilter = { 
   year?: number;
@@ -49,7 +49,20 @@ export const useScheduledAuditsQueries = () => {
       }
       
       console.log('Auditorias programadas recuperadas:', data?.length || 0);
-      return data as ScheduledAudit[];
+      
+      // Process audits to identify overdue ones (that have status "programada" but week has passed)
+      const processedAudits = data?.map(audit => {
+        const typedAudit = audit as unknown as ScheduledAudit;
+        
+        // If the audit is "programada" and the week has already passed, mark it as "atrasada"
+        if (isAuditOverdue(typedAudit)) {
+          return {...typedAudit, status: 'atrasada'};
+        }
+        
+        return typedAudit;
+      }) || [];
+      
+      return processedAudits;
     } catch (error: any) {
       console.error('Exceção ao buscar auditorias programadas:', error);
       throw new Error(`Erro ao buscar auditorias: ${error.message}`);
