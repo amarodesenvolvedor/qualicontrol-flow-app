@@ -100,7 +100,8 @@ export const ScheduledAudits = () => {
         isLoading={isLoading}
         onDelete={(id) => deleteScheduledAudit.mutate(id)}
         onStatusChange={(id, status) => {
-          const typedStatus = status as "scheduled" | "in_progress" | "completed" | "cancelled";
+          // Convert the status to the correct type before calling the mutation
+          const typedStatus = status as "programada" | "agendada" | "concluida" | "atrasada";
           updateScheduledAudit.mutate({ id, data: { status: typedStatus } });
         }}
       />
