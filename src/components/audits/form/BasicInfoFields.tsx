@@ -1,112 +1,86 @@
 
-import React from 'react';
-import { 
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Select, 
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from '@/components/ui/select';
-import { useFormContext } from 'react-hook-form';
-import type { Department } from '@/hooks/useDepartments';
+} from "@/components/ui/select";
+import { AuditReportInput } from "@/types/audit";
 
 interface BasicInfoFieldsProps {
-  departments: Department[];
+  formData: AuditReportInput;
+  departments: any[];
+  onTitleChange: (value: string) => void;
+  onDescriptionChange: (value: string) => void;
+  onDepartmentChange: (value: string) => void;
+  onResponsibleAuditorChange: (value: string) => void;
 }
 
-export function BasicInfoFields({ departments }: BasicInfoFieldsProps) {
-  const form = useFormContext();
-  
+export function BasicInfoFields({
+  formData,
+  departments,
+  onTitleChange,
+  onDescriptionChange,
+  onDepartmentChange,
+  onResponsibleAuditorChange
+}: BasicInfoFieldsProps) {
   return (
-    <div className="space-y-6">
-      <FormField
-        control={form.control}
-        name="title"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Título</FormLabel>
-            <FormControl>
-              <Input placeholder="Título do relatório de auditoria" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="title">Título</Label>
+        <Input 
+          id="title"
+          value={formData.title} 
+          onChange={(e) => onTitleChange(e.target.value)} 
+          placeholder="Título do relatório de auditoria"
+        />
+      </div>
 
-      <FormField
-        control={form.control}
-        name="department_id"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Departamento</FormLabel>
-            <Select 
-              onValueChange={field.onChange} 
-              defaultValue={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um departamento" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {departments.map((department) => (
-                  <SelectItem 
-                    key={department.id} 
-                    value={department.id || "placeholder-id"}
-                  >
-                    {department.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div>
+        <Label htmlFor="description">Descrição</Label>
+        <Textarea 
+          id="description"
+          value={formData.description || ""} 
+          onChange={(e) => onDescriptionChange(e.target.value)} 
+          placeholder="Descrição do relatório de auditoria"
+          rows={3}
+        />
+      </div>
 
-      <FormField
-        control={form.control}
-        name="responsible_auditor"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Auditor Responsável</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Nome do auditor responsável" 
-                {...field} 
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="department">Departamento</Label>
+          <Select
+            value={formData.department_id}
+            onValueChange={onDepartmentChange}
+          >
+            <SelectTrigger id="department">
+              <SelectValue placeholder="Selecione o departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              {departments.map((dept) => (
+                <SelectItem key={dept.id} value={dept.id}>
+                  {dept.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      <FormField
-        control={form.control}
-        name="description"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Descrição (opcional)</FormLabel>
-            <FormControl>
-              <Textarea 
-                placeholder="Descrição do relatório de auditoria"
-                className="resize-none"
-                {...field} 
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+        <div>
+          <Label htmlFor="responsible_auditor">Auditor Responsável</Label>
+          <Input 
+            id="responsible_auditor" 
+            value={formData.responsible_auditor} 
+            onChange={(e) => onResponsibleAuditorChange(e.target.value)} 
+            placeholder="Nome do auditor responsável"
+          />
+        </div>
+      </div>
     </div>
   );
 }

@@ -9,7 +9,6 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -62,7 +61,7 @@ export const ScheduledAuditFilters = ({
                 <SelectValue placeholder="Todos os departamentos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os departamentos</SelectItem>
+                <SelectItem value="all">Todos os departamentos</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
@@ -82,7 +81,7 @@ export const ScheduledAuditFilters = ({
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="all">Todos os status</SelectItem>
                 <SelectItem value="scheduled">Agendada</SelectItem>
                 <SelectItem value="in_progress">Em Andamento</SelectItem>
                 <SelectItem value="completed">Concluída</SelectItem>

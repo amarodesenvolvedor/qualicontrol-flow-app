@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle, X } from 'lucide-react';
 import { ScheduledAuditFilters } from './ScheduledAuditFilters';
+import { ScheduledAuditInput } from '@/types/audit';
 
 export const ScheduledAudits = () => {
   const [showForm, setShowForm] = useState(false);
@@ -29,7 +30,7 @@ export const ScheduledAudits = () => {
     setShowForm(!showForm);
   };
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = (data: ScheduledAuditInput) => {
     createScheduledAudit.mutate(data);
     setShowForm(false);
   };
@@ -75,7 +76,10 @@ export const ScheduledAudits = () => {
         scheduledAudits={scheduledAudits}
         isLoading={isLoading}
         onDelete={(id) => deleteScheduledAudit.mutate(id)}
-        onStatusChange={(id, status) => updateScheduledAudit.mutate({ id, data: { status: status as "scheduled" | "in_progress" | "completed" | "cancelled" } })}
+        onStatusChange={(id, status) => {
+          const typedStatus = status as "scheduled" | "in_progress" | "completed" | "cancelled";
+          updateScheduledAudit.mutate({ id, data: { status: typedStatus } });
+        }}
       />
     </div>
   );

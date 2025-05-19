@@ -108,14 +108,11 @@ export const NewAuditForm = ({
 
   return (
     <Card>
-      <FormHeader title="Novo Relatório de Auditoria" />
+      <FormHeader text="Novo Relatório de Auditoria" />
       
       <div className="space-y-6 p-6">
         <BasicInfoFields
-          title={formData.title}
-          description={formData.description || ""}
-          departmentId={formData.department_id}
-          responsibleAuditor={formData.responsible_auditor}
+          formData={formData}
           departments={departments}
           onTitleChange={(value) => handleInputChange("title", value)}
           onDescriptionChange={(value) => handleInputChange("description", value)}
@@ -124,8 +121,7 @@ export const NewAuditForm = ({
         />
 
         <DateStatusFields
-          auditDate={formData.audit_date}
-          status={formData.status}
+          formData={formData}
           onAuditDateChange={(value) => handleInputChange("audit_date", value)}
           onStatusChange={(value) => handleInputChange("status", value)}
         />
@@ -139,8 +135,10 @@ export const NewAuditForm = ({
       </div>
 
       <FormActions
-        onSubmit={handleSubmit}
-        onCancel={onCancel}
+        submitText="Criar Relatório"
+        cancelText="Cancelar"
+        onSubmitClick={handleSubmit}
+        onCancelClick={onCancel}
         isSubmitting={isSubmitting || isUploading}
       />
     </Card>

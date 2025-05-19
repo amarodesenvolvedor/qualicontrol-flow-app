@@ -37,7 +37,7 @@ export const useAuditFileUpload = () => {
         throw new Error('O bucket de arquivos de auditoria não foi encontrado. Entre em contato com o administrador.');
       }
       
-      // Upload file without progress tracking since onUploadProgress is not available
+      // Upload file
       const { error } = await supabase.storage
         .from('audit_files')
         .upload(filePath, file);

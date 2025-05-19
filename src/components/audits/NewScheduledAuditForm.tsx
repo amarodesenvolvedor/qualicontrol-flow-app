@@ -68,7 +68,7 @@ export const NewScheduledAuditForm = ({
         <div className="space-y-2">
           <Label htmlFor="department">Departamento</Label>
           <Select 
-            value={formData.department_id} 
+            value={formData.department_id || "placeholder"} 
             onValueChange={(value) => handleChange('department_id', value)}
             required
           >
@@ -76,6 +76,7 @@ export const NewScheduledAuditForm = ({
               <SelectValue placeholder="Selecione o departamento" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="placeholder" disabled>Selecione o departamento</SelectItem>
               {departments.map((dept) => (
                 <SelectItem key={dept.id} value={dept.id}>
                   {dept.name}
@@ -143,7 +144,7 @@ export const NewScheduledAuditForm = ({
           <Label htmlFor="status">Status</Label>
           <Select 
             value={formData.status} 
-            onValueChange={(value) => handleChange('status', value)}
+            onValueChange={(value) => handleChange('status', value as "scheduled" | "in_progress" | "completed" | "cancelled")}
             required
           >
             <SelectTrigger id="status">
@@ -180,4 +181,4 @@ export const NewScheduledAuditForm = ({
       </div>
     </form>
   );
-};
+}

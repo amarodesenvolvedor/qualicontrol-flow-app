@@ -31,17 +31,16 @@ export const useScheduledAudits = () => {
 
   // Query to fetch all scheduled audits
   const fetchScheduledAudits = async (): Promise<ScheduledAudit[]> => {
-    // Use generic type with any to bypass TypeScript limitation
-    // since "scheduled_audits" table is not in the generated types yet
+    // Cast the table name to avoid TypeScript errors with dynamic tables
     let query = supabase
-      .from('scheduled_audits' as any)
+      .from('scheduled_audits')
       .select(`
         *,
         department:department_id (
           id,
           name
         )
-      `) as any;
+      `);
 
     if (filter.year) {
       query = query.eq('year', filter.year);
@@ -71,10 +70,10 @@ export const useScheduledAudits = () => {
   // Mutation to create a new scheduled audit
   const createScheduledAudit = useMutation({
     mutationFn: async (input: ScheduledAuditInput) => {
-      const { data, error } = await (supabase
-        .from('scheduled_audits' as any)
-        .insert(input as any)
-        .select() as any);
+      const { data, error } = await supabase
+        .from('scheduled_audits')
+        .insert(input)
+        .select();
         
       if (error) throw new Error(error.message);
       return data;
@@ -98,10 +97,10 @@ export const useScheduledAudits = () => {
   // Mutation to update a scheduled audit
   const updateScheduledAudit = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<ScheduledAuditInput> }) => {
-      const { error } = await (supabase
-        .from('scheduled_audits' as any)
-        .update(data as any)
-        .eq('id', id) as any);
+      const { error } = await supabase
+        .from('scheduled_audits')
+        .update(data)
+        .eq('id', id);
         
       if (error) throw new Error(error.message);
       return { success: true };
@@ -125,10 +124,10 @@ export const useScheduledAudits = () => {
   // Mutation to delete a scheduled audit
   const deleteScheduledAudit = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase
-        .from('scheduled_audits' as any)
+      const { error } = await supabase
+        .from('scheduled_audits')
         .delete()
-        .eq('id', id) as any);
+        .eq('id', id);
         
       if (error) throw new Error(error.message);
       return { success: true };

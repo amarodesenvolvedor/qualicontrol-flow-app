@@ -3,13 +3,6 @@ import React from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
-import { 
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { 
@@ -25,82 +18,84 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { useFormContext } from 'react-hook-form';
+import { Label } from '@/components/ui/label';
+import { AuditReportInput } from '@/types/audit';
 
-export function DateStatusFields() {
-  const form = useFormContext();
+interface DateStatusFieldsProps {
+  formData: AuditReportInput;
+  onAuditDateChange: (value: string) => void;
+  onStatusChange: (value: "pending" | "in_progress" | "completed") => void;
+}
+
+export function DateStatusFields({
+  formData,
+  onAuditDateChange,
+  onStatusChange
+}: DateStatusFieldsProps) {
+  // Convert string date to Date object for the calendar
+  const dateValue = formData.audit_date ? new Date(formData.audit_date) : new Date();
   
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      const formattedDate = date.toISOString().split('T')[0];
+      onAuditDateChange(formattedDate);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <FormField
-        control={form.control}
-        name="audit_date"
-        render={({ field }) => (
-          <FormItem className="flex flex-col">
-            <FormLabel>Data da Auditoria</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full pl-3 text-left font-normal",
-                      !field.value && "text-muted-foreground"
-                    )}
-                  >
-                    {field.value ? (
-                      format(field.value, "PPP", { locale: ptBR })
-                    ) : (
-                      <span>Selecione uma data</span>
-                    )}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={field.value}
-                  onSelect={field.onChange}
-                  disabled={(date) =>
-                    date > new Date() || date < new Date("1900-01-01")
-                  }
-                  initialFocus
-                  locale={ptBR}
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="status"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Status</FormLabel>
-            <Select
-              onValueChange={field.onChange}
-              defaultValue={field.value}
+      <div>
+        <Label htmlFor="audit_date">Data da Auditoria</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              id="audit_date"
+              className={cn(
+                "w-full pl-3 text-left font-normal mt-2",
+                !formData.audit_date && "text-muted-foreground"
+              )}
             >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="in_progress">Em Andamento</SelectItem>
-                <SelectItem value="completed">Concluída</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+              {formData.audit_date ? (
+                format(dateValue, "PPP", { locale: ptBR })
+              ) : (
+                <span>Selecione uma data</span>
+              )}
+              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={dateValue}
+              onSelect={handleDateChange}
+              disabled={(date) =>
+                date > new Date() || date < new Date("1900-01-01")
+              }
+              initialFocus
+              locale={ptBR}
+              className="p-3 pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div>
+        <Label htmlFor="status">Status</Label>
+        <Select
+          value={formData.status}
+          onValueChange={(value: "pending" | "in_progress" | "completed") => onStatusChange(value)}
+        >
+          <SelectTrigger id="status" className="mt-2">
+            <SelectValue placeholder="Selecione o status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending">Pendente</SelectItem>
+            <SelectItem value="in_progress">Em Andamento</SelectItem>
+            <SelectItem value="completed">Concluída</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
