@@ -281,6 +281,50 @@ export type Database = {
           },
         ]
       }
+      scheduled_audits: {
+        Row: {
+          created_at: string
+          department_id: string
+          id: string
+          notes: string | null
+          responsible_auditor: string
+          status: string
+          updated_at: string
+          week_number: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          department_id: string
+          id?: string
+          notes?: string | null
+          responsible_auditor: string
+          status?: string
+          updated_at?: string
+          week_number: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          department_id?: string
+          id?: string
+          notes?: string | null
+          responsible_auditor?: string
+          status?: string
+          updated_at?: string
+          week_number?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_audits_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_preferences: {
         Row: {
           createdat: string

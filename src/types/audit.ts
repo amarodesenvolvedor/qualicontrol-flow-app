@@ -1,4 +1,3 @@
-
 export interface AuditReport {
   id: string;
   title: string;
@@ -40,27 +39,29 @@ export type AuditFilter = {
   dateRange?: { from: Date | null; to: Date | null } | null;
 };
 
+// Tipo para auditoria programada vinda do banco de dados
 export interface ScheduledAudit {
   id: string;
   department_id: string;
+  responsible_auditor: string;
+  week_number: number;
+  year: number;
+  status: "scheduled" | "in_progress" | "completed" | "cancelled";
+  notes?: string;
+  created_at: string;
+  updated_at: string;
   department?: {
     id: string;
     name: string;
   };
-  responsible_auditor: string;
-  week_number: number;
-  year: number;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  created_at: string;
-  updated_at: string;
-  notes?: string | null;
 }
 
+// Tipo para input de criação/atualização de auditoria programada
 export interface ScheduledAuditInput {
   department_id: string;
   responsible_auditor: string;
   week_number: number;
   year: number;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  notes?: string | null;
+  status: "scheduled" | "in_progress" | "completed" | "cancelled";
+  notes?: string;
 }
