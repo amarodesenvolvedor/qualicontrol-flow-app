@@ -31,35 +31,47 @@ export const useScheduledAudits = () => {
 
   // Query to fetch all scheduled audits
   const fetchScheduledAudits = async (): Promise<ScheduledAudit[]> => {
-    // Use the supabase.from with any type to bypass TypeScript constraints
-    let query = supabase
-      .from('scheduled_audits' as any)
-      .select(`
-        *,
-        department:department_id (
-          id,
-          name
-        )
-      `);
+    try {
+      console.log('Buscando auditorias programadas com filtros:', filter);
+      
+      // Use the supabase.from with any type to bypass TypeScript constraints
+      let query = supabase
+        .from('scheduled_audits')
+        .select(`
+          *,
+          department:department_id (
+            id,
+            name
+          )
+        `);
 
-    if (filter.year) {
-      query = query.eq('year', filter.year);
+      if (filter.year) {
+        query = query.eq('year', filter.year);
+      }
+
+      if (filter.departmentId) {
+        query = query.eq('department_id', filter.departmentId);
+      }
+
+      if (filter.status) {
+        query = query.eq('status', filter.status);
+      }
+
+      query = query.order('week_number', { ascending: true });
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Erro ao buscar auditorias programadas:', error);
+        throw new Error(error.message);
+      }
+      
+      console.log('Auditorias programadas recuperadas:', data?.length || 0);
+      return data as unknown as ScheduledAudit[];
+    } catch (error: any) {
+      console.error('Exceção ao buscar auditorias programadas:', error);
+      throw new Error(`Erro ao buscar auditorias: ${error.message}`);
     }
-
-    if (filter.departmentId) {
-      query = query.eq('department_id', filter.departmentId);
-    }
-
-    if (filter.status) {
-      query = query.eq('status', filter.status);
-    }
-
-    query = query.order('week_number', { ascending: true });
-
-    const { data, error } = await query;
-
-    if (error) throw new Error(error.message);
-    return data as unknown as ScheduledAudit[];
   };
 
   const scheduledAuditsQuery = useQuery({
@@ -70,13 +82,25 @@ export const useScheduledAudits = () => {
   // Mutation to create a new scheduled audit
   const createScheduledAudit = useMutation({
     mutationFn: async (input: ScheduledAuditInput) => {
-      const { data, error } = await supabase
-        .from('scheduled_audits' as any)
-        .insert(input as any)
-        .select();
+      try {
+        console.log('Criando auditoria programada com dados:', input);
         
-      if (error) throw new Error(error.message);
-      return data;
+        const { data, error } = await supabase
+          .from('scheduled_audits')
+          .insert(input)
+          .select();
+          
+        if (error) {
+          console.error('Erro ao criar auditoria programada:', error);
+          throw new Error(`Erro no banco de dados: ${error.message}`);
+        }
+        
+        console.log('Auditoria programada criada com sucesso:', data);
+        return data;
+      } catch (error: any) {
+        console.error('Exceção ao criar auditoria programada:', error);
+        throw new Error(`Falha ao programar auditoria: ${error.message}`);
+      }
     },
     onSuccess: () => {
       toast({
@@ -97,13 +121,21 @@ export const useScheduledAudits = () => {
   // Mutation to update a scheduled audit
   const updateScheduledAudit = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<ScheduledAuditInput> }) => {
-      const { error } = await supabase
-        .from('scheduled_audits' as any)
-        .update(data as any)
-        .eq('id', id);
-        
-      if (error) throw new Error(error.message);
-      return { success: true };
+      try {
+        const { error } = await supabase
+          .from('scheduled_audits')
+          .update(data)
+          .eq('id', id);
+          
+        if (error) {
+          console.error('Erro ao atualizar auditoria programada:', error);
+          throw new Error(error.message);
+        }
+        return { success: true };
+      } catch (error: any) {
+        console.error('Exceção ao atualizar auditoria programada:', error);
+        throw new Error(`Erro ao atualizar: ${error.message}`);
+      }
     },
     onSuccess: () => {
       toast({
@@ -124,13 +156,21 @@ export const useScheduledAudits = () => {
   // Mutation to delete a scheduled audit
   const deleteScheduledAudit = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('scheduled_audits' as any)
-        .delete()
-        .eq('id', id);
-        
-      if (error) throw new Error(error.message);
-      return { success: true };
+      try {
+        const { error } = await supabase
+          .from('scheduled_audits')
+          .delete()
+          .eq('id', id);
+          
+        if (error) {
+          console.error('Erro ao remover auditoria programada:', error);
+          throw new Error(error.message);
+        }
+        return { success: true };
+      } catch (error: any) {
+        console.error('Exceção ao remover auditoria programada:', error);
+        throw new Error(`Erro ao remover: ${error.message}`);
+      }
     },
     onSuccess: () => {
       toast({

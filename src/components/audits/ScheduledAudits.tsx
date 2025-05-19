@@ -35,12 +35,17 @@ export const ScheduledAudits = () => {
 
   const handleFormSubmit = (data: ScheduledAuditInput) => {
     setErrorMessage(null);
+    
+    // Add additional logging for debugging
+    console.log('Enviando dados para criação de auditoria programada:', data);
+    
     createScheduledAudit.mutate(data, {
       onSuccess: () => {
         setShowForm(false);
+        console.log('Auditoria programada com sucesso');
       },
       onError: (error) => {
-        console.error("Error creating scheduled audit:", error);
+        console.error("Erro ao criar auditoria programada:", error);
         setErrorMessage(error.message || "Erro ao programar auditoria. Tente novamente mais tarde.");
       }
     });

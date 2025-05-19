@@ -14,6 +14,8 @@ export const useAuditReportsCrud = () => {
   const createAuditReport = useMutation({
     mutationFn: async ({ data, file }: { data: AuditReportInput, file: File }) => {
       try {
+        console.log('Iniciando criação de relatório de auditoria');
+        
         // Check file size (max 10MB)
         if (file.size > 10 * 1024 * 1024) {
           throw new Error('O arquivo é muito grande. O tamanho máximo é de 10MB.');
@@ -25,51 +27,44 @@ export const useAuditReportsCrud = () => {
           throw new Error('Tipo de arquivo não suportado. Formatos aceitos: PDF, JPEG, PNG, DOCX');
         }
 
-        console.log('Starting upload for file:', file.name, 'Size:', file.size, 'Type:', file.type);
-
-        // First check if the bucket exists
-        const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-        
-        if (bucketError) {
-          console.error('Error checking for buckets:', bucketError);
-          throw new Error(`Erro ao verificar sistema de armazenamento: ${bucketError.message}`);
-        }
-        
-        const auditBucket = buckets.find(b => b.name === 'audit_files');
-        if (!auditBucket) {
-          console.error('Audit files bucket not found');
-          throw new Error('O bucket de arquivos de auditoria não foi encontrado. Entre em contato com o administrador.');
-        }
+        console.log('Informações do arquivo:', file.name, 'Tamanho:', file.size, 'Tipo:', file.type);
 
         // Upload the file with sanitized filename
-        const { filePath, originalFilename } = await uploadAuditFile(file);
-        
-        console.log('File uploaded successfully. Path:', filePath, 'Original name:', originalFilename);
+        // We've simplified this by removing the bucket check, as the upload function will give a clear error
+        try {
+          const { filePath, originalFilename } = await uploadAuditFile(file);
+          console.log('Upload com sucesso. Caminho:', filePath);
 
-        // Update the file_name to store the original name for display
-        const auditData = {
-          ...data,
-          file_path: filePath,
-          file_name: originalFilename, // Keep original filename for display
-        };
+          // Update the file_name to store the original name for display
+          const auditData = {
+            ...data,
+            file_path: filePath,
+            file_name: originalFilename, // Keep original filename for display
+            file_size: file.size,
+            file_type: file.type
+          };
 
-        console.log('Creating audit report with data:', auditData);
+          console.log('Criando registro na tabela audit_reports com dados:', auditData);
 
-        // Create the audit report
-        const { data: insertedData, error } = await supabase
-          .from('audit_reports')
-          .insert(auditData)
-          .select();
+          // Create the audit report
+          const { data: insertedData, error } = await supabase
+            .from('audit_reports')
+            .insert(auditData)
+            .select();
 
-        if (error) {
-          console.error('Error inserting audit report:', error);
-          throw error;
+          if (error) {
+            console.error('Erro na inserção do relatório:', error);
+            throw new Error(`Erro no banco de dados: ${error.message}`);
+          }
+
+          console.log('Relatório criado com sucesso:', insertedData);
+          return { success: true };
+        } catch (uploadError: any) {
+          console.error('Erro no upload:', uploadError);
+          throw new Error(`Falha no upload: ${uploadError.message}`);
         }
-
-        console.log('Audit report created successfully:', insertedData);
-        return { success: true };
       } catch (error: any) {
-        console.error('Error creating audit report:', error);
+        console.error('Erro na criação do relatório:', error);
         throw new Error(`Erro ao criar relatório: ${error.message}`);
       }
     },
@@ -101,7 +96,7 @@ export const useAuditReportsCrud = () => {
           .single();
           
         if (fetchError) {
-          console.error('Error fetching audit report for deletion:', fetchError);
+          console.error('Erro ao buscar relatório para exclusão:', fetchError);
           throw fetchError;
         }
 
@@ -112,7 +107,7 @@ export const useAuditReportsCrud = () => {
             .remove([report.file_path]);
             
           if (storageError) {
-            console.error('Error deleting file from storage:', storageError);
+            console.error('Erro ao excluir arquivo do storage:', storageError);
             // Continue with deletion even if file removal fails
           }
         }
@@ -124,13 +119,13 @@ export const useAuditReportsCrud = () => {
           .eq('id', id);
 
         if (error) {
-          console.error('Error deleting audit report:', error);
+          console.error('Erro ao excluir relatório de auditoria:', error);
           throw error;
         }
 
         return { success: true };
       } catch (error: any) {
-        console.error('Error in deleteAuditReport:', error);
+        console.error('Erro em deleteAuditReport:', error);
         throw new Error(`Erro ao excluir: ${error.message}`);
       }
     },

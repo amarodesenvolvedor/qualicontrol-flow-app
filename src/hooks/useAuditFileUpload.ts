@@ -23,10 +23,9 @@ export const useAuditFileUpload = () => {
       const { safeFilename, originalFilename } = createSafeStorageFilename(file.name);
       const filePath = `audits/${safeFilename}`;
 
-      console.log('Uploading file with sanitized name:', safeFilename);
+      console.log('Tentando fazer upload do arquivo:', safeFilename, 'para o bucket audit_files');
       
-      // Upload file directly without checking bucket existence first
-      // This is more efficient and will fail with a clear error if the bucket doesn't exist
+      // Upload directly to the bucket without prior checks
       const { error } = await supabase.storage
         .from('audit_files')
         .upload(filePath, file, {
@@ -35,13 +34,17 @@ export const useAuditFileUpload = () => {
         });
 
       if (error) {
-        console.error('Error uploading file:', error);
+        console.error('Erro detalhado no upload:', error);
         
         if (error.message.includes('bucket') || error.message.includes('404')) {
           throw new Error('O bucket de arquivos de auditoria não está acessível. Entre em contato com o administrador.');
         }
         
-        throw error;
+        if (error.message.includes('permission') || error.message.includes('403')) {
+          throw new Error('Sem permissão para enviar arquivos. Verifique se você está autenticado.');
+        }
+        
+        throw new Error(`Erro no upload: ${error.message}`);
       }
 
       // Simulate progress since we can't track it directly
@@ -49,7 +52,7 @@ export const useAuditFileUpload = () => {
       
       return { filePath, originalFilename };
     } catch (error: any) {
-      console.error('Exception during file upload:', error);
+      console.error('Exceção durante upload de arquivo:', error);
       throw new Error(`Upload falhou: ${error.message}`);
     } finally {
       setIsUploading(false);
