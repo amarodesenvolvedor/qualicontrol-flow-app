@@ -31,16 +31,17 @@ export const useScheduledAudits = () => {
 
   // Query to fetch all scheduled audits
   const fetchScheduledAudits = async (): Promise<ScheduledAudit[]> => {
+    // Use generic type with any to bypass TypeScript limitation
+    // since "scheduled_audits" table is not in the generated types yet
     let query = supabase
-      .from('scheduled_audits')
+      .from('scheduled_audits' as any)
       .select(`
         *,
         department:department_id (
           id,
           name
         )
-      `)
-      .order('week_number', { ascending: true });
+      `) as any;
 
     if (filter.year) {
       query = query.eq('year', filter.year);
@@ -53,6 +54,8 @@ export const useScheduledAudits = () => {
     if (filter.status) {
       query = query.eq('status', filter.status);
     }
+
+    query = query.order('week_number', { ascending: true });
 
     const { data, error } = await query;
 
@@ -68,10 +71,10 @@ export const useScheduledAudits = () => {
   // Mutation to create a new scheduled audit
   const createScheduledAudit = useMutation({
     mutationFn: async (input: ScheduledAuditInput) => {
-      const { data, error } = await supabase
-        .from('scheduled_audits')
-        .insert(input)
-        .select();
+      const { data, error } = await (supabase
+        .from('scheduled_audits' as any)
+        .insert(input as any)
+        .select() as any);
         
       if (error) throw new Error(error.message);
       return data;
@@ -95,10 +98,10 @@ export const useScheduledAudits = () => {
   // Mutation to update a scheduled audit
   const updateScheduledAudit = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<ScheduledAuditInput> }) => {
-      const { error } = await supabase
-        .from('scheduled_audits')
-        .update(data)
-        .eq('id', id);
+      const { error } = await (supabase
+        .from('scheduled_audits' as any)
+        .update(data as any)
+        .eq('id', id) as any);
         
       if (error) throw new Error(error.message);
       return { success: true };
@@ -122,10 +125,10 @@ export const useScheduledAudits = () => {
   // Mutation to delete a scheduled audit
   const deleteScheduledAudit = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('scheduled_audits')
+      const { error } = await (supabase
+        .from('scheduled_audits' as any)
         .delete()
-        .eq('id', id);
+        .eq('id', id) as any);
         
       if (error) throw new Error(error.message);
       return { success: true };

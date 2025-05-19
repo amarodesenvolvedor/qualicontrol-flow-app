@@ -37,29 +37,25 @@ export const useAuditFileUpload = () => {
         throw new Error('O bucket de arquivos de auditoria não foi encontrado. Entre em contato com o administrador.');
       }
       
-      // Upload with progress tracking
+      // Upload file without progress tracking since onUploadProgress is not available
       const { error } = await supabase.storage
         .from('audit_files')
-        .upload(filePath, file, {
-          onUploadProgress: (progress) => {
-            if (progress.totalBytes > 0) {
-              setUploadProgress(Math.round((progress.bytesUploaded / progress.totalBytes) * 100));
-            }
-          },
-        });
+        .upload(filePath, file);
 
       if (error) {
         console.error('Error uploading file:', error);
         throw error;
       }
 
+      // Simulate progress since we can't track it directly
+      setUploadProgress(100);
+      
       return { filePath, originalFilename };
     } catch (error: any) {
       console.error('Exception during file upload:', error);
       throw new Error(`Upload falhou: ${error.message}`);
     } finally {
       setIsUploading(false);
-      setUploadProgress(0);
     }
   };
 

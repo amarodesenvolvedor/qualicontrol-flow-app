@@ -75,7 +75,7 @@ export const ScheduledAudits = () => {
         scheduledAudits={scheduledAudits}
         isLoading={isLoading}
         onDelete={(id) => deleteScheduledAudit.mutate(id)}
-        onStatusChange={(id, status) => updateScheduledAudit.mutate({ id, data: { status } })}
+        onStatusChange={(id, status) => updateScheduledAudit.mutate({ id, data: { status: status as "scheduled" | "in_progress" | "completed" | "cancelled" } })}
       />
     </div>
   );

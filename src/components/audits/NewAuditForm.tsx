@@ -4,11 +4,11 @@ import { useAuditReportsCrud } from "@/hooks/useAuditReportsCrud";
 import { AuditReportInput } from "@/types/audit";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
-import BasicInfoFields from "@/components/audits/form/BasicInfoFields";
-import DateStatusFields from "@/components/audits/form/DateStatusFields";
+import { BasicInfoFields } from "@/components/audits/form/BasicInfoFields";
+import { DateStatusFields } from "@/components/audits/form/DateStatusFields";
 import FileUploadField from "@/components/audits/form/FileUploadField";
-import FormActions from "@/components/audits/form/FormActions";
-import FormHeader from "@/components/audits/form/FormHeader";
+import { FormActions } from "@/components/audits/form/FormActions";
+import { FormHeader } from "@/components/audits/form/FormHeader";
 
 interface NewAuditFormProps {
   departments: any[];
