@@ -34,8 +34,8 @@ export const useScheduledAudits = () => {
     try {
       console.log('Buscando auditorias programadas com filtros:', filter);
       
-      // Use the supabase.from with any type to bypass TypeScript constraints
-      let query = supabase
+      // Use any typing to bypass TypeScript errors with the table name
+      let query: any = supabase
         .from('scheduled_audits')
         .select(`
           *,
@@ -67,7 +67,8 @@ export const useScheduledAudits = () => {
       }
       
       console.log('Auditorias programadas recuperadas:', data?.length || 0);
-      return data as unknown as ScheduledAudit[];
+      // Cast the data to the correct type
+      return data as ScheduledAudit[];
     } catch (error: any) {
       console.error('Exceção ao buscar auditorias programadas:', error);
       throw new Error(`Erro ao buscar auditorias: ${error.message}`);
@@ -85,8 +86,9 @@ export const useScheduledAudits = () => {
       try {
         console.log('Criando auditoria programada com dados:', input);
         
-        const { data, error } = await supabase
-          .from('scheduled_audits')
+        // Use any typing to bypass TypeScript constraints
+        const { data, error } = await (supabase
+          .from('scheduled_audits') as any)
           .insert(input)
           .select();
           
@@ -122,8 +124,9 @@ export const useScheduledAudits = () => {
   const updateScheduledAudit = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<ScheduledAuditInput> }) => {
       try {
-        const { error } = await supabase
-          .from('scheduled_audits')
+        // Use any typing to bypass TypeScript constraints
+        const { error } = await (supabase
+          .from('scheduled_audits') as any)
           .update(data)
           .eq('id', id);
           
@@ -157,8 +160,9 @@ export const useScheduledAudits = () => {
   const deleteScheduledAudit = useMutation({
     mutationFn: async (id: string) => {
       try {
-        const { error } = await supabase
-          .from('scheduled_audits')
+        // Use any typing to bypass TypeScript constraints
+        const { error } = await (supabase
+          .from('scheduled_audits') as any)
           .delete()
           .eq('id', id);
           
