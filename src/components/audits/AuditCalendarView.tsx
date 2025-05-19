@@ -9,12 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useScheduledAudits } from "@/hooks/useScheduledAudits";
+import { AuditReportDetails } from "./calendar/AuditReportDetails";
+import { ScheduledAuditDetails } from "./calendar/ScheduledAuditDetails";
+import { mapReportsToEvents, mapScheduledToEvents } from "./utils/calendarEventUtils";
 
 interface AuditCalendarViewProps {
   auditReports: AuditReport[];
@@ -27,53 +26,14 @@ const AuditCalendarView = ({ auditReports, scheduledAudits = [] }: AuditCalendar
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const { getWeekDates } = useScheduledAudits();
 
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case 'programada':
-      case 'pending': 
-        return 'bg-yellow-500 hover:bg-yellow-600';
-      case 'agendada':
-      case 'in_progress': 
-        return 'bg-blue-500 hover:bg-blue-600';
-      case 'concluida':
-      case 'completed': 
-        return 'bg-green-500 hover:bg-green-600';
-      case 'atrasada':
-        return 'bg-red-500 hover:bg-red-600';
-      default: 
-        return 'bg-gray-500 hover:bg-gray-600';
-    }
-  };
-
   const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event);
     setDialogOpen(true);
   };
 
-  // Convert audit reports to calendar events
-  const reportEvents: CalendarEvent[] = auditReports.map(audit => ({
-    id: audit.id,
-    title: audit.title,
-    date: new Date(audit.audit_date),
-    type: 'audit',
-    status: audit.status,
-    entityType: 'report'
-  }));
-  
-  // Convert scheduled audits to calendar events
-  const scheduledEvents: CalendarEvent[] = scheduledAudits.map(audit => {
-    // Get start date of the week
-    const { startDate } = getWeekDates(audit.year, audit.week_number);
-    
-    return {
-      id: audit.id,
-      title: `Auditoria: ${audit.department?.name || 'Departamento'}`,
-      date: startDate,
-      type: 'audit',
-      status: audit.status,
-      entityType: 'scheduled'
-    };
-  });
+  // Map audit reports and scheduled audits to calendar events
+  const reportEvents = mapReportsToEvents(auditReports);
+  const scheduledEvents = mapScheduledToEvents(scheduledAudits, getWeekDates);
 
   // Combine all events
   const events: CalendarEvent[] = [...reportEvents, ...scheduledEvents];
@@ -113,117 +73,6 @@ const AuditCalendarView = ({ auditReports, scheduledAudits = [] }: AuditCalendar
     }
   };
 
-  // Render scheduled audit details
-  const renderScheduledAuditDetails = () => {
-    if (!selectedScheduledAudit) return null;
-    
-    const { startDate, endDate } = getWeekDates(
-      selectedScheduledAudit.year, 
-      selectedScheduledAudit.week_number
-    );
-    
-    return (
-      <div className="space-y-4 pt-4">
-        <div>
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">
-              Auditoria: {selectedScheduledAudit.department?.name}
-            </h3>
-            <Badge className={getStatusBadgeColor(selectedScheduledAudit.status)}>
-              {selectedScheduledAudit.status === 'programada' ? 'Programada' : 
-               selectedScheduledAudit.status === 'agendada' ? 'Agendada' :
-               selectedScheduledAudit.status === 'concluida' ? 'Concluída' : 
-               selectedScheduledAudit.status === 'atrasada' ? 'Atrasada' : 
-               selectedScheduledAudit.status}
-            </Badge>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-medium">Departamento</p>
-            <p>{selectedScheduledAudit.department?.name || '-'}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Semana</p>
-            <p>Semana {selectedScheduledAudit.week_number} ({format(startDate, 'dd/MM')} - {format(endDate, 'dd/MM/yyyy')})</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Auditor Responsável</p>
-            <p>{selectedScheduledAudit.responsible_auditor || '-'}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Criado em</p>
-            <p>{format(new Date(selectedScheduledAudit.created_at), 'dd/MM/yyyy')}</p>
-          </div>
-        </div>
-        
-        {selectedScheduledAudit.notes && (
-          <div>
-            <p className="text-sm font-medium">Observações</p>
-            <p className="text-sm mt-1">{selectedScheduledAudit.notes}</p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Render audit report details
-  const renderAuditReportDetails = () => {
-    if (!selectedAudit) return null;
-    
-    return (
-      <div className="space-y-4 pt-4">
-        <div>
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">{selectedAudit.title}</h3>
-            <Badge className={getStatusBadgeColor(selectedAudit.status)}>
-              {selectedAudit.status}
-            </Badge>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-medium">Departamento</p>
-            <p>{selectedAudit.department?.name || '-'}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Data da Auditoria</p>
-            <p>{format(new Date(selectedAudit.audit_date), 'dd/MM/yyyy')}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Criado em</p>
-            <p>{format(new Date(selectedAudit.created_at), 'dd/MM/yyyy')}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Auditor Responsável</p>
-            <p>{selectedAudit.responsible_auditor || '-'}</p>
-          </div>
-        </div>
-        
-        <div>
-          <p className="text-sm font-medium">Descrição</p>
-          <p className="text-sm mt-1">{selectedAudit.description || '-'}</p>
-        </div>
-        
-        <div>
-          <p className="text-sm font-medium">Arquivo</p>
-          <div className="flex items-center mt-1">
-            <FileText className="h-4 w-4 mr-2" />
-            <span className="text-sm">{selectedAudit.file_name}</span>
-          </div>
-        </div>
-        
-        <div className="flex justify-end">
-          <Button onClick={handleDownloadFile}>
-            Baixar Relatório
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
       <CalendarView
@@ -247,10 +96,17 @@ const AuditCalendarView = ({ auditReports, scheduledAudits = [] }: AuditCalendar
             </DialogDescription>
           </DialogHeader>
           
-          {selectedEvent?.entityType === 'scheduled' 
-            ? renderScheduledAuditDetails()
-            : renderAuditReportDetails()
-          }
+          {selectedEvent?.entityType === 'scheduled' && selectedScheduledAudit ? (
+            <ScheduledAuditDetails 
+              audit={selectedScheduledAudit}
+              getWeekDates={getWeekDates}
+            />
+          ) : selectedAudit ? (
+            <AuditReportDetails 
+              audit={selectedAudit}
+              onDownload={handleDownloadFile}
+            />
+          ) : null}
         </DialogContent>
       </Dialog>
     </>
