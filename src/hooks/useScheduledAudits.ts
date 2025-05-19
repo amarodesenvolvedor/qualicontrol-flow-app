@@ -31,9 +31,9 @@ export const useScheduledAudits = () => {
 
   // Query to fetch all scheduled audits
   const fetchScheduledAudits = async (): Promise<ScheduledAudit[]> => {
-    // Cast the table name to avoid TypeScript errors with dynamic tables
+    // Use the supabase.from with any type to bypass TypeScript constraints
     let query = supabase
-      .from('scheduled_audits')
+      .from('scheduled_audits' as any)
       .select(`
         *,
         department:department_id (
@@ -71,8 +71,8 @@ export const useScheduledAudits = () => {
   const createScheduledAudit = useMutation({
     mutationFn: async (input: ScheduledAuditInput) => {
       const { data, error } = await supabase
-        .from('scheduled_audits')
-        .insert(input)
+        .from('scheduled_audits' as any)
+        .insert(input as any)
         .select();
         
       if (error) throw new Error(error.message);
@@ -98,8 +98,8 @@ export const useScheduledAudits = () => {
   const updateScheduledAudit = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<ScheduledAuditInput> }) => {
       const { error } = await supabase
-        .from('scheduled_audits')
-        .update(data)
+        .from('scheduled_audits' as any)
+        .update(data as any)
         .eq('id', id);
         
       if (error) throw new Error(error.message);
@@ -125,7 +125,7 @@ export const useScheduledAudits = () => {
   const deleteScheduledAudit = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('scheduled_audits')
+        .from('scheduled_audits' as any)
         .delete()
         .eq('id', id);
         
