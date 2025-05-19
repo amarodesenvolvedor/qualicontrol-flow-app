@@ -31,7 +31,8 @@ const OverviewTab = ({ statusData, departmentData, COLORS }: OverviewTabProps) =
                 dataKey="value"
                 cornerRadius={4}
                 labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
+                label={({ name, value }) => value > 0 ? `${name}: ${value}` : ''}
+                isAnimationActive={true}
               >
                 {statusData.map((entry, index) => (
                   <Cell 
@@ -44,7 +45,7 @@ const OverviewTab = ({ statusData, departmentData, COLORS }: OverviewTabProps) =
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value) => [`${value} não conformidades`, '']}
+                formatter={(value) => [`${value} não conformidade${Number(value) !== 1 ? 's' : ''}`, '']}
                 contentStyle={{ 
                   borderRadius: '8px',
                   padding: '10px',
@@ -52,7 +53,14 @@ const OverviewTab = ({ statusData, departmentData, COLORS }: OverviewTabProps) =
                   border: 'none'
                 }}
               />
-              <Legend verticalAlign="bottom" height={36} />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36} 
+                layout="horizontal"
+                iconType="circle"
+                iconSize={10}
+                wrapperStyle={{ paddingTop: '10px' }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
@@ -77,7 +85,7 @@ const OverviewTab = ({ statusData, departmentData, COLORS }: OverviewTabProps) =
                 />
                 <YAxis />
                 <Tooltip 
-                  formatter={(value) => [`${value} não conformidades`, '']}
+                  formatter={(value) => [`${value} não conformidade${Number(value) !== 1 ? 's' : ''}`, '']}
                   contentStyle={{ 
                     borderRadius: '8px',
                     padding: '10px',

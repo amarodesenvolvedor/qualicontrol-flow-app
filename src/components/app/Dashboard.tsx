@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
@@ -21,6 +22,7 @@ import TrendsTab from "@/components/dashboard/tabs/TrendsTab";
 import DepartmentAnalysisTab from "@/components/dashboard/tabs/DepartmentAnalysisTab";
 import RecentItemsList from "@/components/dashboard/RecentItemsList";
 import { DateRangeFilter } from "@/components/shared/filters/DateRangeFilter";
+import { Slider } from "@/components/ui/slider";
 
 const Dashboard = () => {
   const { nonConformances = [], isLoading, refetch } = useNonConformances();
@@ -28,6 +30,7 @@ const Dashboard = () => {
   const [animateValues, setAnimateValues] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null } | null>(null);
+  const [zoomLevel, setZoomLevel] = useState([100]);
 
   // Filter non-conformances by selected year or date range
   const filteredNonConformances = Array.isArray(nonConformances) ? nonConformances.filter(nc => {
@@ -114,6 +117,23 @@ const Dashboard = () => {
     }
   };
 
+  // Handle zoom level change
+  const handleZoomChange = (value: number[]) => {
+    setZoomLevel(value);
+    
+    // Aplicar o zoom nos gráficos usando CSS
+    const dashboardCharts = document.querySelectorAll('.recharts-responsive-container');
+    const zoomValue = value[0] / 100;
+    
+    dashboardCharts.forEach(chart => {
+      const element = chart as HTMLElement;
+      if (element) {
+        element.style.transform = `scale(${zoomValue})`;
+        element.style.transformOrigin = 'center center';
+      }
+    });
+  };
+
   return (
     <div className={`space-y-6 transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       <DashboardHeader 
@@ -125,11 +145,31 @@ const Dashboard = () => {
       />
       
       <div className="p-4 bg-card rounded-lg border shadow-sm">
-        <h3 className="text-sm font-medium mb-2">Filtro por Período</h3>
-        <DateRangeFilter 
-          value={dateRange} 
-          onChange={handleDateRangeChange} 
-        />
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex-1">
+            <h3 className="text-sm font-medium mb-2">Filtro por Período</h3>
+            <DateRangeFilter 
+              value={dateRange} 
+              onChange={handleDateRangeChange} 
+            />
+          </div>
+          
+          <div className="flex flex-col md:w-1/3">
+            <h3 className="text-sm font-medium mb-2">Ajustar visualização</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">50%</span>
+              <Slider
+                value={zoomLevel}
+                onValueChange={handleZoomChange}
+                min={50}
+                max={150}
+                step={10}
+                className="cursor-pointer"
+              />
+              <span className="text-xs text-muted-foreground">150%</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <DashboardKPICards 
