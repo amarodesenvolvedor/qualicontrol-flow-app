@@ -5,6 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { ScheduledAudit, ScheduledAuditInput } from '@/types/audit';
 
+// Using this type to handle the generic database client
+type SupabaseAny = any;
+
 export const useScheduledAudits = () => {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<{ 
@@ -34,8 +37,9 @@ export const useScheduledAudits = () => {
     try {
       console.log('Buscando auditorias programadas com filtros:', filter);
       
-      // Use any typing to bypass TypeScript errors with the table name
-      let query: any = supabase
+      // Use a complete type assertion to bypass TypeScript error
+      const client = supabase as SupabaseAny;
+      let query = client
         .from('scheduled_audits')
         .select(`
           *,
@@ -86,9 +90,10 @@ export const useScheduledAudits = () => {
       try {
         console.log('Criando auditoria programada com dados:', input);
         
-        // Use any typing to bypass TypeScript constraints
-        const { data, error } = await (supabase
-          .from('scheduled_audits') as any)
+        // Use a complete type assertion to bypass TypeScript error
+        const client = supabase as SupabaseAny;
+        const { data, error } = await client
+          .from('scheduled_audits')
           .insert(input)
           .select();
           
@@ -124,9 +129,10 @@ export const useScheduledAudits = () => {
   const updateScheduledAudit = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<ScheduledAuditInput> }) => {
       try {
-        // Use any typing to bypass TypeScript constraints
-        const { error } = await (supabase
-          .from('scheduled_audits') as any)
+        // Use a complete type assertion to bypass TypeScript error
+        const client = supabase as SupabaseAny;
+        const { error } = await client
+          .from('scheduled_audits')
           .update(data)
           .eq('id', id);
           
@@ -160,9 +166,10 @@ export const useScheduledAudits = () => {
   const deleteScheduledAudit = useMutation({
     mutationFn: async (id: string) => {
       try {
-        // Use any typing to bypass TypeScript constraints
-        const { error } = await (supabase
-          .from('scheduled_audits') as any)
+        // Use a complete type assertion to bypass TypeScript error
+        const client = supabase as SupabaseAny;
+        const { error } = await client
+          .from('scheduled_audits')
           .delete()
           .eq('id', id);
           
