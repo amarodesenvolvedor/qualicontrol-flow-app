@@ -14,6 +14,7 @@ export interface CalendarEvent {
   type: 'audit' | 'nonconformance';
   status: string;
   color?: string;
+  entityType?: 'report' | 'scheduled';
 }
 
 interface CalendarViewProps {
@@ -34,6 +35,7 @@ export const CalendarView = ({
 
   const filterOptions = [
     { value: 'audit', label: 'Auditorias' },
+    { value: 'scheduled', label: 'Auditorias Programadas' },
     { value: 'nonconformance', label: 'Não Conformidades' },
     { value: 'critical', label: 'Críticas' },
     { value: 'pending', label: 'Pendentes' },
@@ -69,18 +71,25 @@ export const CalendarView = ({
   };
 
   const getEventsByDate = (date: Date) => {
-    return events.filter(event => 
-      isSameDay(new Date(event.date), date) && 
-      (activeFilters.length === 0 || 
+    return events.filter(event => {
+      // Check if the date matches
+      const isSameDay = event.date.getDate() === date.getDate() &&
+                        event.date.getMonth() === date.getMonth() &&
+                        event.date.getFullYear() === date.getFullYear();
+                        
+      // Apply filters
+      const passesFilter = activeFilters.length === 0 || 
         (activeFilters.includes(event.type) || 
+         (activeFilters.includes('scheduled') && event.entityType === 'scheduled') ||
          (activeFilters.includes('critical') && event.status === 'critical') ||
-         (activeFilters.includes('pending') && ['pending', 'in-progress'].includes(event.status)) ||
+         (activeFilters.includes('pending') && ['pending', 'in-progress', 'scheduled'].includes(event.status)) ||
          (activeFilters.includes('dueThisWeek') && 
           new Date(event.date) <= endOfWeek(new Date()) && 
           new Date(event.date) >= new Date())
-        )
-      )
-    );
+        );
+        
+      return isSameDay && passesFilter;
+    });
   };
 
   const renderHeader = () => {
@@ -117,6 +126,28 @@ export const CalendarView = ({
         </Button>
       </div>
     );
+  };
+
+  const getEventStyle = (event: CalendarEvent) => {
+    // Different styling based on event type and status
+    if (event.entityType === 'scheduled') {
+      switch (event.status) {
+        case 'scheduled':
+          return 'bg-blue-100 text-blue-800 border-l-4 border-l-blue-500';
+        case 'in_progress':
+          return 'bg-amber-100 text-amber-800 border-l-4 border-l-amber-500';
+        case 'completed':
+          return 'bg-green-100 text-green-800 border-l-4 border-l-green-500';
+        case 'cancelled':
+          return 'bg-gray-100 text-gray-800 border-l-4 border-l-gray-500';
+        default:
+          return 'bg-blue-100 text-blue-800 border-l-4 border-l-blue-500';
+      }
+    } else {
+      return event.type === 'audit' 
+        ? 'bg-blue-100 text-blue-800' 
+        : 'bg-amber-100 text-amber-800';
+    }
   };
 
   const renderMonthView = () => {
@@ -161,8 +192,7 @@ export const CalendarView = ({
                 <div
                   key={idx}
                   onClick={() => onEventClick(event)}
-                  className={`text-xs p-1 rounded-sm cursor-pointer truncate
-                    ${event.type === 'audit' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}
+                  className={`text-xs p-1 rounded-sm cursor-pointer truncate ${getEventStyle(event)}`}
                 >
                   {event.title}
                 </div>
@@ -228,11 +258,7 @@ export const CalendarView = ({
                 <div
                   key={idx}
                   onClick={() => onEventClick(event)}
-                  className={`p-2 rounded-md cursor-pointer border-l-4 ${
-                    event.type === 'audit' 
-                      ? 'border-l-blue-500 bg-blue-50' 
-                      : 'border-l-amber-500 bg-amber-50'
-                  }`}
+                  className={`p-2 rounded-md cursor-pointer ${getEventStyle(event)}`}
                 >
                   <div className="font-medium">{event.title}</div>
                   <div className="text-sm text-muted-foreground">

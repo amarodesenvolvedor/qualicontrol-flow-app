@@ -7,9 +7,11 @@ import { AuditFilters } from "@/components/audits/AuditFilters";
 import { AuditReportList } from "@/components/audits/AuditReportList";
 import { NewAuditForm } from "@/components/audits/NewAuditForm";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar as CalendarIcon } from "lucide-react";
+import { PlusCircle, Calendar as CalendarIcon, ListChecks } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AuditCalendarView from "@/components/audits/AuditCalendarView";
+import { ScheduledAudits } from "@/components/audits/ScheduledAudits";
+import { useScheduledAudits } from "@/hooks/useScheduledAudits";
 
 const AuditsPage = () => {
   const [selectedTab, setSelectedTab] = useState("list");
@@ -25,24 +27,35 @@ const AuditsPage = () => {
     deleteAuditReport,
   } = useAuditReports();
 
+  const { scheduledAudits } = useScheduledAudits();
+
   const handleFiltersChange = (newFilters: any) => {
     setFilters(newFilters);
   };
+
+  // Combine audit reports and scheduled audits for calendar view
+  const calendarEvents = [...auditReports];
 
   return (
     <Layout>
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold tracking-tight">Auditorias</h1>
-          <Button onClick={() => setSelectedTab(selectedTab === "new" ? "list" : "new")}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            {selectedTab === "new" ? "Voltar para Lista" : "Nova Auditoria"}
-          </Button>
+          {selectedTab !== "scheduled" && (
+            <Button onClick={() => setSelectedTab(selectedTab === "new" ? "list" : "new")}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              {selectedTab === "new" ? "Voltar para Lista" : "Nova Auditoria"}
+            </Button>
+          )}
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList>
             <TabsTrigger value="list">Lista</TabsTrigger>
+            <TabsTrigger value="scheduled">
+              <ListChecks className="mr-2 h-4 w-4" />
+              Auditorias Programadas
+            </TabsTrigger>
             <TabsTrigger value="calendar">
               <CalendarIcon className="mr-2 h-4 w-4" />
               Calendário
@@ -65,9 +78,18 @@ const AuditsPage = () => {
             </div>
           </TabsContent>
           
+          <TabsContent value="scheduled">
+            <div className="space-y-4">
+              <ScheduledAudits />
+            </div>
+          </TabsContent>
+          
           <TabsContent value="calendar">
             <div className="space-y-4">
-              <AuditCalendarView auditReports={auditReports} />
+              <AuditCalendarView 
+                auditReports={auditReports} 
+                scheduledAudits={scheduledAudits}
+              />
             </div>
           </TabsContent>
           

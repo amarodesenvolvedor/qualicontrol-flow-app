@@ -1,98 +1,148 @@
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Form } from "@/components/ui/form";
-import { format } from 'date-fns';
-import type { Department } from '@/hooks/useDepartments';
-import type { AuditReportInput } from '@/types/audit';
-import { FormHeader } from './form/FormHeader';
-import { BasicInfoFields } from './form/BasicInfoFields';
-import { DateStatusFields } from './form/DateStatusFields';
-import { FileUploadField } from './form/FileUploadField';
-import { FormActions } from './form/FormActions';
-
-// Form validation schema
-const formSchema = z.object({
-  title: z.string().min(5, 'O título deve ter pelo menos 5 caracteres'),
-  department_id: z.string().min(1, 'Selecione um departamento'),
-  description: z.string().optional(),
-  audit_date: z.date({
-    required_error: 'A data da auditoria é obrigatória',
-  }),
-  status: z.enum(['pending', 'in_progress', 'completed']),
-  responsible_auditor: z.string().min(3, 'O nome do auditor deve ter pelo menos 3 caracteres'),
-});
+import { useState } from "react";
+import { useAuditReportsCrud } from "@/hooks/useAuditReportsCrud";
+import { AuditReportInput } from "@/types/audit";
+import { Card } from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
+import BasicInfoFields from "@/components/audits/form/BasicInfoFields";
+import DateStatusFields from "@/components/audits/form/DateStatusFields";
+import FileUploadField from "@/components/audits/form/FileUploadField";
+import FormActions from "@/components/audits/form/FormActions";
+import FormHeader from "@/components/audits/form/FormHeader";
 
 interface NewAuditFormProps {
-  departments: Department[];
+  departments: any[];
   onSubmit: (data: { data: AuditReportInput, file: File }) => void;
   isSubmitting: boolean;
-  onCancel?: () => void;
+  onCancel: () => void;
 }
 
-export function NewAuditForm({ 
-  departments, 
-  onSubmit, 
+export const NewAuditForm = ({
+  departments,
+  onSubmit,
   isSubmitting,
   onCancel
-}: NewAuditFormProps) {
+}: NewAuditFormProps) => {
+  const { isUploading, uploadProgress } = useAuditReportsCrud();
+  const [formData, setFormData] = useState<AuditReportInput>({
+    title: "",
+    description: "",
+    department_id: "",
+    audit_date: new Date().toISOString().split('T')[0],
+    status: "pending",
+    file_name: "",
+    file_size: 0,
+    file_type: "",
+    responsible_auditor: ""
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      status: 'pending',
-      responsible_auditor: '',
-    },
-  });
-
-  const handleFileChange = (file: File | null) => {
-    setSelectedFile(file);
-    setFileError(file ? null : 'É necessário anexar um arquivo PDF');
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    if (!selectedFile) {
-      setFileError('É necessário anexar um arquivo PDF');
-      return;
+  const handleFileChange = (file: File | null) => {
+    setFileError(null);
+    setSelectedFile(file);
+    
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        file_name: file.name,
+        file_size: file.size,
+        file_type: file.type
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        file_name: "",
+        file_size: 0,
+        file_type: ""
+      }));
     }
+  };
 
-    const data: AuditReportInput = {
-      title: values.title,
-      description: values.description || null,
-      department_id: values.department_id,
-      audit_date: format(values.audit_date, 'yyyy-MM-dd'),
-      status: values.status,
-      responsible_auditor: values.responsible_auditor,
-      file_name: selectedFile.name,
-      file_size: selectedFile.size,
-      file_type: selectedFile.type,
-    };
+  const validateForm = () => {
+    if (!formData.title) {
+      toast({
+        title: "Título obrigatório",
+        description: "Por favor, forneça um título para o relatório de auditoria.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!formData.department_id) {
+      toast({
+        title: "Departamento obrigatório",
+        description: "Por favor, selecione um departamento.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!formData.responsible_auditor) {
+      toast({
+        title: "Auditor responsável obrigatório",
+        description: "Por favor, forneça o nome do auditor responsável.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    if (!selectedFile) {
+      setFileError("Por favor, selecione um arquivo de relatório de auditoria.");
+      toast({
+        title: "Arquivo obrigatório",
+        description: "Por favor, selecione um arquivo de relatório de auditoria.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    return true;
+  };
 
-    onSubmit({ data, file: selectedFile });
+  const handleSubmit = () => {
+    if (validateForm() && selectedFile) {
+      onSubmit({ data: formData, file: selectedFile });
+    }
   };
 
   return (
-    <div className="px-4 py-6 sm:p-6 bg-card border rounded-lg shadow-sm">
-      <FormHeader />
+    <Card>
+      <FormHeader title="Novo Relatório de Auditoria" />
       
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <BasicInfoFields departments={departments} />
-          <DateStatusFields />
-          <FileUploadField 
-            onFileChange={handleFileChange} 
-            error={fileError} 
-            selectedFile={selectedFile} 
-          />
-          <FormActions isSubmitting={isSubmitting} onCancel={onCancel} />
-        </form>
-      </Form>
-    </div>
+      <div className="space-y-6 p-6">
+        <BasicInfoFields
+          title={formData.title}
+          description={formData.description || ""}
+          departmentId={formData.department_id}
+          responsibleAuditor={formData.responsible_auditor}
+          departments={departments}
+          onTitleChange={(value) => handleInputChange("title", value)}
+          onDescriptionChange={(value) => handleInputChange("description", value)}
+          onDepartmentChange={(value) => handleInputChange("department_id", value)}
+          onResponsibleAuditorChange={(value) => handleInputChange("responsible_auditor", value)}
+        />
+
+        <DateStatusFields
+          auditDate={formData.audit_date}
+          status={formData.status}
+          onAuditDateChange={(value) => handleInputChange("audit_date", value)}
+          onStatusChange={(value) => handleInputChange("status", value)}
+        />
+
+        <FileUploadField 
+          onFileChange={handleFileChange} 
+          isUploading={isUploading}
+          uploadProgress={uploadProgress}
+          error={fileError}
+        />
+      </div>
+
+      <FormActions
+        onSubmit={handleSubmit}
+        onCancel={onCancel}
+        isSubmitting={isSubmitting || isUploading}
+      />
+    </Card>
   );
-}
+};
