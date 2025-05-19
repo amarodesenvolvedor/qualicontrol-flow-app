@@ -25,25 +25,22 @@ export const useAuditFileUpload = () => {
 
       console.log('Uploading file with sanitized name:', safeFilename);
       
-      // Check if the bucket exists first
-      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-      
-      if (bucketError) {
-        throw new Error(`Erro ao verificar buckets: ${bucketError.message}`);
-      }
-      
-      const auditBucket = buckets.find(b => b.name === 'audit_files');
-      if (!auditBucket) {
-        throw new Error('O bucket de arquivos de auditoria não foi encontrado. Entre em contato com o administrador.');
-      }
-      
-      // Upload file
+      // Upload file directly without checking bucket existence first
+      // This is more efficient and will fail with a clear error if the bucket doesn't exist
       const { error } = await supabase.storage
         .from('audit_files')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (error) {
         console.error('Error uploading file:', error);
+        
+        if (error.message.includes('bucket') || error.message.includes('404')) {
+          throw new Error('O bucket de arquivos de auditoria não está acessível. Entre em contato com o administrador.');
+        }
+        
         throw error;
       }
 

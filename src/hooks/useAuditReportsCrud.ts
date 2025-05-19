@@ -27,7 +27,21 @@ export const useAuditReportsCrud = () => {
 
         console.log('Starting upload for file:', file.name, 'Size:', file.size, 'Type:', file.type);
 
-        // Upload the file first with sanitized filename
+        // First check if the bucket exists
+        const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+        
+        if (bucketError) {
+          console.error('Error checking for buckets:', bucketError);
+          throw new Error(`Erro ao verificar sistema de armazenamento: ${bucketError.message}`);
+        }
+        
+        const auditBucket = buckets.find(b => b.name === 'audit_files');
+        if (!auditBucket) {
+          console.error('Audit files bucket not found');
+          throw new Error('O bucket de arquivos de auditoria não foi encontrado. Entre em contato com o administrador.');
+        }
+
+        // Upload the file with sanitized filename
         const { filePath, originalFilename } = await uploadAuditFile(file);
         
         console.log('File uploaded successfully. Path:', filePath, 'Original name:', originalFilename);

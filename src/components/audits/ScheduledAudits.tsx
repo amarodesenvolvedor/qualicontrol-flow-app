@@ -6,12 +6,14 @@ import { ScheduledAuditList } from './ScheduledAuditList';
 import { NewScheduledAuditForm } from './NewScheduledAuditForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle, X, AlertCircle } from 'lucide-react';
 import { ScheduledAuditFilters } from './ScheduledAuditFilters';
 import { ScheduledAuditInput } from '@/types/audit';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const ScheduledAudits = () => {
   const [showForm, setShowForm] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { departments } = useDepartments();
   
   const {
@@ -28,11 +30,20 @@ export const ScheduledAudits = () => {
 
   const toggleForm = () => {
     setShowForm(!showForm);
+    setErrorMessage(null);
   };
 
   const handleFormSubmit = (data: ScheduledAuditInput) => {
-    createScheduledAudit.mutate(data);
-    setShowForm(false);
+    setErrorMessage(null);
+    createScheduledAudit.mutate(data, {
+      onSuccess: () => {
+        setShowForm(false);
+      },
+      onError: (error) => {
+        console.error("Error creating scheduled audit:", error);
+        setErrorMessage(error.message || "Erro ao programar auditoria. Tente novamente mais tarde.");
+      }
+    });
   };
 
   return (
@@ -47,6 +58,13 @@ export const ScheduledAudits = () => {
           )}
         </Button>
       </div>
+
+      {errorMessage && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
 
       {showForm && (
         <Card>
