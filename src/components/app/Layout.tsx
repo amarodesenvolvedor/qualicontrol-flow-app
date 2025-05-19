@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
-import { Bell, MoonIcon, SunIcon } from "lucide-react";
+import { Bell, MoonIcon, SunIcon, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,11 +15,17 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const { toast } = useToast();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
   
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     document.documentElement.classList.toggle("dark");
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   // Notification example
@@ -29,17 +36,35 @@ export const Layout = ({ children }: LayoutProps) => {
     });
   };
 
+  // Close mobile menu when changing to desktop view
+  useEffect(() => {
+    if (!isMobile && isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  }, [isMobile, isMobileMenuOpen]);
+
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={!isMobile}>
       <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
+        <AppSidebar isMobileMenuOpen={isMobileMenuOpen} onMenuClose={() => setIsMobileMenuOpen(false)} />
         <div className="flex flex-col flex-1">
           {/* Header */}
-          <header className="h-16 border-b flex items-center justify-between px-6 bg-card shadow-sm">
-            <h1 className="text-lg sm:text-xl font-semibold text-primary">
+          <header className="h-16 border-b flex items-center justify-between px-4 sm:px-6 bg-card shadow-sm">
+            {isMobile && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={toggleMobileMenu}
+                className="mr-2"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            )}
+            <h1 className="text-lg sm:text-xl font-semibold text-primary truncate">
               Sistema de Gerenciamento
             </h1>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Button 
                 variant="outline" 
                 size="icon"
@@ -63,7 +88,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
           {/* Main Content */}
           <main className={cn(
-            "flex-1 overflow-auto p-6", 
+            "flex-1 overflow-auto p-3 sm:p-6", 
             "transition-all duration-300",
           )}>
             {children}

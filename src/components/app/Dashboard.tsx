@@ -11,6 +11,7 @@ import {
   prepareMonthlyData,
   isWithinSelectedDateRange 
 } from "@/components/dashboard/utils/dashboardHelpers";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Dashboard components
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -31,6 +32,7 @@ const Dashboard = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null } | null>(null);
   const [zoomLevel, setZoomLevel] = useState([100]);
+  const isMobile = useIsMobile();
 
   // Filter non-conformances by selected year or date range
   const filteredNonConformances = Array.isArray(nonConformances) ? nonConformances.filter(nc => {
@@ -144,9 +146,9 @@ const Dashboard = () => {
         toggleDarkMode={toggleDarkMode}
       />
       
-      <div className="p-4 bg-card rounded-lg border shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex-1">
+      <div className="p-3 sm:p-4 bg-card rounded-lg border shadow-sm">
+        <div className="flex flex-col gap-4">
+          <div className="w-full">
             <h3 className="text-sm font-medium mb-2">Filtro por Período</h3>
             <DateRangeFilter 
               value={dateRange} 
@@ -154,7 +156,7 @@ const Dashboard = () => {
             />
           </div>
           
-          <div className="flex flex-col md:w-1/3">
+          <div className="w-full">
             <h3 className="text-sm font-medium mb-2">Ajustar visualização</h3>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">50%</span>
@@ -164,7 +166,7 @@ const Dashboard = () => {
                 min={50}
                 max={150}
                 step={10}
-                className="cursor-pointer"
+                className="cursor-pointer flex-1 max-w-[200px] sm:max-w-full"
               />
               <span className="text-xs text-muted-foreground">150%</span>
             </div>
@@ -187,15 +189,18 @@ const Dashboard = () => {
         <DashboardEmptyState />
       ) : (
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" /> Visão Geral
+          <TabsList className="overflow-x-auto flex w-full sm:w-auto pb-1">
+            <TabsTrigger value="overview" className="flex items-center gap-2 whitespace-nowrap">
+              <BarChart3 className="h-4 w-4" /> 
+              {!isMobile ? "Visão Geral" : "Visão"}
             </TabsTrigger>
-            <TabsTrigger value="trends" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" /> Tendências
+            <TabsTrigger value="trends" className="flex items-center gap-2 whitespace-nowrap">
+              <TrendingUp className="h-4 w-4" /> 
+              {!isMobile ? "Tendências" : "Tend."}
             </TabsTrigger>
-            <TabsTrigger value="deptAnalysis" className="flex items-center gap-2">
-              <PieChartIcon className="h-4 w-4" /> Análise por Departamento
+            <TabsTrigger value="deptAnalysis" className="flex items-center gap-2 whitespace-nowrap">
+              <PieChartIcon className="h-4 w-4" /> 
+              {!isMobile ? "Análise por Departamento" : "Depts"}
             </TabsTrigger>
           </TabsList>
           

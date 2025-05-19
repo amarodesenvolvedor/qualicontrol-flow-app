@@ -1,5 +1,9 @@
 
 import { Badge } from "@/components/ui/badge";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface CalendarFiltersProps {
   activeFilters: string[];
@@ -10,6 +14,9 @@ export const CalendarFilters = ({
   activeFilters, 
   onFilterChange 
 }: CalendarFiltersProps) => {
+  const isMobile = useIsMobile();
+  const [showAllFilters, setShowAllFilters] = useState(false);
+  
   const filterOptions = [
     { value: 'audit', label: 'Auditorias' },
     { value: 'scheduled', label: 'Auditorias Programadas' },
@@ -27,18 +34,46 @@ export const CalendarFilters = ({
     }
   };
 
+  // On mobile, show limited filters initially with option to expand
+  const displayedFilters = isMobile && !showAllFilters 
+    ? filterOptions.slice(0, 3) 
+    : filterOptions;
+
   return (
-    <div className="flex flex-wrap gap-2 mt-2">
-      {filterOptions.map(filter => (
-        <Badge
-          key={filter.value}
-          variant={activeFilters.includes(filter.value) ? "default" : "outline"}
-          className="cursor-pointer"
-          onClick={() => toggleFilter(filter.value)}
-        >
-          {filter.label}
-        </Badge>
-      ))}
+    <div className="mt-2">
+      <div className="flex flex-wrap gap-2">
+        {displayedFilters.map(filter => (
+          <Badge
+            key={filter.value}
+            variant={activeFilters.includes(filter.value) ? "default" : "outline"}
+            className="cursor-pointer text-xs sm:text-sm whitespace-nowrap"
+            onClick={() => toggleFilter(filter.value)}
+          >
+            {filter.label}
+          </Badge>
+        ))}
+        
+        {isMobile && filterOptions.length > 3 && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs flex items-center h-6 px-2"
+            onClick={() => setShowAllFilters(!showAllFilters)}
+          >
+            {showAllFilters ? (
+              <>
+                <ChevronUp className="h-3 w-3 mr-1" />
+                Menos
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3 w-3 mr-1" />
+                Mais {filterOptions.length - 3}
+              </>
+            )}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
