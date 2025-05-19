@@ -39,7 +39,7 @@ export function AppSidebar({
     }
   };
   return <Sidebar className={collapsed && !isMobile ? "w-16" : "w-64"} collapsible="icon">
-      <div className="flex items-center justify-between p-4">
+      <div className="flex items-center justify-between p-4 bg-blue-100">
         {(!collapsed || isMobile) && <span className="text-xl font-bold text-sidebar-foreground">IntegraQMS - SEW</span>}
         
         {isMobile ? <Button variant="ghost" size="icon" onClick={onMenuClose} className="self-end text-sidebar-foreground">
