@@ -78,9 +78,8 @@ const parsePortugueseDate = (dateStr: string, year: number) => {
 
 // Get week ranges for a specific year
 const getWeekRangesForYear = (year: number) => {
-  // Define week ranges based on the provided list
-  // This is a simplified version - in a real app, you might want to generate this dynamically
-  // or store it in a database
+  // Define week ranges exactly as provided in the calendar
+  // This is a fixed calendar structure provided by the user
   const weekRanges = [
     { start: "30 de dezembro", end: "5 de janeiro" },
     { start: "6 de janeiro", end: "12 de janeiro" },

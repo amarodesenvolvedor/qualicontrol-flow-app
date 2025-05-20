@@ -17,7 +17,9 @@ export const useScheduledAudits = () => {
   } = useScheduledAuditsQueries();
 
   const handleStatusChange = useCallback(async (id: string, status: string) => {
-    await updateScheduledAudit.mutate({ id, data: { status } });
+    // Converta o status para o tipo correto
+    const typedStatus = status as "programada" | "agendada" | "concluida" | "atrasada";
+    await updateScheduledAudit.mutate({ id, data: { status: typedStatus } });
     refetch();
   }, [updateScheduledAudit, refetch]);
 
