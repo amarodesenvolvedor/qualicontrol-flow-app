@@ -16,6 +16,8 @@ export interface PDFExportOptions {
 export interface ExcelExportOptions {
   includeMetadata?: boolean;
   worksheetName?: string;
+  sheetName?: string;
+  companyName?: string;
 }
 
 /**
@@ -25,4 +27,11 @@ export interface ExcelColumnDefinition {
   header: string;
   key: string;
   width?: number;
+}
+
+/**
+ * Generic exported data interface
+ */
+export interface ExportedData {
+  [key: string]: any;
 }
