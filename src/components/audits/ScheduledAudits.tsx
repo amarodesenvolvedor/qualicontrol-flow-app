@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useScheduledAudits } from '@/hooks/useScheduledAudits';
 import { useDepartments } from '@/hooks/useDepartments';
@@ -50,6 +51,11 @@ export const ScheduledAudits = () => {
     });
   };
 
+  const handleFilterChange = (newFilter: any) => {
+    console.log("Aplicando filtros:", newFilter);
+    setFilter(newFilter);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -90,7 +96,7 @@ export const ScheduledAudits = () => {
 
       <ScheduledAuditFilters 
         departments={departments} 
-        onFilterChange={setFilter}
+        onFilterChange={handleFilterChange}
         currentFilter={filter}
       />
 

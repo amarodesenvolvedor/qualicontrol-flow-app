@@ -1,7 +1,8 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { 
   Select, 
   SelectContent, 
@@ -9,7 +10,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { X } from "lucide-react";
+import { X, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface ScheduledAuditFiltersProps {
@@ -26,15 +27,25 @@ export const ScheduledAuditFilters = ({
   const [departmentId, setDepartmentId] = useState<string>(currentFilter.departmentId || "");
   const [status, setStatus] = useState<string>(currentFilter.status || "");
   const [year, setYear] = useState<number>(currentFilter.year || new Date().getFullYear());
+  const [auditorSearch, setAuditorSearch] = useState<string>(currentFilter.auditorSearch || "");
 
   const currentYear = new Date().getFullYear();
   const yearOptions = [currentYear - 1, currentYear, currentYear + 1, currentYear + 2];
+
+  // Update local state when currentFilter changes
+  useEffect(() => {
+    setDepartmentId(currentFilter.departmentId || "");
+    setStatus(currentFilter.status || "");
+    setYear(currentFilter.year || new Date().getFullYear());
+    setAuditorSearch(currentFilter.auditorSearch || "");
+  }, [currentFilter]);
 
   const applyFilters = () => {
     const filters: any = {};
     if (departmentId) filters.departmentId = departmentId;
     if (status) filters.status = status;
     if (year) filters.year = year;
+    if (auditorSearch.trim()) filters.auditorSearch = auditorSearch.trim();
     onFilterChange(filters);
   };
 
@@ -42,15 +53,22 @@ export const ScheduledAuditFilters = ({
     setDepartmentId("");
     setStatus("");
     setYear(currentYear);
+    setAuditorSearch("");
     onFilterChange({});
   };
 
-  const hasActiveFilters = departmentId || status || year !== currentYear;
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      applyFilters();
+    }
+  };
+
+  const hasActiveFilters = departmentId || status || year !== currentYear || auditorSearch.trim();
 
   return (
     <Card>
       <CardContent className="pt-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <Label htmlFor="department-filter">Departamento</Label>
             <Select 
@@ -61,7 +79,7 @@ export const ScheduledAuditFilters = ({
                 <SelectValue placeholder="Todos os departamentos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os departamentos</SelectItem>
+                <SelectItem value="">Todos os departamentos</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
@@ -81,11 +99,11 @@ export const ScheduledAuditFilters = ({
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="scheduled">Agendada</SelectItem>
-                <SelectItem value="in_progress">Em Andamento</SelectItem>
-                <SelectItem value="completed">Concluída</SelectItem>
-                <SelectItem value="cancelled">Cancelada</SelectItem>
+                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="programada">Programada</SelectItem>
+                <SelectItem value="agendada">Agendada</SelectItem>
+                <SelectItem value="concluida">Concluída</SelectItem>
+                <SelectItem value="atrasada">Atrasada</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -107,6 +125,22 @@ export const ScheduledAuditFilters = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="auditor-search">Auditor Responsável</Label>
+            <div className="relative">
+              <Input
+                id="auditor-search"
+                type="text"
+                placeholder="Buscar por auditor..."
+                value={auditorSearch}
+                onChange={(e) => setAuditorSearch(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="pl-8"
+              />
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            </div>
           </div>
           
           <div className="flex items-end space-x-2">
