@@ -1,3 +1,4 @@
+
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { addHeaderToPDF, addFooterToPDF } from "../utils/pdfHelpers";
@@ -249,8 +250,8 @@ export const generatePDFReport = async (
     }
   }
   
-  // Save the PDF
-  doc.save(`${reportType.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.pdf");
+  // Save the PDF - Fixed the unterminated string literal here
+  doc.save(`${reportType.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.pdf`);
 };
 
 /**
