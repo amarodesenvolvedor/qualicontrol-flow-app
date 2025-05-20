@@ -8,10 +8,11 @@ import ExportItem from "./ExportItem";
 interface AvailableReportsProps {
   nonConformancesCount: number;
   auditReportsCount: number;
+  scheduledAuditsCount: number;
   handleExport: (reportType: string) => Promise<void>;
 }
 
-export const AvailableReports = ({ nonConformancesCount, auditReportsCount, handleExport }: AvailableReportsProps) => {
+export const AvailableReports = ({ nonConformancesCount, auditReportsCount, scheduledAuditsCount, handleExport }: AvailableReportsProps) => {
   return (
     <Card>
       <CardHeader>
@@ -45,9 +46,9 @@ export const AvailableReports = ({ nonConformancesCount, auditReportsCount, hand
         
         <ExportItem 
           title="Cronograma de Auditorias" 
-          description={`Planejamento de auditorias e seus respectivos resultados (${auditReportsCount} registros)`}
+          description={`Planejamento de auditorias programadas e seus status (${scheduledAuditsCount} registros)`}
           icon={<Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
-          count={auditReportsCount}
+          count={scheduledAuditsCount}
           onExport={() => handleExport("Cronograma de Auditorias")}
         />
       </CardContent>

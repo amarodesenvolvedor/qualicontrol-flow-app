@@ -1,10 +1,26 @@
 
-import { format } from "date-fns";
+import { format, isWithinInterval, startOfWeek, endOfWeek, addWeeks, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { getWeekDates } from "@/hooks/scheduledAudits/utils";
+
+// Interface for export options
+interface ExportOptions {
+  dateRange?: string;
+  year?: number;
+  specificDate?: Date;
+  includeFields?: Record<string, boolean>;
+}
 
 /**
- * Transforms non-conformance data into a format suitable for reports based on report type
+ * Transforms data into a format suitable for reports based on report type and filters
  */
-export const getReportData = (reportType: string, nonConformances: any[], auditReports: any[]) => {
+export const getReportData = (
+  reportType: string, 
+  nonConformances: any[] = [], 
+  auditReports: any[] = [],
+  scheduledAudits: any[] = [],
+  options?: ExportOptions
+) => {
   // Status map para traduzir o status para português
   const statusMap: Record<string, string> = {
     'pending': 'Pendente',
@@ -12,12 +28,31 @@ export const getReportData = (reportType: string, nonConformances: any[], auditR
     'resolved': 'Resolvido',
     'closed': 'Encerrado',
     'critical': 'Crítico',
-    'completed': 'Concluído'
+    'completed': 'Concluído',
+    'programada': 'Programada',
+    'agendada': 'Agendada',
+    'concluida': 'Concluída',
+    'atrasada': 'Atrasada'
   };
+  
+  // Apply date filters to the relevant data
+  const filteredData = applyDateFilters(
+    reportType, 
+    nonConformances, 
+    auditReports,
+    scheduledAudits,
+    options
+  );
+  
+  const { 
+    filteredNonConformances, 
+    filteredAuditReports, 
+    filteredScheduledAudits 
+  } = filteredData;
 
   switch (reportType) {
     case "Não Conformidades Completo":
-      return nonConformances.map(nc => ({
+      return filteredNonConformances.map(nc => ({
         codigo: nc.code,
         titulo: nc.title,
         status: statusMap[nc.status] || nc.status,
@@ -27,8 +62,9 @@ export const getReportData = (reportType: string, nonConformances: any[], auditR
         data_ocorrencia: nc.occurrence_date ? format(new Date(nc.occurrence_date), "dd/MM/yyyy") : "N/A",
         prazo: nc.response_date ? format(new Date(nc.response_date), "dd/MM/yyyy") : "N/A"
       }));
+      
     case "Ações Corretivas":
-      return nonConformances
+      return filteredNonConformances
         .filter(nc => nc.immediate_actions)
         .map(nc => ({
           codigo: nc.code, 
@@ -37,12 +73,13 @@ export const getReportData = (reportType: string, nonConformances: any[], auditR
           status: statusMap[nc.status] || nc.status,
           responsavel: nc.responsible_name
         }));
+        
     case "Indicadores de Desempenho":
       // Sample KPI data
-      const pendingCount = nonConformances.filter(nc => nc.status === 'pending').length;
-      const inProgressCount = nonConformances.filter(nc => nc.status === 'in-progress').length;
-      const resolvedCount = nonConformances.filter(nc => nc.status === 'resolved').length;
-      const totalCount = nonConformances.length;
+      const pendingCount = filteredNonConformances.filter(nc => nc.status === 'pending').length;
+      const inProgressCount = filteredNonConformances.filter(nc => nc.status === 'in-progress').length;
+      const resolvedCount = filteredNonConformances.filter(nc => nc.status === 'resolved').length;
+      const totalCount = filteredNonConformances.length;
       
       return [
         { indicador: "Não Conformidades em Aberto", valor: pendingCount, percentual: totalCount ? (pendingCount / totalCount * 100).toFixed(1) + "%" : "0%" },
@@ -50,15 +87,151 @@ export const getReportData = (reportType: string, nonConformances: any[], auditR
         { indicador: "Não Conformidades Resolvidas", valor: resolvedCount, percentual: totalCount ? (resolvedCount / totalCount * 100).toFixed(1) + "%" : "0%" },
         { indicador: "Total de Não Conformidades", valor: totalCount, percentual: "100%" },
       ];
+      
     case "Cronograma de Auditorias":
-      return auditReports.map(audit => ({
-        titulo: audit.title,
-        status: statusMap[audit.status] || audit.status,
-        departamento: audit.department_id ? "Departamento" : "N/A", // Substituir por nome real do departamento se disponível
-        data_auditoria: audit.audit_date ? format(new Date(audit.audit_date), "dd/MM/yyyy") : "N/A",
-        nome_arquivo: audit.file_name
-      }));
+      // Usar os dados de auditorias programadas com formatação aprimorada
+      return filteredScheduledAudits.map(audit => {
+        // Get week dates for better display
+        const { startDate, endDate } = getWeekDates(audit.week_number, audit.year);
+        const formattedStartDate = format(startDate, "dd/MM/yyyy", { locale: ptBR });
+        const formattedEndDate = format(endDate, "dd/MM/yyyy", { locale: ptBR });
+        
+        return {
+          semana: `Semana ${audit.week_number}`,
+          periodo: `${formattedStartDate} - ${formattedEndDate}`,
+          departamento: audit.department?.name || "N/A",
+          auditor_responsavel: audit.responsible_auditor,
+          status: statusMap[audit.status] || audit.status,
+          ano: audit.year.toString(),
+          observacoes: audit.notes || "N/A"
+        };
+      });
+      
     default:
       return [];
   }
 };
+
+/**
+ * Apply date filters to the data based on export options
+ */
+function applyDateFilters(
+  reportType: string,
+  nonConformances: any[],
+  auditReports: any[],
+  scheduledAudits: any[],
+  options?: ExportOptions
+) {
+  // Default to original data if no filters
+  if (!options) {
+    return {
+      filteredNonConformances: nonConformances,
+      filteredAuditReports: auditReports,
+      filteredScheduledAudits: scheduledAudits
+    };
+  }
+  
+  let filteredNonConformances = [...nonConformances];
+  let filteredAuditReports = [...auditReports];
+  let filteredScheduledAudits = [...scheduledAudits];
+  
+  // Filter by year if specified
+  if (options.year) {
+    const year = options.year;
+    
+    filteredNonConformances = filteredNonConformances.filter(item => {
+      if (!item.occurrence_date) return false;
+      const itemDate = new Date(item.occurrence_date);
+      return itemDate.getFullYear() === year;
+    });
+    
+    filteredAuditReports = filteredAuditReports.filter(item => {
+      if (!item.audit_date) return false;
+      const itemDate = new Date(item.audit_date);
+      return itemDate.getFullYear() === year;
+    });
+    
+    filteredScheduledAudits = filteredScheduledAudits.filter(item => 
+      item.year === year
+    );
+  }
+  
+  // Filter by specific date if provided
+  if (options.specificDate) {
+    const specificDate = options.specificDate;
+    
+    filteredNonConformances = filteredNonConformances.filter(item => {
+      if (!item.occurrence_date) return false;
+      const itemDate = new Date(item.occurrence_date);
+      return itemDate.toDateString() === specificDate.toDateString();
+    });
+    
+    filteredAuditReports = filteredAuditReports.filter(item => {
+      if (!item.audit_date) return false;
+      const itemDate = new Date(item.audit_date);
+      return itemDate.toDateString() === specificDate.toDateString();
+    });
+    
+    // For scheduled audits, check if the specific date falls within the week period
+    filteredScheduledAudits = filteredScheduledAudits.filter(item => {
+      const { startDate, endDate } = getWeekDates(item.week_number, item.year);
+      return isWithinInterval(specificDate, { start: startDate, end: endDate });
+    });
+  }
+  
+  // Filter by date range
+  else if (options.dateRange) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    let startFilterDate: Date;
+    let endFilterDate = new Date();
+    
+    switch (options.dateRange) {
+      case 'month':
+        // Current month
+        startFilterDate = new Date(currentYear, now.getMonth(), 1);
+        endFilterDate = new Date(currentYear, now.getMonth() + 1, 0);
+        break;
+      case 'quarter':
+        // Current quarter
+        const currentQuarter = Math.floor(now.getMonth() / 3);
+        startFilterDate = new Date(currentYear, currentQuarter * 3, 1);
+        endFilterDate = new Date(currentYear, (currentQuarter + 1) * 3, 0);
+        break;
+      default: // year
+        // Current year
+        startFilterDate = new Date(currentYear, 0, 1);
+        endFilterDate = new Date(currentYear, 11, 31);
+    }
+    
+    // Apply date range filters to each data type
+    filteredNonConformances = filteredNonConformances.filter(item => {
+      if (!item.occurrence_date) return false;
+      const itemDate = new Date(item.occurrence_date);
+      return itemDate >= startFilterDate && itemDate <= endFilterDate;
+    });
+    
+    filteredAuditReports = filteredAuditReports.filter(item => {
+      if (!item.audit_date) return false;
+      const itemDate = new Date(item.audit_date);
+      return itemDate >= startFilterDate && itemDate <= endFilterDate;
+    });
+    
+    // For scheduled audits, use a different approach based on weeks
+    filteredScheduledAudits = filteredScheduledAudits.filter(item => {
+      // Calculate if the week overlaps with the date range
+      const { startDate, endDate } = getWeekDates(item.week_number, item.year);
+      return (
+        (startDate <= endFilterDate && startDate >= startFilterDate) ||
+        (endDate >= startFilterDate && endDate <= endFilterDate) ||
+        (startDate <= startFilterDate && endDate >= endFilterDate)
+      );
+    });
+  }
+  
+  return {
+    filteredNonConformances,
+    filteredAuditReports,
+    filteredScheduledAudits
+  };
+}
