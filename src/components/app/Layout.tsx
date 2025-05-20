@@ -20,7 +20,7 @@ export const Layout = ({ children }: LayoutProps) => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Close mobile menu when changing to desktop view
+  // Fechar menu mobile quando mudar para visualização desktop
   useEffect(() => {
     if (!isMobile && isMobileMenuOpen) {
       setIsMobileMenuOpen(false);
@@ -29,7 +29,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full bg-background transition-colors duration-300">
         <AppSidebar 
           isMobileMenuOpen={isMobileMenuOpen} 
           onMenuClose={() => setIsMobileMenuOpen(false)} 

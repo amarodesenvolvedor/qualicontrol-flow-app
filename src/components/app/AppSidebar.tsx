@@ -24,13 +24,17 @@ export function AppSidebar({
   const currentPath = location.pathname;
   const isMobile = useIsMobile();
   const isActive = (path: string) => currentPath === path;
+
+  // Função para obter classes de navegação com base no estado ativo
   const getNavCls = ({
     isActive
   }: {
     isActive: boolean;
-  }) => isActive ? "bg-sidebar-accent text-sidebar-primary font-medium" : "hover:bg-sidebar-accent/50";
+  }) => isActive 
+    ? "sidebar-item sidebar-item-active" 
+    : "sidebar-item sidebar-item-hover";
 
-  // Synchronize mobile menu open state with sidebar
+  // Sincronizar estado do menu mobile com a sidebar
   useEffect(() => {
     if (isMobile) {
       setOpenMobile(!!isMobileMenuOpen);
@@ -43,25 +47,40 @@ export function AppSidebar({
     }
   };
 
-  return <Sidebar className={collapsed && !isMobile ? "w-16" : "w-64"} collapsible="icon">
-      <div className="flex items-center justify-between p-4 bg-sidebar border-b border-sidebar-border dark:bg-sidebar-dark">
-        {(!collapsed || isMobile) && <span className="text-xl font-bold text-sidebar-foreground">IntegraQMS - SEW</span>}
+  return (
+    <Sidebar 
+      className={collapsed && !isMobile ? "w-16 transition-all duration-300" : "w-64 transition-all duration-300"} 
+      collapsible="icon"
+    >
+      <div className="flex items-center justify-between p-4 bg-[hsl(var(--sidebar-header-bg))] border-b border-[hsl(var(--sidebar-border))]">
+        {(!collapsed || isMobile) && (
+          <span className="text-xl font-bold text-[hsl(var(--sidebar-header-text))]">IntegraQMS - SEW</span>
+        )}
         
-        {isMobile ? <Button variant="ghost" size="icon" onClick={onMenuClose} className="self-end text-sidebar-foreground">
+        {isMobile ? (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onMenuClose} 
+            className="self-end text-[hsl(var(--sidebar-foreground))]"
+          >
             <X className="h-5 w-5" />
-          </Button> : <SidebarTrigger className="self-end text-sidebar-foreground" />}
+          </Button>
+        ) : (
+          <SidebarTrigger className="self-end text-[hsl(var(--sidebar-foreground))]" />
+        )}
       </div>
 
-      <SidebarContent className="bg-sidebar dark:bg-sidebar-dark">
+      <SidebarContent className="bg-[hsl(var(--sidebar-background))]">
         <SidebarGroup>
-          <SidebarGroupLabel>Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[hsl(var(--sidebar-group-text))]">Principal</SidebarGroupLabel>
 
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1 px-1">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/" end className={getNavCls} onClick={handleNavLinkClick}>
-                    <Home className="mr-2 h-5 w-5" />
+                    <Home className="sidebar-icon" />
                     {(!collapsed || isMobile) && <span>Dashboard</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -70,7 +89,7 @@ export function AppSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/nao-conformidades" className={getNavCls} onClick={handleNavLinkClick}>
-                    <ClipboardList className="mr-2 h-5 w-5" />
+                    <ClipboardList className="sidebar-icon" />
                     {(!collapsed || isMobile) && <span>Não Conformidades</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -79,7 +98,7 @@ export function AppSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/auditorias" className={getNavCls} onClick={handleNavLinkClick}>
-                    <FileSearch className="mr-2 h-5 w-5" />
+                    <FileSearch className="sidebar-icon" />
                     {(!collapsed || isMobile) && <span>Auditorias</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -88,7 +107,7 @@ export function AppSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/relatorios" className={getNavCls} onClick={handleNavLinkClick}>
-                    <BarChart3 className="mr-2 h-5 w-5" />
+                    <BarChart3 className="sidebar-icon" />
                     {(!collapsed || isMobile) && <span>Relatórios</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -98,14 +117,14 @@ export function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Estatísticas</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[hsl(var(--sidebar-group-text))]">Estatísticas</SidebarGroupLabel>
 
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1 px-1">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/estatisticas" className={getNavCls} onClick={handleNavLinkClick}>
-                    <PieChart className="mr-2 h-5 w-5" />
+                    <PieChart className="sidebar-icon" />
                     {(!collapsed || isMobile) && <span>Gráficos</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -114,7 +133,7 @@ export function AppSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/exportar" className={getNavCls} onClick={handleNavLinkClick}>
-                    <FileText className="mr-2 h-5 w-5" />
+                    <FileText className="sidebar-icon" />
                     {(!collapsed || isMobile) && <span>Exportar Dados</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -124,14 +143,14 @@ export function AppSidebar({
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[hsl(var(--sidebar-group-text))]">Sistema</SidebarGroupLabel>
 
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1 px-1">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/configuracoes" className={getNavCls} onClick={handleNavLinkClick}>
-                    <Settings className="mr-2 h-5 w-5" />
+                    <Settings className="sidebar-icon" />
                     {(!collapsed || isMobile) && <span>Configurações</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -140,7 +159,7 @@ export function AppSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/ajuda" className={getNavCls} onClick={handleNavLinkClick}>
-                    <HelpCircle className="mr-2 h-5 w-5" />
+                    <HelpCircle className="sidebar-icon" />
                     {(!collapsed || isMobile) && <span>Ajuda</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -149,7 +168,8 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-    </Sidebar>;
+    </Sidebar>
+  );
 }
 
 export default AppSidebar;

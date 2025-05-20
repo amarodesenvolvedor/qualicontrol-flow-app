@@ -26,15 +26,20 @@
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
     
-    /* Sidebar specific variables for light mode */
-    --sidebar-background: 0 0% 96.1%;
+    /* Sidebar específicas para tema claro */
+    --sidebar-background: 210 40% 96.1%;
     --sidebar-foreground: 222.2 84% 4.9%;
     --sidebar-primary: 221.2 83.2% 53.3%;
     --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-hover: 217.2 91.2% 59.8% / 15%;
+    --sidebar-active: 217.2 91.2% 59.8% / 25%;
     --sidebar-accent: 217.2 91.2% 59.8% / 10%;
     --sidebar-accent-foreground: 222.2 47.4% 11.2%;
     --sidebar-border: 214.3 31.8% 91.4%;
     --sidebar-ring: 221.2 83.2% 53.3%;
+    --sidebar-header-bg: 221.2 83.2% 53.3% / 5%;
+    --sidebar-header-text: 222.2 84% 4.9%;
+    --sidebar-group-text: 215.4 16.3% 46.9%;
   }
 
   .dark {
@@ -58,15 +63,20 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
     
-    /* Sidebar specific variables for dark mode */
-    --sidebar-background: 222.2 47.4% 11.2%;
+    /* Sidebar específicas para tema escuro */
+    --sidebar-background: 223 47% 11%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 217.2 91.2% 59.8%;
     --sidebar-primary-foreground: 222.2 47.4% 11.2%;
+    --sidebar-hover: 217.2 91.2% 59.8% / 20%;
+    --sidebar-active: 217.2 91.2% 59.8% / 35%;
     --sidebar-accent: 217.2 91.2% 59.8% / 20%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-border: 222 47% 15%;
     --sidebar-ring: 224.3 76.3% 48%;
+    --sidebar-header-bg: 221.2 83.2% 53.3% / 15%;
+    --sidebar-header-text: 210 40% 98%;
+    --sidebar-group-text: 215 20.2% 65.1%;
   }
 }
 
@@ -104,4 +114,22 @@
   .card-hover {
     @apply transition-all hover:shadow-md hover:border-primary/30;
   }
+  
+  /* Novas classes para a sidebar */
+  .sidebar-item {
+    @apply flex items-center rounded-md transition-all duration-200 ease-in-out;
+  }
+  
+  .sidebar-item-active {
+    @apply bg-[hsl(var(--sidebar-active))] text-[hsl(var(--sidebar-primary))] font-medium;
+  }
+  
+  .sidebar-item-hover {
+    @apply hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-primary))];
+  }
+  
+  .sidebar-icon {
+    @apply shrink-0 mr-3 h-5 w-5;
+  }
 }
+

@@ -54,18 +54,21 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				sidebar: {
-					DEFAULT: '#f5f5f5', // Light mode sidebar background
-					dark: '#1a1a2e',    // Dark mode sidebar background
-					foreground: '#333333', // Light mode text color
-					'foreground-dark': '#ffffff', // Dark mode text color
-					primary: '#3b82f6',  // Highlight color light mode
-					'primary-dark': '#60a5fa', // Highlight color dark mode
-					accent: 'rgba(59, 130, 246, 0.1)', // Background for active items light mode
-					'accent-dark': 'rgba(96, 165, 250, 0.2)', // Background for active items dark mode
-					border: '#e5e5e5', // Light mode border
-					'border-dark': '#2a2a3c' // Dark mode border
+					DEFAULT: 'hsl(var(--sidebar-background))',
+					foreground: 'hsl(var(--sidebar-foreground))',
+					primary: 'hsl(var(--sidebar-primary))',
+					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+					hover: 'hsl(var(--sidebar-hover))',
+					active: 'hsl(var(--sidebar-active))',
+					accent: 'hsl(var(--sidebar-accent))',
+					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+					border: 'hsl(var(--sidebar-border))',
+					ring: 'hsl(var(--sidebar-ring))',
+					'header-bg': 'hsl(var(--sidebar-header-bg))',
+					'header-text': 'hsl(var(--sidebar-header-text))',
+					'group-text': 'hsl(var(--sidebar-group-text))'
 				},
-				// Custom industry colors
+				// Mantemos as cores de indústria existentes
 				industry: {
 					blue: {
 						DEFAULT: '#1E3A8A',
