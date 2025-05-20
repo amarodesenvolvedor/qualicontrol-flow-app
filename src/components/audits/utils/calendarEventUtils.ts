@@ -6,7 +6,7 @@ import { CalendarEvent } from "@/components/shared/CalendarView";
 export const mapReportsToEvents = (auditReports: AuditReport[]): CalendarEvent[] => {
   return auditReports.map(audit => ({
     id: audit.id,
-    title: audit.title,
+    title: audit.title || 'Sem título',
     date: new Date(audit.audit_date),
     type: 'audit',
     status: audit.status,

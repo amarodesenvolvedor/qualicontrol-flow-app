@@ -64,5 +64,5 @@ export const WeekView = ({
     day = addDays(day, 1);
   }
   
-  return <div>{days}</div>;
+  return <div className="space-y-2">{days}</div>;
 };

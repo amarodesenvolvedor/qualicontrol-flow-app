@@ -1,3 +1,4 @@
+
 import { endOfWeek } from 'date-fns';
 import { CalendarEvent } from "@/components/shared/calendar/types";
 
@@ -31,9 +32,10 @@ export const getEventsByDate = (
 ): CalendarEvent[] => {
   return events.filter(event => {
     // Check if the date matches
-    const isSameDay = event.date.getDate() === date.getDate() &&
-                      event.date.getMonth() === date.getMonth() &&
-                      event.date.getFullYear() === date.getFullYear();
+    const eventDate = new Date(event.date);
+    const isSameDay = eventDate.getDate() === date.getDate() &&
+                      eventDate.getMonth() === date.getMonth() &&
+                      eventDate.getFullYear() === date.getFullYear();
                       
     // Apply filters
     const passesFilter = activeFilters.length === 0 || 

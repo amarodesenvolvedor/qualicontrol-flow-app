@@ -52,7 +52,7 @@ export const useScheduledAuditsQueries = () => {
       console.log('Auditorias programadas recuperadas:', data?.length || 0);
       
       // Process audits to identify overdue ones
-      let processedAudits = data?.map(audit => {
+      const processedAudits = data?.map(audit => {
         const typedAudit = audit as unknown as ScheduledAudit;
         
         // If the audit is "programada" and the week has already passed, mark it as "atrasada"
@@ -67,14 +67,15 @@ export const useScheduledAuditsQueries = () => {
       }) || [];
       
       // Apply auditor search filter on the client side for better partial matching
+      let filteredAudits = [...processedAudits];
       if (filter.auditorSearch && filter.auditorSearch.trim() !== '') {
         const searchTerm = filter.auditorSearch.toLowerCase().trim();
-        processedAudits = processedAudits.filter(audit => 
+        filteredAudits = filteredAudits.filter(audit => 
           audit.responsible_auditor.toLowerCase().includes(searchTerm)
         );
       }
       
-      return processedAudits;
+      return filteredAudits as ScheduledAudit[];
     } catch (error: any) {
       console.error('Exceção ao buscar auditorias programadas:', error);
       throw new Error(`Erro ao buscar auditorias: ${error.message}`);
