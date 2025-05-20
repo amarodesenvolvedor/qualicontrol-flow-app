@@ -39,15 +39,15 @@ export function AppSidebar({
     }
   };
   return <Sidebar className={collapsed && !isMobile ? "w-16" : "w-64"} collapsible="icon">
-      <div className="flex items-center justify-between p-4 bg-blue-100">
-        {(!collapsed || isMobile) && <span className="text-xl font-bold text-sidebar-foreground">IntegraQMS - SEW</span>}
+      <div className="flex items-center justify-between p-4 bg-blue-700">
+        {(!collapsed || isMobile) && <span className="text-xl font-bold text-slate-50">IntegraQMS - SEW</span>}
         
         {isMobile ? <Button variant="ghost" size="icon" onClick={onMenuClose} className="self-end text-sidebar-foreground">
             <X className="h-5 w-5" />
-          </Button> : <SidebarTrigger className="self-end text-sidebar-foreground" />}
+          </Button> : <SidebarTrigger className="self-end text-slate-50" />}
       </div>
 
-      <SidebarContent className="bg-blue-50">
+      <SidebarContent className="bg-neutral-100">
         <SidebarGroup>
           <SidebarGroupLabel>Principal</SidebarGroupLabel>
 
