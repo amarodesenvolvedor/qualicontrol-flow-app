@@ -284,7 +284,7 @@ export default function HelpPage() {
                     </AccordionItem>
 
                     <AccordionItem value="item-4">
-                      <AccordionTrigger>Como acompanhar apenas as não conformidades do meu departamento?</AccordionTrigger>
+                      <AccordionTrigger className="text-left">Como acompanhar apenas as não conformidades do meu departamento?</AccordionTrigger>
                       <AccordionContent>
                         <p className="text-muted-foreground">
                           Na página de Não Conformidades, utilize os filtros disponíveis no topo da página. Selecione seu departamento 
