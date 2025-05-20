@@ -25,8 +25,17 @@ export const generatePDFReport = async (
       data = [];
     }
     
-    // Create PDF document
-    const doc = new jsPDF();
+    // Determine if we should use landscape orientation
+    const useLandscape = 
+      reportType.includes("Cronograma de Auditorias") || 
+      (data.length > 15 && Object.keys(data[0] || {}).length > 4) ||
+      options?.forceLandscape;
+    
+    // Create PDF document with appropriate orientation
+    const doc = new jsPDF({
+      orientation: useLandscape ? 'landscape' : 'portrait',
+      unit: 'mm'
+    });
     
     if (options?.showHeader !== false) {
       addHeaderToPDF(doc, reportType);
@@ -53,6 +62,14 @@ export const generatePDFReport = async (
     doc.text(`Data de geração: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, 25, y + 5);
     y += lineHeight * 2.5;
     
+    // If this is an audit schedule report, add a note about the record count
+    if (reportType.includes("Cronograma de Auditorias") && data.length > 0) {
+      doc.setFontSize(12);
+      doc.setTextColor(41, 65, 148);
+      doc.text(`Total de auditorias: ${data.length}`, pageWidth / 2, y, { align: 'center' });
+      y += lineHeight * 1.5;
+    }
+    
     // If data exists
     if (data.length > 0) {
       // Determine if we need to create a table or just list the items
@@ -61,7 +78,11 @@ export const generatePDFReport = async (
         y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, options);
       } else {
         // Create enhanced table format for larger datasets
-        y = addTableContent(doc, data, y, pageWidth, lineHeight, options);
+        // Pass options to allow landscape mode if needed
+        y = addTableContent(doc, data, y, pageWidth, lineHeight, {
+          ...options,
+          allowLandscape: true
+        });
       }
     } else {
       // No data message
@@ -72,7 +93,7 @@ export const generatePDFReport = async (
     y += lineHeight * 2;
     
     // Check if we need a new page for the summary
-    if (y > 250) {
+    if (y > doc.internal.pageSize.getHeight() - 50) {
       if (options?.showFooter !== false) {
         addFooterToPDF(doc, reportType, doc.getNumberOfPages(), doc.getNumberOfPages());
       }

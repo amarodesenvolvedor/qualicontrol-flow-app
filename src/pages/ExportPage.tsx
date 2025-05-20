@@ -66,11 +66,17 @@ const ExportPage = () => {
         await generateExcelReport(reportType, reportData);
       } else {
         try {
-          // Generate PDF file with improved formatting
-          await generatePDFReport(reportType, reportData, { 
+          // Configure PDF options based on report type
+          const pdfOptions = {
             improveLineBreaks: true,
-            adjustLineSpacing: true 
-          });
+            adjustLineSpacing: true,
+            // Use landscape orientation for audit schedule reports
+            forceLandscape: reportType.includes("Cronograma de Auditorias"),
+            allowLandscape: true
+          };
+          
+          // Generate PDF file with improved formatting
+          await generatePDFReport(reportType, reportData, pdfOptions);
         } catch (error) {
           console.error('Erro ao gerar PDF:', error);
           throw error;

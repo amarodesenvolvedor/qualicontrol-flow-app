@@ -1,13 +1,41 @@
-
 /**
  * Options for PDF export configuration
  */
 export interface PDFExportOptions {
+  /**
+   * Whether to show header on PDF pages
+   */
   showHeader?: boolean;
+  
+  /**
+   * Whether to show footer on PDF pages
+   */
   showFooter?: boolean;
+  
+  /**
+   * Whether to improve line breaks for text content
+   */
   improveLineBreaks?: boolean;
+  
+  /**
+   * Whether to adjust line spacing for better readability
+   */
   adjustLineSpacing?: boolean;
-  orientation?: 'portrait' | 'landscape';
+  
+  /**
+   * Whether to use landscape orientation
+   */
+  forceLandscape?: boolean;
+  
+  /**
+   * Whether to allow switching to landscape orientation as needed
+   */
+  allowLandscape?: boolean;
+  
+  /**
+   * Custom styles to apply to the PDF
+   */
+  styles?: Record<string, any>;
 }
 
 /**

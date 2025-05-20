@@ -1,3 +1,4 @@
+
 import { jsPDF } from "jspdf";
 import { PDFExportOptions } from "../../utils/types";
 import { addHeaderToPDF, addFooterToPDF } from "../../utils/pdfHelpers";
@@ -60,7 +61,7 @@ export function addSimpleListContent(
     y += lineHeight / 2;
     
     // Add new page if needed
-    if (y > 250) {
+    if (y > doc.internal.pageSize.getHeight() - 40) {
       if (options?.showFooter !== false) {
         addFooterToPDF(doc, "Report", doc.getNumberOfPages(), doc.getNumberOfPages());
       }
@@ -89,21 +90,58 @@ export function addTableContent(
   // Get headers
   const headers = Object.keys(data[0]);
   
-  // Table header with brand color background
+  // Determine optimal table orientation - use landscape for many records or wide tables
+  const isLandscape = (data.length > 15 || headers.length > 5) && options?.allowLandscape !== false;
+  
+  if (isLandscape && doc.internal.pageSize.getWidth() < doc.internal.pageSize.getHeight()) {
+    // Switch to landscape if not already
+    if (options?.showFooter !== false) {
+      addFooterToPDF(doc, "Report", doc.getNumberOfPages(), doc.getNumberOfPages());
+    }
+    doc.addPage('landscape');
+    if (options?.showHeader !== false) {
+      addHeaderToPDF(doc, "Report");
+    }
+    y = 40;
+    pageWidth = doc.internal.pageSize.getWidth();
+  }
+  
+  // Calculate page height for easier reference
+  const pageHeight = doc.internal.pageSize.getHeight();
+  
+  // Configure table column settings
+  const margin = 15;
+  const tableWidth = pageWidth - (margin * 2);
+  
+  // Select columns to display - prioritize key information
+  const priorityColumns = ['semana', 'periodo', 'departamento', 'auditor_responsavel', 'status', 'ano', 'observacoes'];
+  const maxColumns = isLandscape ? 6 : 4;
+  
+  // First try to use priority columns if they exist
+  let visibleHeaders = headers.filter(header => priorityColumns.includes(header));
+  
+  // If no priority columns match or too few, fall back to all headers
+  if (visibleHeaders.length < 2) {
+    visibleHeaders = headers.slice(0, maxColumns);
+  } else if (visibleHeaders.length > maxColumns) {
+    // Limit to max columns if we have too many
+    visibleHeaders = visibleHeaders.slice(0, maxColumns);
+  }
+  
+  // Calculate column widths based on content
+  const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
+  
+  // Draw table header with brand color background
   doc.setFillColor(41, 65, 148);
-  doc.rect(15, y, pageWidth - 30, lineHeight, 'F');
+  doc.rect(margin, y, tableWidth, lineHeight, 'F');
   
   // Header text
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   
-  // Calculate column widths (limited to max 4 columns for readability)
-  const visibleHeaders = headers.slice(0, 4);
-  const colWidths = calculateColumnWidths(visibleHeaders, pageWidth - 30);
-  
   // Draw header cells
-  let xPos = 20;
+  let xPos = margin + 5;
   visibleHeaders.forEach((header, i) => {
     const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
     doc.text(formattedHeader, xPos, y + 7);
@@ -116,39 +154,16 @@ export function addTableContent(
   doc.setTextColor(0, 0, 0);
   doc.setFont("helvetica", "normal");
   
-  // Show only first 15 rows to keep report manageable but allow for more than default 10
-  const maxToShow = Math.min(15, data.length);
-  for (let i = 0; i < maxToShow; i++) {
+  // Show ALL rows with pagination
+  for (let i = 0; i < data.length; i++) {
     const item = data[i];
     
-    // Alternate row background for readability
-    if (i % 2 === 0) {
-      doc.setFillColor(245, 245, 250);
-      doc.rect(15, y - 5, pageWidth - 30, lineHeight, 'F');
-    }
-    
-    // Row data with proper cell positioning
-    xPos = 20;
-    visibleHeaders.forEach((header, j) => {
-      let text = String(item[header] || '');
-      
-      // Improved text truncation with ellipsis
-      if (text.length > 25) {
-        text = text.slice(0, 23) + '...';
-      }
-      
-      doc.text(text, xPos, y);
-      xPos += colWidths[j];
-    });
-    
-    y += lineHeight;
-    
-    // Add new page if needed
-    if (y > 250 && i < maxToShow - 1) {
+    // Check if we need a new page
+    if (y > pageHeight - 40) {
       if (options?.showFooter !== false) {
         addFooterToPDF(doc, "Report", doc.getNumberOfPages(), doc.getNumberOfPages());
       }
-      doc.addPage();
+      doc.addPage(isLandscape ? 'landscape' : 'portrait');
       if (options?.showHeader !== false) {
         addHeaderToPDF(doc, "Report");
       }
@@ -156,12 +171,12 @@ export function addTableContent(
       
       // Redraw header on new page
       doc.setFillColor(41, 65, 148);
-      doc.rect(15, y, pageWidth - 30, lineHeight, 'F');
+      doc.rect(margin, y, tableWidth, lineHeight, 'F');
       
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       
-      xPos = 20;
+      xPos = margin + 5;
       visibleHeaders.forEach((header, j) => {
         const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
         doc.text(formattedHeader, xPos, y + 7);
@@ -172,12 +187,56 @@ export function addTableContent(
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "normal");
     }
-  }
-  
-  // Indicate if there are more records
-  if (data.length > maxToShow) {
-    y += lineHeight / 2;
-    doc.text(`... e mais ${data.length - maxToShow} registros`, 20, y);
+    
+    // Alternate row background for readability
+    if (i % 2 === 0) {
+      doc.setFillColor(245, 245, 250);
+      doc.rect(margin, y - 5, tableWidth, lineHeight + 2, 'F');
+    }
+    
+    // Row data with proper cell positioning and text wrapping
+    xPos = margin + 5;
+    let maxRowHeight = lineHeight;
+    
+    // First pass: calculate row height based on wrapped content
+    const rowContentHeights = [];
+    
+    visibleHeaders.forEach((header, j) => {
+      const text = String(item[header] || '');
+      const colWidth = colWidths[j] - 10; // Padding
+      const wrapped = doc.splitTextToSize(text, colWidth);
+      const contentHeight = wrapped.length * (lineHeight * 0.7);
+      rowContentHeights.push(contentHeight);
+      maxRowHeight = Math.max(maxRowHeight, contentHeight);
+    });
+    
+    // Adjust row height if needed
+    if (maxRowHeight > lineHeight) {
+      // Re-draw background for taller row
+      if (i % 2 === 0) {
+        doc.setFillColor(245, 245, 250);
+        doc.rect(margin, y - 5, tableWidth, maxRowHeight + 4, 'F');
+      }
+    }
+    
+    // Second pass: render cell content
+    xPos = margin + 5;
+    visibleHeaders.forEach((header, j) => {
+      const text = String(item[header] || '');
+      const colWidth = colWidths[j] - 10;
+      
+      // Word wrap long text instead of truncating
+      if (text.length > 20) {
+        const wrapped = doc.splitTextToSize(text, colWidth);
+        doc.text(wrapped, xPos, y);
+      } else {
+        doc.text(text, xPos, y);
+      }
+      
+      xPos += colWidths[j];
+    });
+    
+    y += maxRowHeight + 2;
   }
   
   return y;
