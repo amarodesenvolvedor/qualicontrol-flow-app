@@ -45,6 +45,10 @@ const ExportPage = () => {
         includeFields,
       };
       
+      // Debug: Log the data being sent for export
+      console.log(`Exportando ${reportType} com ${scheduledAudits.length} auditorias programadas`);
+      console.log('Scheduled audits enviados para exportação:', scheduledAudits);
+      
       // Get report data based on type and filters
       const reportData = getReportData(
         reportType, 
@@ -54,15 +58,23 @@ const ExportPage = () => {
         exportOptions
       );
       
+      // Debug: Check the data after transformation
+      console.log("Dados após getReportData:", reportData);
+      
       if (exportFormat === 'excel') {
         // Generate Excel file
         await generateExcelReport(reportType, reportData);
       } else {
-        // Generate PDF file with improved formatting
-        await generatePDFReport(reportType, reportData, { 
-          improveLineBreaks: true,
-          adjustLineSpacing: true 
-        });
+        try {
+          // Generate PDF file with improved formatting
+          await generatePDFReport(reportType, reportData, { 
+            improveLineBreaks: true,
+            adjustLineSpacing: true 
+          });
+        } catch (error) {
+          console.error('Erro ao gerar PDF:', error);
+          throw error;
+        }
       }
       
       toast({

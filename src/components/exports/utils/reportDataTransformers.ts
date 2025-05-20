@@ -35,6 +35,9 @@ export const getReportData = (
     'atrasada': 'Atrasada'
   };
   
+  // Add debug logging to see what data is being received
+  console.log(`getReportData called for: ${reportType} with ${scheduledAudits.length} scheduled audits`);
+  
   // Apply date filters to the relevant data
   const filteredData = applyDateFilters(
     reportType, 
@@ -49,6 +52,8 @@ export const getReportData = (
     filteredAuditReports, 
     filteredScheduledAudits 
   } = filteredData;
+
+  console.log(`After filtering: ${filteredScheduledAudits.length} scheduled audits remaining`);
 
   switch (reportType) {
     case "Não Conformidades Completo":
@@ -91,20 +96,34 @@ export const getReportData = (
     case "Cronograma de Auditorias":
       // Usar os dados de auditorias programadas com formatação aprimorada
       return filteredScheduledAudits.map(audit => {
-        // Get week dates for better display
-        const { startDate, endDate } = getWeekDates(audit.week_number, audit.year);
-        const formattedStartDate = format(startDate, "dd/MM/yyyy", { locale: ptBR });
-        const formattedEndDate = format(endDate, "dd/MM/yyyy", { locale: ptBR });
-        
-        return {
-          semana: `Semana ${audit.week_number}`,
-          periodo: `${formattedStartDate} - ${formattedEndDate}`,
-          departamento: audit.department?.name || "N/A",
-          auditor_responsavel: audit.responsible_auditor,
-          status: statusMap[audit.status] || audit.status,
-          ano: audit.year.toString(),
-          observacoes: audit.notes || "N/A"
-        };
+        try {
+          // Get week dates for better display
+          const { startDate, endDate } = getWeekDates(audit.week_number, audit.year);
+          const formattedStartDate = format(startDate, "dd/MM/yyyy", { locale: ptBR });
+          const formattedEndDate = format(endDate, "dd/MM/yyyy", { locale: ptBR });
+          
+          return {
+            semana: `Semana ${audit.week_number}`,
+            periodo: `${formattedStartDate} - ${formattedEndDate}`,
+            departamento: audit.department?.name || "N/A",
+            auditor_responsavel: audit.responsible_auditor,
+            status: statusMap[audit.status] || audit.status,
+            ano: audit.year.toString(),
+            observacoes: audit.notes || "N/A"
+          };
+        } catch (error) {
+          console.error(`Erro ao processar auditoria: ${error.message}`, audit);
+          // Return a fallback object with available data
+          return {
+            semana: `Semana ${audit.week_number || 'N/A'}`,
+            periodo: `N/A`,
+            departamento: audit.department?.name || "N/A",
+            auditor_responsavel: audit.responsible_auditor || "N/A",
+            status: statusMap[audit.status] || audit.status || "N/A",
+            ano: (audit.year || 'N/A').toString(),
+            observacoes: audit.notes || "N/A"
+          };
+        }
       });
       
     default:
@@ -174,8 +193,13 @@ function applyDateFilters(
     
     // For scheduled audits, check if the specific date falls within the week period
     filteredScheduledAudits = filteredScheduledAudits.filter(item => {
-      const { startDate, endDate } = getWeekDates(item.week_number, item.year);
-      return isWithinInterval(specificDate, { start: startDate, end: endDate });
+      try {
+        const { startDate, endDate } = getWeekDates(item.week_number, item.year);
+        return isWithinInterval(specificDate, { start: startDate, end: endDate });
+      } catch (error) {
+        console.error(`Error filtering by specific date: ${error.message}`, item);
+        return false; // Exclude items that cause errors
+      }
     });
   }
   
@@ -219,13 +243,18 @@ function applyDateFilters(
     
     // For scheduled audits, use a different approach based on weeks
     filteredScheduledAudits = filteredScheduledAudits.filter(item => {
-      // Calculate if the week overlaps with the date range
-      const { startDate, endDate } = getWeekDates(item.week_number, item.year);
-      return (
-        (startDate <= endFilterDate && startDate >= startFilterDate) ||
-        (endDate >= startFilterDate && endDate <= endFilterDate) ||
-        (startDate <= startFilterDate && endDate >= endFilterDate)
-      );
+      try {
+        // Calculate if the week overlaps with the date range
+        const { startDate, endDate } = getWeekDates(item.week_number, item.year);
+        return (
+          (startDate <= endFilterDate && startDate >= startFilterDate) ||
+          (endDate >= startFilterDate && endDate <= endFilterDate) ||
+          (startDate <= startFilterDate && endDate >= endFilterDate)
+        );
+      } catch (error) {
+        console.error(`Error in date range filter: ${error.message}`, item);
+        return false; // Exclude items that cause errors
+      }
     });
   }
   
