@@ -4,248 +4,402 @@ import { format } from "date-fns";
 import { jsPDF } from "jspdf";
 
 /**
- * Exports non-conformance data to ACAC (Analysis of Cause and Corrective Action) PDF format
+ * Exports ACAC (Action Corrective Action Containment) data to PDF with proper page break handling
  * 
- * @param nonConformance The non-conformance object to export
+ * @param acacData The ACAC data to export
  * @returns A promise that resolves when the PDF has been generated
  */
-export const exportAcacToPDF = async (nonConformance: NonConformance): Promise<void> => {
+export const exportAcacToPDF = async (acacData: NonConformance): Promise<void> => {
   try {
-    // Create a new PDF document
-    const doc = new jsPDF();
-    const lineHeight = 10;
+    // Create a new PDF document in portrait format
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    // Set document properties
+    doc.setProperties({
+      title: `ACAC: ${acacData.code || 'N/A'}`,
+      subject: acacData.title,
+      creator: 'Sistema de Não Conformidades',
+      author: 'Sistema ACAC',
+      keywords: 'ACAC, ação corretiva, não conformidade'
+    });
+
+    // Styling variables
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentWidth = pageWidth - (margin * 2);
+    const maxContentHeight = pageHeight - 30; // Account for header/footer
+    
+    // Initialize y position
     let y = 20;
     
-    // Adicionar um cabeçalho profissional
-    addHeaderToPDF(doc, 'ANÁLISE DE CAUSA E AÇÃO CORRETIVA');
-    y += 25; // Espaço após o cabeçalho
-    
-    // Add title
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text("ANÁLISE DE CAUSA E AÇÃO CORRETIVA", doc.internal.pageSize.getWidth() / 2, y, { align: "center" });
-    y += lineHeight;
-    
-    doc.setFontSize(12);
-    doc.text(`ACAC-S: ${nonConformance.code || "N/A"}`, doc.internal.pageSize.getWidth() / 2, y, { align: "center" });
-    y += lineHeight * 2;
-
-    // Add section: Informações Gerais
-    addSectionWithBackground(doc, "1. INFORMAÇÕES GERAIS", y);
-    y += lineHeight * 1.8;
-    
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    
-    const drawField = (label: string, value: string, yPos: number) => {
-      doc.setFont("helvetica", "bold");
-      doc.text(`${label}: `, 20, yPos);
-      const labelWidth = doc.getStringUnitWidth(`${label}: `) * doc.getFontSize() / doc.internal.scaleFactor;
-      doc.setFont("helvetica", "normal");
-      doc.text(value || "N/A", 20 + labelWidth, yPos);
-      return yPos + lineHeight;
+    // Helper function to check if we need a page break
+    const checkForPageBreak = (contentHeight: number) => {
+      if (y + contentHeight > maxContentHeight) {
+        addFooterToCurrentPage();
+        doc.addPage();
+        y = 20;
+        addHeaderToNewPage();
+      }
     };
     
-    y = drawField("Departamento", nonConformance.department?.name || "N/A", y);
-    y = drawField("Responsável", nonConformance.responsible_name || "N/A", y);
-    y = drawField("Auditor", nonConformance.auditor_name || "N/A", y); // Movido para esta seção
-    y = drawField("Data de Ocorrência", nonConformance.occurrence_date ? format(new Date(nonConformance.occurrence_date), "dd/MM/yyyy") : "N/A", y);
-    y = drawField("Local", nonConformance.location || "N/A", y);
-    y += lineHeight;
-    
-    // Add section: Descrição da Não Conformidade
-    addSectionWithBackground(doc, "2. DESCRIÇÃO DA NÃO CONFORMIDADE", y);
-    y += lineHeight * 1.8;
-    
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    const descriptionText = nonConformance.description || "Não fornecida";
-    const descriptionLines = doc.splitTextToSize(descriptionText, 170);
-    doc.text(descriptionLines, 20, y);
-    y += lineHeight * (descriptionLines.length + 1.5);
-    
-    // Add section: Ações Imediatas
-    addSectionWithBackground(doc, "3. AÇÕES IMEDIATAS TOMADAS", y);
-    y += lineHeight * 1.8;
-    
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    const actionsText = nonConformance.immediate_actions || "Nenhuma ação registrada";
-    const actionsLines = doc.splitTextToSize(actionsText, 170);
-    doc.text(actionsLines, 20, y);
-    y += lineHeight * (actionsLines.length + 1.5);
-    
-    // Check if we need a new page
-    if (y > 220) {
-      doc.addPage();
-      y = 40; // Leave space for header
-      addHeaderToPDF(doc, 'ANÁLISE DE CAUSA E AÇÃO CORRETIVA');
-    }
-    
-    // Add section: Análise de Causa
-    addSectionWithBackground(doc, "4. ANÁLISE DE CAUSA", y);
-    y += lineHeight * 1.8;
-    
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    
-    // Se houver conteúdo para análise de causa, exibir. Caso contrário, desenhar linhas para preenchimento manual
-    if (nonConformance.root_cause_analysis) {
-      const analysisLines = doc.splitTextToSize(nonConformance.root_cause_analysis, 170);
-      doc.text(analysisLines, 20, y);
-      y += lineHeight * (analysisLines.length + 1.5);
-    } else {
-      // Desenhar linhas para preenchimento manual
-      doc.text("", 20, y); // Espaço em branco
-      y += lineHeight * 0.5;
+    // Helper function to add header to new page
+    const addHeaderToNewPage = () => {
+      doc.setFillColor(30, 100, 200); // Blue header
+      doc.rect(0, 0, pageWidth, 15, 'F');
       
-      // Desenhar 4 linhas para preenchimento manual
-      for (let i = 0; i < 4; i++) {
-        doc.line(20, y, 190, y);
-        y += lineHeight;
-      }
-      y += lineHeight * 0.5;
-    }
+      doc.setTextColor(255, 255, 255); // White text
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text("ACAC - AÇÃO CORRETIVA", pageWidth / 2, 10, { align: 'center' });
+    };
     
-    // Add section: Ação Corretiva
-    addSectionWithBackground(doc, "5. AÇÃO CORRETIVA", y);
-    y += lineHeight * 1.8;
-    
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    
-    // Se houver conteúdo para ação corretiva, exibir. Caso contrário, desenhar linhas para preenchimento manual
-    if (nonConformance.corrective_action) {
-      const correctiveLines = doc.splitTextToSize(nonConformance.corrective_action, 170);
-      doc.text(correctiveLines, 20, y);
-      y += lineHeight * (correctiveLines.length + 1.5);
-    } else {
-      // Desenhar linhas para preenchimento manual
-      doc.text("", 20, y); // Espaço em branco
-      y += lineHeight * 0.5;
+    // Helper function to add footer to current page
+    const addFooterToCurrentPage = () => {
+      // Footer line
+      const footerY = pageHeight - 15;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, footerY, pageWidth - margin, footerY);
       
-      // Desenhar 4 linhas para preenchimento manual
-      for (let i = 0; i < 4; i++) {
-        doc.line(20, y, 190, y);
-        y += lineHeight;
-      }
-      y += lineHeight * 0.5;
-    }
-    
-    // Add section: Prazo e Responsáveis
-    addSectionWithBackground(doc, "6. PRAZO E RESPONSÁVEIS", y);
-    y += lineHeight * 1.8;
-    
-    const responseDate = nonConformance.response_date 
-      ? format(new Date(nonConformance.response_date), "dd/MM/yyyy")
-      : "Não definido";
+      // Footer text
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
       
-    y = drawField("Prazo para Resposta", responseDate, y);
-    y += lineHeight * 2;
+      // Page number
+      const currentPage = doc.getNumberOfPages();
+      doc.text(
+        `Página ${currentPage} de ${currentPage}`, // Will be updated later with total pages
+        pageWidth / 2, 
+        footerY + 5, 
+        { align: 'center' }
+      );
+      
+      // Generation date on the right
+      const currentDate = format(new Date(), "dd/MM/yyyy HH:mm");
+      doc.text(
+        `Gerado em: ${currentDate}`, 
+        pageWidth - margin, 
+        footerY + 5, 
+        { align: 'right' }
+      );
+      
+      // System info on the left
+      doc.text(
+        'Sistema ACAC', 
+        margin, 
+        footerY + 5
+      );
+    };
     
-    if (y > 220) {
-      doc.addPage();
-      y = 40; // Leave space for header
-      addHeaderToPDF(doc, 'ANÁLISE DE CAUSA E AÇÃO CORRETIVA');
+    // Helper function to add a section title with improved page break handling
+    const addSectionTitle = (title: string, yPos: number): number => {
+      // Check if adding title would overflow page
+      checkForPageBreak(15);
+      
+      doc.setFillColor(240, 240, 240); // Light gray background
+      doc.rect(margin, yPos - 5, contentWidth, 10, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(60, 60, 60); // Dark gray text
+      doc.setFontSize(12);
+      doc.text(title, margin, yPos);
+      return yPos + 8; // Return new y position after title
+    };
+    
+    // Helper function to add a field with label and value
+    const addField = (label: string, value: string | null | undefined, yPos: number): number => {
+      // Check if adding field would overflow page
+      checkForPageBreak(6);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(80, 80, 80);
+      doc.setFontSize(10);
+      doc.text(`${label}:`, margin, yPos);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      const displayValue = value || 'N/A';
+      doc.text(displayValue, margin + 35, yPos);
+      
+      return yPos + 6; // Return new y position
+    };
+    
+    // Add header with logo placeholder and title
+    doc.setFillColor(30, 100, 200); // Blue header
+    doc.rect(0, 0, pageWidth, 15, 'F');
+    
+    doc.setTextColor(255, 255, 255); // White text
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text("ACAC - AÇÃO CORRETIVA", pageWidth / 2, 10, { align: 'center' });
+    
+    // Add code and status
+    y = 25;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(16);
+    doc.text(`Código: ${acacData.code || 'N/A'}`, margin, y);
+    
+    // Add status on the right
+    const statusMap: Record<string, string> = {
+      'pending': 'Pendente',
+      'in-progress': 'Em Andamento',
+      'resolved': 'Resolvido',
+      'closed': 'Encerrado',
+    };
+    const statusText = statusMap[acacData.status] || acacData.status;
+    
+    // Create a color-coded status badge
+    const statusColor = acacData.status === 'resolved' || acacData.status === 'closed' 
+      ? [0, 150, 50] // Green for completed statuses
+      : acacData.status === 'in-progress'
+        ? [230, 140, 0] // Orange for in progress
+        : [220, 50, 50]; // Red for pending
+    
+    const statusWidth = doc.getTextWidth(statusText) + 10;
+    doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
+    doc.roundedRect(pageWidth - margin - statusWidth, y - 5, statusWidth, 7, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.text(statusText, pageWidth - margin - (statusWidth / 2), y - 1, { align: 'center' });
+    
+    // Title
+    y += 10;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    
+    // Check if title is too long and might need special handling
+    const titleLines = doc.splitTextToSize(acacData.title, contentWidth);
+    doc.text(titleLines, margin, y);
+    y += (titleLines.length * 7);
+    
+    // Add divider line
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 10;
+    
+    // Basic Information Section
+    y = addSectionTitle("INFORMAÇÕES GERAIS", y);
+    
+    // Two columns for basic info
+    const colWidth = contentWidth / 2;
+    let leftY = y;
+    let rightY = y;
+    
+    // Left column
+    leftY = addField("Departamento", acacData.department?.name, leftY);
+    leftY = addField("Local", acacData.location, leftY);
+    leftY = addField("Responsável", acacData.responsible_name, leftY);
+    
+    // Right column (starts at the middle of the page)
+    const rightColX = margin + colWidth + 10;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(10);
+    doc.text(`Auditor:`, rightColX, y);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(acacData.auditor_name || 'N/A', rightColX + 35, y);
+    rightY += 6;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Data Ocorrência:`, rightColX, rightY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(
+      acacData.occurrence_date ? format(new Date(acacData.occurrence_date), "dd/MM/yyyy") : 'N/A', 
+      rightColX + 35, 
+      rightY
+    );
+    rightY += 6;
+    
+    // Use the lowest y value to continue
+    y = Math.max(leftY, rightY) + 5;
+    
+    // Description Section - with improved page break handling
+    // Get description text and calculate its height
+    const descriptionText = acacData.description || "Sem descrição disponível";
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    const descriptionLines = doc.splitTextToSize(descriptionText, contentWidth);
+    const descriptionHeight = descriptionLines.length * 5 + 10; // Add some margin
+    
+    // Check if description would need a page break
+    checkForPageBreak(descriptionHeight + 10); // +10 for section title
+    
+    // Now add the section title and description
+    y = addSectionTitle("DESCRIÇÃO DA NÃO CONFORMIDADE", y);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    
+    // Render the description text
+    doc.text(descriptionLines, margin, y);
+    y += descriptionHeight;
+    
+    // Root Cause Section - with improved page break handling
+    if (acacData.root_cause_analysis) {
+      const rootCauseText = acacData.root_cause_analysis || "Análise de causa raiz não informada";
+      const rootCauseLines = doc.splitTextToSize(rootCauseText, contentWidth);
+      const rootCauseHeight = rootCauseLines.length * 5 + 10;
+      
+      // Check if root cause would need a page break
+      checkForPageBreak(rootCauseHeight + 10);
+      
+      y = addSectionTitle("ANÁLISE DE CAUSA RAIZ", y);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.text(rootCauseLines, margin, y);
+      y += rootCauseHeight;
     }
     
-    // Add section: Verificação da Eficácia
-    addSectionWithBackground(doc, "7. VERIFICAÇÃO DA EFICÁCIA", y);
-    y += lineHeight * 1.8;
-    
-    const effectivenessDate = nonConformance.effectiveness_verification_date 
-      ? format(new Date(nonConformance.effectiveness_verification_date), "dd/MM/yyyy")
-      : "Não definida";
-    
-    y = drawField("Data de Verificação", effectivenessDate, y);
-    y += lineHeight;
-    
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text("Observações:", 20, y);
-    y += lineHeight * 1.2;
-    
-    // Draw lines for handwritten notes
-    for (let i = 0; i < 4; i++) {
-      doc.line(20, y, 190, y);
-      y += lineHeight;
+    // Corrective Action Section
+    if (acacData.corrective_action) {
+      const correctiveActionText = acacData.corrective_action || "Ação corretiva não informada";
+      const correctiveActionLines = doc.splitTextToSize(correctiveActionText, contentWidth);
+      const correctiveActionHeight = correctiveActionLines.length * 5 + 10;
+      
+      // Check if corrective action would need a page break
+      checkForPageBreak(correctiveActionHeight + 10);
+      
+      y = addSectionTitle("AÇÃO CORRETIVA", y);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.text(correctiveActionLines, margin, y);
+      y += correctiveActionHeight;
     }
     
-    // Add footer to all pages
+    // Immediate Actions Section - with improved page break handling
+    if (acacData.immediate_actions) {
+      const immediateActionsText = acacData.immediate_actions || "Nenhuma ação imediata registrada";
+      const immediateActionsLines = doc.splitTextToSize(immediateActionsText, contentWidth);
+      const immediateActionsHeight = immediateActionsLines.length * 5 + 10;
+      
+      // Check if immediate actions would need a page break
+      checkForPageBreak(immediateActionsHeight + 10);
+      
+      y = addSectionTitle("AÇÕES IMEDIATAS", y);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.text(immediateActionsLines, margin, y);
+      y += immediateActionsHeight;
+    }
+    
+    // Verification and Approvals section
+    y = addSectionTitle("VERIFICAÇÕES E APROVAÇÕES", y);
+    
+    // Two columns layout
+    leftY = y;
+    rightY = y;
+    
+    // Left column
+    leftY = addField("Verificação da Ação", 
+      acacData.action_verification_date ? format(new Date(acacData.action_verification_date), "dd/MM/yyyy") : 'Pendente', 
+      leftY
+    );
+    
+    // Right column
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Verificação de Eficácia:`, rightColX, y);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(
+      acacData.effectiveness_verification_date ? 
+        format(new Date(acacData.effectiveness_verification_date), "dd/MM/yyyy") : 
+        'Pendente',
+      rightColX + 45, 
+      y
+    );
+    rightY += 6;
+    
+    y = Math.max(leftY, rightY) + 15;
+    
+    // Add signature fields
+    checkForPageBreak(50); // Make sure we have space for signatures
+    
+    // Draw signature lines
+    doc.setDrawColor(100, 100, 100);
+    
+    // Responsible signature
+    doc.line(margin + 10, y, margin + contentWidth/2 - 10, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(acacData.responsible_name || "Responsável", margin + (contentWidth/4), y + 5, { align: 'center' });
+    doc.text("Responsável", margin + (contentWidth/4), y + 10, { align: 'center' });
+    
+    // Auditor signature
+    doc.line(margin + contentWidth/2 + 10, y, margin + contentWidth - 10, y);
+    doc.text(acacData.auditor_name || "Auditor", margin + contentWidth/2 + (contentWidth/4), y + 5, { align: 'center' });
+    doc.text("Auditor", margin + contentWidth/2 + (contentWidth/4), y + 10, { align: 'center' });
+    
+    // Add footer with page number and generation date
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      addFooterToPDF(doc, `ACAC - ${nonConformance.code || 'S/N'}`, i, pageCount);
+      
+      // Footer line
+      const footerY = doc.internal.pageSize.getHeight() - 15;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, footerY, pageWidth - margin, footerY);
+      
+      // Footer text
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      
+      // Page number
+      doc.text(
+        `Página ${i} de ${pageCount}`, 
+        pageWidth / 2, 
+        footerY + 5, 
+        { align: 'center' }
+      );
+      
+      // Generation date on the right
+      const currentDate = format(new Date(), "dd/MM/yyyy HH:mm");
+      doc.text(
+        `Gerado em: ${currentDate}`, 
+        pageWidth - margin, 
+        footerY + 5, 
+        { align: 'right' }
+      );
+      
+      // System info on the left
+      doc.text(
+        'Sistema ACAC', 
+        margin, 
+        footerY + 5
+      );
     }
     
-    // Save the PDF with ACAC specific filename
-    doc.save(`ACAC_${nonConformance.code || "NC"}_${format(new Date(), "yyyyMMdd")}.pdf`);
+    // Save the PDF with code as filename, or fallback to ACAC + timestamp
+    const timestamp = format(new Date(), "yyyyMMdd_HHmmss");
+    const filename = acacData.code ? 
+      `ACAC_${acacData.code.replace(/\//g, '-')}.pdf` : 
+      `ACAC_${timestamp}.pdf`;
+    
+    doc.save(filename);
     
     return Promise.resolve();
   } catch (error) {
-    console.error("Erro ao gerar PDF de ACAC:", error);
+    console.error("Erro ao gerar PDF ACAC:", error);
     throw error;
   }
 };
-
-// Função auxiliar para adicionar cabeçalho ao PDF
-function addHeaderToPDF(doc: jsPDF, title: string) {
-  const pageWidth = doc.internal.pageSize.getWidth();
-  
-  // Desenhar uma barra de cabeçalho
-  doc.setFillColor(41, 65, 148); // Azul corporativo
-  doc.rect(0, 0, pageWidth, 20, 'F');
-  
-  // Adicionar título no cabeçalho
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text(title, 10, 13);
-  
-  // Adicionar data no cabeçalho
-  const today = format(new Date(), "dd/MM/yyyy");
-  doc.setFontSize(10);
-  doc.text(`Emitido em: ${today}`, pageWidth - 15, 13, { align: "right" });
-  
-  // Adicionar linha separadora abaixo do cabeçalho
-  doc.setDrawColor(200, 200, 200);
-  doc.line(10, 22, pageWidth - 10, 22);
-  
-  // Resetar cores para o conteúdo
-  doc.setTextColor(0, 0, 0);
-}
-
-// Função auxiliar para adicionar rodapé ao PDF
-function addFooterToPDF(doc: jsPDF, documentCode: string, currentPage: number, totalPages: number) {
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  
-  // Adicionar linha separadora acima do rodapé
-  doc.setDrawColor(200, 200, 200);
-  doc.line(10, pageHeight - 15, pageWidth - 10, pageHeight - 15);
-  
-  // Adicionar texto do rodapé
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(100, 100, 100);
-  doc.text(`${documentCode} - Sistema de Gestão de Não Conformidades`, 10, pageHeight - 10);
-  
-  // Adicionar número da página
-  doc.text(`Página ${currentPage} de ${totalPages}`, pageWidth - 20, pageHeight - 10, { align: "right" });
-}
-
-// Função para adicionar título de seção com fundo colorido
-function addSectionWithBackground(doc: jsPDF, title: string, y: number) {
-  // Desenhar retângulo de fundo
-  doc.setFillColor(240, 240, 250); // Azul muito claro
-  doc.rect(10, y - 7, doc.internal.pageSize.getWidth() - 20, 10, 'F');
-  
-  // Adicionar título da seção
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(41, 65, 148); // Azul corporativo
-  doc.text(title, 20, y);
-  
-  // Resetar cores para o conteúdo
-  doc.setTextColor(0, 0, 0);
-}
