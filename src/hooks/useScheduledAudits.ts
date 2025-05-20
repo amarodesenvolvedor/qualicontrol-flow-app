@@ -35,6 +35,8 @@ export const useScheduledAudits = () => {
     selectedAudit,
     setSelectedAudit,
     createScheduledAudit,
+    updateScheduledAudit,
+    deleteScheduledAudit,
     handleStatusChange,
     handleDelete,
     filter,
