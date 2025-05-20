@@ -1,39 +1,45 @@
 
+import { useState, useCallback } from 'react';
 import { useScheduledAuditsMutations } from './scheduledAudits/useScheduledAuditsMutations';
 import { useScheduledAuditsQueries } from './scheduledAudits/useScheduledAuditsQueries';
-import { getCurrentWeek, getCurrentYear, getWeekDates } from './scheduledAudits/utils';
+import { getWeekDates, getCurrentWeek, getCurrentYear } from './scheduledAudits/utils';
 
 export const useScheduledAudits = () => {
-  // Get all query-related functionality
+  const [selectedAudit, setSelectedAudit] = useState(null);
+  const { createScheduledAudit, updateScheduledAuditStatus, deleteScheduledAudit } = useScheduledAuditsMutations();
   const { 
     scheduledAudits, 
     isLoading, 
-    isError,
+    isError, 
     filter,
     setFilter,
     refetch
   } = useScheduledAuditsQueries();
 
-  // Get all mutation-related functionality
-  const {
-    createScheduledAudit,
-    updateScheduledAudit,
-    deleteScheduledAudit
-  } = useScheduledAuditsMutations();
+  const handleStatusChange = useCallback(async (id: string, status: string) => {
+    await updateScheduledAuditStatus(id, status);
+    refetch();
+  }, [updateScheduledAuditStatus, refetch]);
 
-  // Re-export everything for backwards compatibility
+  const handleDelete = useCallback(async (id: string) => {
+    await deleteScheduledAudit(id);
+    refetch();
+  }, [deleteScheduledAudit, refetch]);
+
   return {
     scheduledAudits,
     isLoading,
     isError,
+    selectedAudit,
+    setSelectedAudit,
     createScheduledAudit,
-    updateScheduledAudit,
-    deleteScheduledAudit,
+    handleStatusChange,
+    handleDelete,
     filter,
     setFilter,
-    getCurrentWeek,
-    getCurrentYear,
+    refetch,
     getWeekDates,
-    refetch
+    getCurrentWeek,
+    getCurrentYear
   };
 };
