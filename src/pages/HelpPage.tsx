@@ -1,13 +1,10 @@
-
 import { Layout } from "@/components/app/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
 export default function HelpPage() {
-  return (
-    <Layout>
+  return <Layout>
       <div className="container mx-auto py-4">
         <h1 className="text-2xl font-bold mb-6">Ajuda e Tutoriais - IntegraQMS</h1>
         
@@ -439,7 +436,8 @@ export default function HelpPage() {
                     </p>
                     <ul className="mt-2 list-disc pl-5 text-muted-foreground">
                       <li>E-mail: suporte@integraqms.com</li>
-                      <li>Telefone: (11) 1234-5678</li>
+                      <li>
+                    </li>
                       <li>Horário de atendimento: Segunda a sexta, das 8h às 18h</li>
                     </ul>
                   </section>
@@ -502,6 +500,5 @@ export default function HelpPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
-  );
+    </Layout>;
 }
