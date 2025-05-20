@@ -6,7 +6,7 @@ import { getWeekDates, getCurrentWeek, getCurrentYear } from './scheduledAudits/
 
 export const useScheduledAudits = () => {
   const [selectedAudit, setSelectedAudit] = useState(null);
-  const { createScheduledAudit, updateScheduledAuditStatus, deleteScheduledAudit } = useScheduledAuditsMutations();
+  const { createScheduledAudit, updateScheduledAudit, deleteScheduledAudit } = useScheduledAuditsMutations();
   const { 
     scheduledAudits, 
     isLoading, 
@@ -17,12 +17,12 @@ export const useScheduledAudits = () => {
   } = useScheduledAuditsQueries();
 
   const handleStatusChange = useCallback(async (id: string, status: string) => {
-    await updateScheduledAuditStatus(id, status);
+    await updateScheduledAudit.mutate({ id, data: { status } });
     refetch();
-  }, [updateScheduledAuditStatus, refetch]);
+  }, [updateScheduledAudit, refetch]);
 
   const handleDelete = useCallback(async (id: string) => {
-    await deleteScheduledAudit(id);
+    await deleteScheduledAudit.mutate(id);
     refetch();
   }, [deleteScheduledAudit, refetch]);
 

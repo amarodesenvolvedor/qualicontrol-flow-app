@@ -20,8 +20,8 @@ export const ScheduledAudits = () => {
     scheduledAudits,
     isLoading,
     createScheduledAudit,
-    updateScheduledAudit,
-    deleteScheduledAudit,
+    handleStatusChange,
+    handleDelete,
     filter,
     setFilter,
     getCurrentWeek,
@@ -98,12 +98,8 @@ export const ScheduledAudits = () => {
       <ScheduledAuditList 
         scheduledAudits={scheduledAudits}
         isLoading={isLoading}
-        onDelete={(id) => deleteScheduledAudit.mutate(id)}
-        onStatusChange={(id, status) => {
-          // Convert the status to the correct type before calling the mutation
-          const typedStatus = status as "programada" | "agendada" | "concluida" | "atrasada";
-          updateScheduledAudit.mutate({ id, data: { status: typedStatus } });
-        }}
+        onDelete={handleDelete}
+        onStatusChange={handleStatusChange}
       />
     </div>
   );
