@@ -57,7 +57,10 @@ export const useScheduledAuditsQueries = () => {
         
         // If the audit is "programada" and the week has already passed, mark it as "atrasada"
         if (isAuditOverdue(typedAudit)) {
-          return {...typedAudit, status: 'atrasada'};
+          return {
+            ...typedAudit, 
+            status: 'atrasada' as const // Use const assertion to ensure it's the literal type
+          };
         }
         
         return typedAudit;
