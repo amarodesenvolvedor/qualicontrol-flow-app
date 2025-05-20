@@ -5,7 +5,6 @@ import AppSidebar from "./AppSidebar";
 import AppHeader from "./AppHeader";
 import MainContent from "./MainContent";
 import { useTheme } from "./ThemeProvider";
-import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LayoutProps {

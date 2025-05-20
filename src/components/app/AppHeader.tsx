@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bell, MoonIcon, SunIcon, Menu } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -28,26 +27,30 @@ const AppHeader = ({
   };
 
   return (
-    <header className="h-16 border-b flex items-center justify-between px-4 sm:px-6 bg-card shadow-sm">
-      {isMobile && (
+    <header className="h-16 border-b flex items-center justify-between px-4 sm:px-6 bg-card shadow-sm dark:bg-card dark:border-border">
+      <div className="flex items-center">
         <Button 
           variant="ghost" 
           size="icon"
           onClick={toggleMobileMenu}
-          className="mr-2"
+          className="mr-2 sm:mr-4 md:flex lg:flex"
+          aria-label="Menu de navegação"
         >
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle menu</span>
         </Button>
-      )}
-      <h1 className="text-lg sm:text-xl font-semibold text-primary truncate">
-        Sistema de Gerenciamento
-      </h1>
+        
+        <h1 className="text-lg sm:text-xl font-semibold text-primary truncate">
+          Sistema de Gerenciamento
+        </h1>
+      </div>
+      
       <div className="flex items-center gap-2 sm:gap-4">
         <Button 
           variant="outline" 
           size="icon"
           onClick={showNotification}
+          aria-label="Notificações"
         >
           <Bell className="h-5 w-5" />
         </Button>
@@ -55,6 +58,7 @@ const AppHeader = ({
           variant="outline" 
           size="icon"
           onClick={toggleTheme}
+          aria-label={theme === "light" ? "Mudar para modo escuro" : "Mudar para modo claro"}
         >
           {theme === "light" ? (
             <MoonIcon className="h-5 w-5" />

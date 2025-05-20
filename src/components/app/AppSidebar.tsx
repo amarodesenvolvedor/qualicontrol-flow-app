@@ -1,13 +1,16 @@
+
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { NavLink, useLocation } from "react-router-dom";
 import { BarChart3, ClipboardList, PieChart, Settings, Home, FileText, FileSearch, HelpCircle, X } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 interface AppSidebarProps {
   isMobileMenuOpen?: boolean;
   onMenuClose?: () => void;
 }
+
 export function AppSidebar({
   isMobileMenuOpen,
   onMenuClose
@@ -33,21 +36,23 @@ export function AppSidebar({
       setOpenMobile(!!isMobileMenuOpen);
     }
   }, [isMobileMenuOpen, isMobile, setOpenMobile]);
+  
   const handleNavLinkClick = () => {
     if (isMobile && onMenuClose) {
       onMenuClose();
     }
   };
+
   return <Sidebar className={collapsed && !isMobile ? "w-16" : "w-64"} collapsible="icon">
-      <div className="flex items-center justify-between p-4 bg-blue-700">
-        {(!collapsed || isMobile) && <span className="text-xl font-bold text-slate-50">IntegraQMS - SEW</span>}
+      <div className="flex items-center justify-between p-4 bg-sidebar border-b border-sidebar-border dark:bg-sidebar-dark">
+        {(!collapsed || isMobile) && <span className="text-xl font-bold text-sidebar-foreground">IntegraQMS - SEW</span>}
         
         {isMobile ? <Button variant="ghost" size="icon" onClick={onMenuClose} className="self-end text-sidebar-foreground">
             <X className="h-5 w-5" />
-          </Button> : <SidebarTrigger className="self-end text-slate-50" />}
+          </Button> : <SidebarTrigger className="self-end text-sidebar-foreground" />}
       </div>
 
-      <SidebarContent className="bg-neutral-100">
+      <SidebarContent className="bg-sidebar dark:bg-sidebar-dark">
         <SidebarGroup>
           <SidebarGroupLabel>Principal</SidebarGroupLabel>
 
@@ -146,4 +151,5 @@ export function AppSidebar({
       </SidebarContent>
     </Sidebar>;
 }
+
 export default AppSidebar;
