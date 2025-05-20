@@ -1,6 +1,7 @@
+
 import { startOfWeek, addDays, addWeeks, format, getISOWeek, getYear, startOfYear, isBefore, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getScheduledAuditsTable } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { ScheduledAudit } from "@/types/audit";
 
 /**
@@ -110,9 +111,5 @@ export const getScheduledAudits = async () => {
  * Retrieves the Supabase table for scheduled audits.
  */
 export const getScheduledAuditsTable = () => {
-    return supabase.from('scheduled_audits');
+  return supabase.from('scheduled_audits');
 };
-
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-
-const supabase = createClientComponentClient();
