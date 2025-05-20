@@ -1,5 +1,5 @@
 
-import { endOfWeek } from 'date-fns';
+import { endOfWeek, isValid } from 'date-fns';
 import { CalendarEvent } from "@/components/shared/calendar/types";
 
 // Different styling based on event type and status
@@ -24,30 +24,46 @@ export const getEventStyle = (event: CalendarEvent): string => {
   }
 };
 
-// Filter events by date and active filters
+// Filter events by date and active filters with improved error handling
 export const getEventsByDate = (
   date: Date, 
   events: CalendarEvent[], 
   activeFilters: string[]
 ): CalendarEvent[] => {
+  if (!date || !isValid(date)) {
+    console.error('Data inválida passada para getEventsByDate:', date);
+    return [];
+  }
+
   return events.filter(event => {
-    // Check if the date matches
-    const eventDate = new Date(event.date);
-    const isSameDay = eventDate.getDate() === date.getDate() &&
-                      eventDate.getMonth() === date.getMonth() &&
-                      eventDate.getFullYear() === date.getFullYear();
-                      
-    // Apply filters
-    const passesFilter = activeFilters.length === 0 || 
-      (activeFilters.includes(event.type) || 
-       (activeFilters.includes('scheduled') && event.entityType === 'scheduled') ||
-       (activeFilters.includes('critical') && event.status === 'critical') ||
-       (activeFilters.includes('pending') && ['pending', 'in-progress', 'scheduled', 'programada'].includes(event.status)) ||
-       (activeFilters.includes('dueThisWeek') && 
-        new Date(event.date) <= endOfWeek(new Date()) && 
-        new Date(event.date) >= new Date())
-      );
+    try {
+      // Check if the date matches - safely convert to Date if needed
+      const eventDate = event.date instanceof Date ? event.date : new Date(event.date);
       
-    return isSameDay && passesFilter;
+      if (!isValid(eventDate)) {
+        console.warn('Data do evento inválida:', event);
+        return false;
+      }
+      
+      const isSameDay = eventDate.getDate() === date.getDate() &&
+                        eventDate.getMonth() === date.getMonth() &&
+                        eventDate.getFullYear() === date.getFullYear();
+                        
+      // Apply filters
+      const passesFilter = activeFilters.length === 0 || 
+        (activeFilters.includes(event.type) || 
+         (activeFilters.includes('scheduled') && event.entityType === 'scheduled') ||
+         (activeFilters.includes('critical') && event.status === 'critical') ||
+         (activeFilters.includes('pending') && ['pending', 'in-progress', 'scheduled', 'programada'].includes(event.status)) ||
+         (activeFilters.includes('dueThisWeek') && 
+          eventDate <= endOfWeek(new Date()) && 
+          eventDate >= new Date())
+        );
+        
+      return isSameDay && passesFilter;
+    } catch (error) {
+      console.error('Erro ao processar evento no calendário:', error, event);
+      return false;
+    }
   });
 };

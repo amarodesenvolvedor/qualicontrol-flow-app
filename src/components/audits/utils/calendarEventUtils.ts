@@ -20,16 +20,29 @@ export const mapScheduledToEvents = (
   getWeekDates: (year: number, weekNumber: number) => { startDate: Date; endDate: Date }
 ): CalendarEvent[] => {
   return scheduledAudits.map(audit => {
-    // Get start date of the week
-    const { startDate } = getWeekDates(audit.year, audit.week_number);
-    
-    return {
-      id: audit.id,
-      title: `Auditoria: ${audit.department?.name || 'Departamento'}`,
-      date: startDate,
-      type: 'audit',
-      status: audit.status,
-      entityType: 'scheduled'
-    };
+    try {
+      // Fixed: Correctly passing parameters in correct order (year first, then week_number)
+      const { startDate } = getWeekDates(audit.year, audit.week_number);
+      
+      return {
+        id: audit.id,
+        title: `Auditoria: ${audit.department?.name || 'Departamento'}`,
+        date: startDate,
+        type: 'audit',
+        status: audit.status,
+        entityType: 'scheduled'
+      };
+    } catch (error) {
+      console.error(`Erro ao processar auditoria agendada ID ${audit.id}:`, error);
+      // Fallback to current date if there's an error with the date calculation
+      return {
+        id: audit.id,
+        title: `Auditoria: ${audit.department?.name || 'Departamento'} (data inválida)`,
+        date: new Date(),
+        type: 'audit',
+        status: audit.status,
+        entityType: 'scheduled'
+      };
+    }
   });
 };

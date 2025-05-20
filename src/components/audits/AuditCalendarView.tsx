@@ -31,9 +31,16 @@ const AuditCalendarView = ({ auditReports, scheduledAudits = [] }: AuditCalendar
     setDialogOpen(true);
   };
 
-  // Map audit reports and scheduled audits to calendar events
+  // Map audit reports to calendar events
   const reportEvents = mapReportsToEvents(auditReports);
-  const scheduledEvents = mapScheduledToEvents(scheduledAudits, getWeekDates);
+  
+  // Map scheduled audits to calendar events with error handling
+  let scheduledEvents: CalendarEvent[] = [];
+  try {
+    scheduledEvents = mapScheduledToEvents(scheduledAudits, getWeekDates);
+  } catch (error) {
+    console.error("Erro ao mapear auditorias programadas para eventos do calendário:", error);
+  }
 
   // Combine all events
   const events: CalendarEvent[] = [...reportEvents, ...scheduledEvents];

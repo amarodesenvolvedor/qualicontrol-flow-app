@@ -7,14 +7,27 @@ import { ScheduledAudit } from "@/types/audit";
 /**
  * Returns start and end dates for a given week number and year
  */
-export function getWeekDates(weekNumber: number, year: number) {
+export function getWeekDates(year: number, weekNumber: number) {
+  // Enhanced validation with more informative error messages
+  if (typeof year !== 'number' || isNaN(year)) {
+    console.error(`Ano inválido: ${year}`);
+    throw new Error(`Ano inválido: ${year}. Deve ser um número.`);
+  }
+  
+  if (typeof weekNumber !== 'number' || isNaN(weekNumber)) {
+    console.error(`Semana inválida: ${weekNumber}`);
+    throw new Error(`Semana inválida: ${weekNumber}. Deve ser um número.`);
+  }
+  
   // Validate week number (ISO weeks are 1-53)
-  if (typeof weekNumber !== 'number' || weekNumber < 1 || weekNumber > 53) {
+  if (weekNumber < 1 || weekNumber > 53) {
+    console.error(`Semana fora do intervalo válido: ${weekNumber}`);
     throw new Error(`Semana inválida: ${weekNumber}. Deve estar entre 1 e 53.`);
   }
   
   // Validate year
-  if (typeof year !== 'number' || year < 2000 || year > 2100) {
+  if (year < 2000 || year > 2100) {
+    console.error(`Ano fora do intervalo válido: ${year}`);
     throw new Error(`Ano inválido: ${year}. Deve estar entre 2000 e 2100.`);
   }
 
