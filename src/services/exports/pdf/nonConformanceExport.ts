@@ -1,8 +1,19 @@
 
 import { NonConformance } from "@/types/nonConformance";
 import { jsPDF } from "jspdf";
-import { generateFilename, initializePdfStyling, updatePageNumbers, addSectionTitle, addTextContent, addFooterToPdf } from "./utils/pdfGenerationUtils";
-import { addNonConformanceHeader, addBasicInformationSection, addScheduleSection } from "./utils/nonConformanceUtils";
+import { 
+  generateFilename, 
+  initializePdfStyling, 
+  updatePageNumbers, 
+  addSectionTitle, 
+  addTextContent, 
+  addFooterToPdf 
+} from "./utils/pdfGenerationUtils";
+import { 
+  addNonConformanceHeader, 
+  addBasicInformationSection, 
+  addScheduleSection 
+} from "./utils/nonConformanceUtils";
 
 /**
  * Exports non-conformance data to PDF with an enhanced professional layout
