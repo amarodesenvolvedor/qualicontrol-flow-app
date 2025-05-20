@@ -50,8 +50,13 @@ export const ScheduledAuditList = ({
   };
 
   const formatWeekDate = (weekNumber: number, year: number) => {
-    const { startDate, endDate } = getWeekDates(year, weekNumber);
-    return `${format(startDate, 'dd/MM')} - ${format(endDate, 'dd/MM/yyyy')}`;
+    try {
+      const { startDate, endDate } = getWeekDates(year, weekNumber);
+      return `${format(startDate, 'dd/MM')} - ${format(endDate, 'dd/MM/yyyy')}`;
+    } catch (error) {
+      console.error(`Erro ao formatar data da semana ${weekNumber}/${year}:`, error);
+      return `Semana ${weekNumber}`;
+    }
   };
 
   if (isLoading) {
