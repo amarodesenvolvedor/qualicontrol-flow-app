@@ -32,11 +32,11 @@ export const useScheduledAuditsQueries = () => {
         query = query.eq('year', filter.year);
       }
 
-      if (filter.departmentId) {
+      if (filter.departmentId && filter.departmentId !== 'all') {
         query = query.eq('department_id', filter.departmentId);
       }
 
-      if (filter.status) {
+      if (filter.status && filter.status !== 'all') {
         query = query.eq('status', filter.status);
       }
       

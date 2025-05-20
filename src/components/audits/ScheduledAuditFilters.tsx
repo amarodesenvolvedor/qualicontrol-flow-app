@@ -79,7 +79,7 @@ export const ScheduledAuditFilters = ({
                 <SelectValue placeholder="Todos os departamentos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os departamentos</SelectItem>
+                <SelectItem value="all">Todos os departamentos</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
@@ -99,7 +99,7 @@ export const ScheduledAuditFilters = ({
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
+                <SelectItem value="all">Todos os status</SelectItem>
                 <SelectItem value="programada">Programada</SelectItem>
                 <SelectItem value="agendada">Agendada</SelectItem>
                 <SelectItem value="concluida">Concluída</SelectItem>
