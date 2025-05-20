@@ -38,7 +38,7 @@ const ReportsPage = () => {
   return <Layout>
       <div className="flex flex-col gap-6 animate-fadeIn">
         <div className="flex items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
-          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-gray-700">
+          <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-slate-950">
             Relatórios
           </h1>
           <div className="flex items-center gap-2">
