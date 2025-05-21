@@ -1,7 +1,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
-import { isUrgent } from "@/components/dashboard/utils/dashboardHelpers";
+import { isCritical } from "@/components/dashboard/utils/dashboardHelpers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { NonConformance } from "@/hooks/useNonConformances";
 import { COLORS } from "@/components/dashboard/utils/dashboardConstants";
@@ -84,7 +84,6 @@ const DashboardContent = ({
 
       <RecentItemsList 
         recentItems={recentItems}
-        isUrgent={isUrgent}
       />
     </>
   );

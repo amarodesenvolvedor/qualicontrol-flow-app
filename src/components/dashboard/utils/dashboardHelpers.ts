@@ -1,3 +1,4 @@
+
 import { NonConformance } from "@/types/nonConformance";
 import { startOfDay, endOfDay, addDays, isWithinInterval } from "date-fns";
 
@@ -8,6 +9,17 @@ export function isUrgent(nc: NonConformance) {
   const diffTime = Math.abs(now.getTime() - createdDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays < 7;
+}
+
+// Updated function to check if a non-conformance is critical
+// New rule: Status is "pending" AND due_date (response_date) is before today
+export function isCritical(nc: NonConformance) {
+  if (!nc.response_date || nc.status !== 'pending') return false;
+  
+  const now = startOfDay(new Date());
+  const responseDate = new Date(nc.response_date);
+  
+  return responseDate < now;
 }
 
 // Helper function to check if a non-conformance is approaching deadline (within next 4 days)

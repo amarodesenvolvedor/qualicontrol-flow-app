@@ -16,8 +16,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import StatusBadge from "./nonconformance/details/StatusBadge";
+import { isCritical } from "@/components/dashboard/utils/dashboardHelpers";
 
 interface NonConformanceListProps {
   nonConformances: NonConformance[];
@@ -75,6 +77,21 @@ const NonConformanceList = ({
     }
   };
 
+  const getDeadlineStatus = (nc: NonConformance) => {
+    if (!nc.response_date) return null;
+    
+    const responseDate = new Date(nc.response_date);
+    const now = new Date();
+    
+    if (responseDate < now && nc.status === "pending") {
+      return <Badge className="bg-red-500 hover:bg-red-600">Vencido</Badge>;
+    } else if (nc.status === "pending") {
+      return <Badge className="bg-green-500 hover:bg-green-600">No Prazo</Badge>;
+    } else {
+      return <Badge className="bg-gray-500 hover:bg-gray-600">Concluído</Badge>;
+    }
+  };
+
   return (
     <>
       <Card>
@@ -105,6 +122,8 @@ const NonConformanceList = ({
                     <TableHead>Requisito ISO</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Data</TableHead>
+                    <TableHead>Prazo</TableHead>
+                    <TableHead>Situação do Prazo</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -112,13 +131,22 @@ const NonConformanceList = ({
                   {nonConformances.map((nc) => (
                     <TableRow key={nc.id}>
                       <TableCell className="font-medium">{nc.code}</TableCell>
-                      <TableCell>{nc.title}</TableCell>
+                      <TableCell>
+                        {nc.title}
+                        {isCritical(nc) && (
+                          <Badge variant="outline" className="ml-2 bg-red-100 text-red-800 border-red-200">
+                            Crítico
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell>{nc.department?.name || '-'}</TableCell>
                       <TableCell>{nc.iso_requirement || '-'}</TableCell>
                       <TableCell>
                         <StatusBadge status={nc.status} />
                       </TableCell>
                       <TableCell>{new Date(nc.occurrence_date).toLocaleDateString()}</TableCell>
+                      <TableCell>{nc.response_date ? new Date(nc.response_date).toLocaleDateString() : '-'}</TableCell>
+                      <TableCell>{getDeadlineStatus(nc)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button variant="ghost" size="icon" onClick={() => handleView(nc.id)}>

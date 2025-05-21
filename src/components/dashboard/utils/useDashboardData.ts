@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 import { NonConformance } from "@/hooks/useNonConformances";
 import { COLORS } from "@/components/dashboard/utils/dashboardConstants";
-import { isUrgent, isPastDeadline, isApproachingDeadline, prepareMonthlyData } from "@/components/dashboard/utils/dashboardHelpers";
+import { isCritical, isPastDeadline, isApproachingDeadline, prepareMonthlyData } from "@/components/dashboard/utils/dashboardHelpers";
 
 export function useDashboardData(filteredNonConformances: NonConformance[]) {
   return useMemo(() => {
@@ -10,8 +10,8 @@ export function useDashboardData(filteredNonConformances: NonConformance[]) {
     const statusData = [
       { name: "Concluídas", value: filteredNonConformances.filter(nc => nc && nc.status === "closed").length, color: COLORS.completed },
       { name: "Em Andamento", value: filteredNonConformances.filter(nc => nc && nc.status === "in-progress").length, color: COLORS.inProgress },
-      { name: "Críticas", value: filteredNonConformances.filter(nc => nc && nc.status === "pending" && isUrgent(nc)).length, color: COLORS.critical },
-      { name: "Pendentes", value: filteredNonConformances.filter(nc => nc && nc.status === "pending" && !isUrgent(nc)).length, color: COLORS.pending },
+      { name: "Críticas", value: filteredNonConformances.filter(nc => nc && isCritical(nc)).length, color: COLORS.critical },
+      { name: "Pendentes", value: filteredNonConformances.filter(nc => nc && nc.status === "pending" && !isCritical(nc)).length, color: COLORS.pending },
     ];
 
     // Group by department
