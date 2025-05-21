@@ -10,6 +10,17 @@ export const useNonConformanceList = (filters: NonConformanceFilter) => {
       try {
         console.log('Fetching with filters:', filters);
         const data = await fetchNonConformances(filters);
+        
+        // Add logging to help debug ISO requirement filter issues
+        if (filters.isoRequirement) {
+          console.log('ISO requirement filter applied:', filters.isoRequirement);
+          console.log('Filtered non-conformances count:', 
+            Array.isArray(data) 
+              ? data.filter(nc => nc.iso_requirement === filters.isoRequirement).length 
+              : 0
+          );
+        }
+        
         // Ensure we always return an array
         return Array.isArray(data) ? data : [];
       } catch (err) {
