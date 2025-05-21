@@ -1,6 +1,6 @@
 
 import { generateExcelReport } from "./exporters/excelExporter";
-import { generatePDFReport } from "./exporters/pdfExporter";
+import { generatePDFReport } from "./exporters/pdf/generatePDFReport";
 import { ExportedData } from "./utils/types";
 
 // Re-export the functions

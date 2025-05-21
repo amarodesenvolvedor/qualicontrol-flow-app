@@ -16,6 +16,16 @@ export interface PDFExportOptions {
 }
 
 /**
+ * Options for export operations
+ */
+export interface ExportOptions {
+  dateRange?: string;
+  year?: number;
+  specificDate?: Date;
+  includeFields?: Record<string, boolean>;
+}
+
+/**
  * Standard report metadata
  */
 export interface ReportMetadata {
@@ -34,3 +44,8 @@ export interface ColumnConfig {
   width?: number;
   formatter?: (value: any) => string;
 }
+
+/**
+ * Fix for exportUtils.ts error
+ */
+export type ExportedData = any[];

@@ -1,4 +1,3 @@
-
 import Layout from "@/components/app/Layout";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
@@ -8,7 +7,7 @@ import { useScheduledAudits } from "@/hooks/useScheduledAudits";
 import { Toaster } from "@/components/ui/toaster";
 import { ExportOptions } from "@/components/exports/ExportOptions";
 import { AvailableReports } from "@/components/exports/AvailableReports";
-import { getReportData } from "@/components/exports/utils/reportDataTransformers";
+import { getReportData } from "@/components/exports/utils/reports";
 import { generateExcelReport, generatePDFReport } from "@/components/exports/exportUtils";
 import { FileIcon } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -73,7 +72,7 @@ const ExportPage = () => {
       if (!reportData || reportData.length === 0) {
         console.warn(`Nenhum dado disponível para o relatório ${reportType} após transformação`);
         toast({
-          variant: "default", // Changed from "warning" to "default"
+          variant: "default",
           title: "Dados não encontrados",
           description: "Nenhum registro encontrado para os filtros selecionados."
         });
