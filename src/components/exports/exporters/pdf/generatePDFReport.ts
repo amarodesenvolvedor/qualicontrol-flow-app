@@ -50,32 +50,49 @@ export const generatePDFReport = async (
     }
     
     const pageWidth = doc.internal.pageSize.getWidth();
-    const lineHeight = options?.adjustLineSpacing ? 12 : 10; // Increased line height for better readability
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20; // Definindo margem padrão
+    const contentWidth = pageWidth - (margin * 2); // Largura útil do conteúdo
+    const lineHeight = options?.adjustLineSpacing ? 8 : 6; // Reduzido para melhor espaçamento
     let y = 40; // Start below header
     
     // Add title
-    doc.setFontSize(18);
+    doc.setFontSize(16); // Reduzido de 18 para 16
     doc.setTextColor(41, 65, 148); // Corporate blue
     doc.text(reportType, pageWidth / 2, y, { align: 'center' });
     y += lineHeight * 2;
     
     // Add date info with styled box
     doc.setFillColor(245, 245, 250); // Light background
-    doc.rect(20, y - 5, pageWidth - 40, lineHeight + 10, 'F');
+    doc.rect(margin, y - 5, contentWidth, lineHeight + 10, 'F');
     doc.setDrawColor(200, 200, 200);
-    doc.rect(20, y - 5, pageWidth - 40, lineHeight + 10, 'S');
+    doc.rect(margin, y - 5, contentWidth, lineHeight + 10, 'S');
     
-    doc.setFontSize(12);
+    doc.setFontSize(11); // Reduzido de 12 para 11
+    doc.setFont("helvetica", "normal"); // Usando normal em vez de negrito
     doc.setTextColor(0, 0, 0);
-    doc.text(`Data de geração: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, 25, y + 5);
+    doc.text(`Data de geração: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, margin + 5, y + 5);
     y += lineHeight * 2.5;
     
     // If this is an audit schedule report, add a note about the record count
     if (reportType.includes("Cronograma de Auditorias") && data.length > 0) {
-      doc.setFontSize(12);
+      doc.setFontSize(11);
       doc.setTextColor(41, 65, 148);
       doc.text(`Total de auditorias: ${data.length}`, pageWidth / 2, y, { align: 'center' });
       y += lineHeight * 1.5;
+    }
+    
+    // Check if we're close to the page bottom before adding content
+    const remainingSpace = pageHeight - y - 30; // 30mm safety margin
+    if (remainingSpace < 40) { // Se o espaço restante for menor que 40mm
+      if (options?.showFooter !== false) {
+        addFooterToPDF(doc, reportType, doc.getNumberOfPages(), doc.getNumberOfPages());
+      }
+      doc.addPage(useLandscape ? 'landscape' : 'portrait');
+      if (options?.showHeader !== false) {
+        addHeaderToPDF(doc, reportType);
+      }
+      y = 40; // Reset Y position after page break
     }
     
     // If data exists
@@ -89,14 +106,22 @@ export const generatePDFReport = async (
       if (data.length <= 5) {
         // Simple listing format for small datasets
         console.log('Using simple list format for PDF content');
-        y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, options);
+        y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, {
+          ...options,
+          margin,
+          contentWidth,
+          pageHeight
+        });
       } else {
         // Create enhanced table format for larger datasets
         // Pass options to allow landscape mode if needed
         console.log('Using table format for PDF content');
         y = addTableContent(doc, data, y, pageWidth, lineHeight, {
           ...options,
-          allowLandscape: true
+          allowLandscape: true,
+          margin,
+          contentWidth,
+          pageHeight
         });
       }
     } else {
@@ -109,11 +134,11 @@ export const generatePDFReport = async (
     y += lineHeight * 2;
     
     // Check if we need a new page for the summary
-    if (y > doc.internal.pageSize.getHeight() - 50) {
+    if (y > pageHeight - 50) {
       if (options?.showFooter !== false) {
         addFooterToPDF(doc, reportType, doc.getNumberOfPages(), doc.getNumberOfPages());
       }
-      doc.addPage();
+      doc.addPage(useLandscape ? 'landscape' : 'portrait');
       if (options?.showHeader !== false) {
         addHeaderToPDF(doc, reportType);
       }

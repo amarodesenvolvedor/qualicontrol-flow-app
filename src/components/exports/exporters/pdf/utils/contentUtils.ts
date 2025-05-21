@@ -6,16 +6,18 @@ import { jsPDF } from "jspdf";
  */
 export function estimateContentHeight(doc: jsPDF, item: Record<string, any>): number {
   let estimatedHeight = 0;
-  const lineHeight = 12;
+  const lineHeight = 8; // Reduzido para um espaçamento mais compacto
   const defaultFontSize = doc.getFontSize();
   const defaultFont = doc.getFont();
+  
+  doc.setFontSize(10); // Usar fonte menor para o cálculo
   
   Object.entries(item).forEach(([key, value]) => {
     const valueStr = String(value);
     
     // Use the PDF document's text width calculation for more accurate results
     const textWidth = doc.getTextWidth(`${key}: ${valueStr}`);
-    const availableWidth = doc.internal.pageSize.getWidth() - 70; // Accounting for margins
+    const availableWidth = doc.internal.pageSize.getWidth() - 100; // Mais espaço para margens
     
     if (textWidth > availableWidth) {
       // Calculate how many lines this text will need

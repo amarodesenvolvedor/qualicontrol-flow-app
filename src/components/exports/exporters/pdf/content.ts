@@ -16,52 +16,17 @@ export function addSimpleListContent(
   lineHeight: number, 
   options?: PDFExportOptions
 ): number {
+  const margin = options?.margin || 20;
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const contentWidth = pageWidth - (margin * 2);
+
   data.forEach((item, index) => {
-    // Add item box with light background
-    doc.setFillColor(245, 245, 250);
-    // Estimate needed height based on content
+    // Verificar se precisamos de uma nova página antes de adicionar o item
     const itemContentSize = estimateContentHeight(doc, item);
     const boxHeight = Math.max(lineHeight * 4, itemContentSize + lineHeight * 2);
     
-    doc.rect(15, y - 5, pageWidth - 30, boxHeight, 'F');
-    doc.setDrawColor(200, 200, 200);
-    doc.rect(15, y - 5, pageWidth - 30, boxHeight, 'S');
-    
-    // Item title with brand color
-    doc.setFontSize(14);
-    doc.setTextColor(41, 65, 148);
-    doc.text(`Item ${index + 1}`, 20, y);
-    y += lineHeight;
-    
-    // Item details with proper line breaks
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    
-    // Iterate through item properties with improved text handling
-    Object.entries(item).forEach(([key, value]) => {
-      const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
-      
-      // Handle value display with potential line breaks
-      const valueStr = String(value);
-      if (valueStr.length > 40 && options?.improveLineBreaks) {
-        // For longer text values, use text splitting
-        doc.text(`${formattedKey}:`, 30, y);
-        y += lineHeight/2;
-        
-        const maxWidth = pageWidth - 70;
-        const lines = doc.splitTextToSize(valueStr, maxWidth);
-        doc.text(lines, 40, y);
-        y += lines.length * (lineHeight * 0.8); // Adjust based on number of lines
-      } else {
-        doc.text(`${formattedKey}: ${valueStr}`, 30, y);
-        y += lineHeight;
-      }
-    });
-    
-    y += lineHeight / 2;
-    
-    // Add new page if needed
-    if (y > doc.internal.pageSize.getHeight() - 40) {
+    // Se o conteúdo não couber na página atual, criar nova página
+    if (y + boxHeight > pageHeight - 40) {
       if (options?.showFooter !== false) {
         addFooterToPDF(doc, "Report", doc.getNumberOfPages(), doc.getNumberOfPages());
       }
@@ -71,6 +36,53 @@ export function addSimpleListContent(
       }
       y = 40; // Reset Y position
     }
+    
+    // Add item box with light background
+    doc.setFillColor(245, 245, 250);
+    
+    doc.rect(margin, y - 5, contentWidth, boxHeight, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(margin, y - 5, contentWidth, boxHeight, 'S');
+    
+    // Item title with brand color
+    doc.setFontSize(12);
+    doc.setTextColor(41, 65, 148);
+    doc.setFont("helvetica", "bold"); // Usar negrito apenas para o título do item
+    doc.text(`Item ${index + 1}`, margin + 5, y);
+    y += lineHeight;
+    
+    // Item details with proper line breaks
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal"); // Volta para fonte normal para os detalhes
+    doc.setTextColor(0, 0, 0);
+    
+    // Iterate through item properties with improved text handling
+    Object.entries(item).forEach(([key, value]) => {
+      const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+      
+      // Handle value display with potential line breaks
+      const valueStr = String(value);
+      const labelOffset = margin + 15;
+      const valueOffset = margin + 45;
+      const maxValueWidth = contentWidth - (valueOffset - margin);
+      
+      // Sempre exibir o rótulo na posição correta
+      doc.setFont("helvetica", "bold"); // Negrito apenas para o rótulo
+      doc.text(`${formattedKey}:`, labelOffset, y);
+      doc.setFont("helvetica", "normal"); // Normal para o valor
+      
+      if (valueStr.length > 40 && options?.improveLineBreaks) {
+        // Para textos longos, fazer a quebra de linha apropriada
+        const lines = doc.splitTextToSize(valueStr, maxValueWidth);
+        doc.text(lines, valueOffset, y);
+        y += lines.length * lineHeight; // Ajustar posição Y com base no número de linhas
+      } else {
+        doc.text(valueStr, valueOffset, y);
+        y += lineHeight;
+      }
+    });
+    
+    y += lineHeight / 2;
   });
   
   return y;
@@ -110,7 +122,7 @@ export function addTableContent(
   const pageHeight = doc.internal.pageSize.getHeight();
   
   // Configure table column settings
-  const margin = 15;
+  const margin = options?.margin || 15;
   const tableWidth = pageWidth - (margin * 2);
   
   // Select columns to display - prioritize key information
@@ -133,11 +145,11 @@ export function addTableContent(
   
   // Draw table header with brand color background
   doc.setFillColor(41, 65, 148);
-  doc.rect(margin, y, tableWidth, lineHeight, 'F');
+  doc.rect(margin, y, tableWidth, lineHeight + 2, 'F');
   
   // Header text
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
+  doc.setFontSize(10); // Reduzido para melhor ajuste
   doc.setFont("helvetica", "bold");
   
   // Draw header cells
@@ -148,11 +160,12 @@ export function addTableContent(
     xPos += colWidths[i];
   });
   
-  y += lineHeight + 2;
+  y += lineHeight + 4;
   
   // Draw data rows with improved styling
   doc.setTextColor(0, 0, 0);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("helvetica", "normal"); // Normal para todo o conteúdo
+  doc.setFontSize(9); // Reduzido para caber melhor
   
   // Show ALL rows with pagination
   for (let i = 0; i < data.length; i++) {
@@ -171,9 +184,10 @@ export function addTableContent(
       
       // Redraw header on new page
       doc.setFillColor(41, 65, 148);
-      doc.rect(margin, y, tableWidth, lineHeight, 'F');
+      doc.rect(margin, y, tableWidth, lineHeight + 2, 'F');
       
       doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       
       xPos = margin + 5;
@@ -183,60 +197,58 @@ export function addTableContent(
         xPos += colWidths[j];
       });
       
-      y += lineHeight + 2;
+      y += lineHeight + 4;
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
     }
     
     // Alternate row background for readability
     if (i % 2 === 0) {
       doc.setFillColor(245, 245, 250);
-      doc.rect(margin, y - 5, tableWidth, lineHeight + 2, 'F');
+      doc.rect(margin, y - 4, tableWidth, lineHeight + 5, 'F');
     }
     
-    // Row data with proper cell positioning and text wrapping
-    xPos = margin + 5;
-    let maxRowHeight = lineHeight;
-    
-    // First pass: calculate row height based on wrapped content
+    // Pre-process row to determine height
     const rowContentHeights = [];
+    let maxRowHeight = lineHeight;
     
     visibleHeaders.forEach((header, j) => {
       const text = String(item[header] || '');
       const colWidth = colWidths[j] - 10; // Padding
-      const wrapped = doc.splitTextToSize(text, colWidth);
-      const contentHeight = wrapped.length * (lineHeight * 0.7);
-      rowContentHeights.push(contentHeight);
-      maxRowHeight = Math.max(maxRowHeight, contentHeight);
+      if (text.length > 15) {
+        const wrapped = doc.splitTextToSize(text, colWidth);
+        const contentHeight = wrapped.length * (lineHeight * 0.7);
+        rowContentHeights.push(contentHeight);
+        maxRowHeight = Math.max(maxRowHeight, contentHeight + 2);
+      } else {
+        rowContentHeights.push(lineHeight);
+      }
     });
     
-    // Adjust row height if needed
-    if (maxRowHeight > lineHeight) {
-      // Re-draw background for taller row
-      if (i % 2 === 0) {
-        doc.setFillColor(245, 245, 250);
-        doc.rect(margin, y - 5, tableWidth, maxRowHeight + 4, 'F');
-      }
+    // Re-draw background for taller row if needed
+    if (maxRowHeight > lineHeight && i % 2 === 0) {
+      doc.setFillColor(245, 245, 250);
+      doc.rect(margin, y - 4, tableWidth, maxRowHeight + 2, 'F');
     }
     
-    // Second pass: render cell content
+    // Add cell content with proper wrapping
     xPos = margin + 5;
     visibleHeaders.forEach((header, j) => {
       const text = String(item[header] || '');
       const colWidth = colWidths[j] - 10;
       
-      // Word wrap long text instead of truncating
-      if (text.length > 20) {
+      if (text.length > 15) {
         const wrapped = doc.splitTextToSize(text, colWidth);
-        doc.text(wrapped, xPos, y);
+        doc.text(wrapped, xPos, y + 2);
       } else {
-        doc.text(text, xPos, y);
+        doc.text(text, xPos, y + 2);
       }
       
       xPos += colWidths[j];
     });
     
-    y += maxRowHeight + 2;
+    y += maxRowHeight;
   }
   
   return y;
