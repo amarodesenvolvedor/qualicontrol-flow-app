@@ -7,6 +7,7 @@ import { TrendsTab } from "@/components/statistics/TrendsTab";
 import { ComparisonTab } from "@/components/statistics/ComparisonTab";
 import { ISORequirementsTab } from "@/components/statistics/ISORequirementsTab";
 import { useNonConformances } from "@/hooks/useNonConformances";
+import Layout from "@/components/app/Layout";
 
 const StatisticsPage = () => {
   const [selectedYear, setSelectedYear] = useState("2024");
@@ -21,7 +22,7 @@ const StatisticsPage = () => {
   };
 
   return (
-    <>
+    <Layout>
       <StatisticsHeader
         selectedYear={selectedYear}
         onYearChange={handleYearChange}
@@ -55,7 +56,7 @@ const StatisticsPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </>
+    </Layout>
   );
 };
 
