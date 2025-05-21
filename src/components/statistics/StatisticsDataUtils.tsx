@@ -1,6 +1,7 @@
 
 import { NonConformance } from "@/types/nonConformance";
 import { DataItem } from "@/components/charts/types";
+import { FC } from "react";
 
 export const generateTrendData = (nonConformances: NonConformance[]): DataItem[] => {
   // Ensure nonConformances is an array
@@ -43,4 +44,15 @@ export const generateTrendData = (nonConformances: NonConformance[]): DataItem[]
       "Resolvidas": (counts.resolved || 0) + (counts.closed || 0)
     } as DataItem;
   });
+};
+
+// Create a StatisticsDataUtils component that we can import in ISORequirementsTab
+interface StatisticsDataUtilsProps {
+  data: NonConformance[];
+}
+
+export const StatisticsDataUtils: FC<StatisticsDataUtilsProps> = ({ data }) => {
+  // Simple component that can be used to display statistics data
+  // Currently doesn't render anything, but could be extended to show additional data analysis
+  return null;
 };

@@ -1,11 +1,11 @@
 
 import { FC, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useNonConformances } from "@/hooks/useNonConformances";
 import { useDepartments } from "@/hooks/useDepartments";
 import { ComparisonChart } from "@/components/statistics/comparison/ComparisonChart";
 import { ComparisonFilters } from "@/components/statistics/comparison/ComparisonFilters";
+import { generateComparisonData } from "@/components/statistics/comparison/ComparisonDataUtil";
 
 export interface ComparisonTabProps {
   selectedYear: string;
@@ -46,74 +46,16 @@ export const ComparisonTab: FC<ComparisonTabProps> = ({ selectedYear }) => {
     setIsComparing(true);
     
     try {
-      // Filter nonconformances by years
-      const year1Data = nonConformances.filter(nc => {
-        const year = new Date(nc.occurrence_date).getFullYear().toString();
-        return year === year1;
-      });
+      // Use the utility function to generate comparison data
+      const processedData = generateComparisonData(
+        nonConformances,
+        departments,
+        year1,
+        year2,
+        selectedDepartments
+      );
       
-      const year2Data = nonConformances.filter(nc => {
-        const year = new Date(nc.occurrence_date).getFullYear().toString();
-        return year === year2;
-      });
-      
-      // Get departments to include
-      const deptFiltered = selectedDepartments.length > 0;
-      const deptsToInclude = deptFiltered ? selectedDepartments : departments.map(d => d.id || "");
-      
-      // Group by department
-      const deptMap: Record<string, { name: string, [year: string]: number }> = {};
-      
-      // Process year 1 data
-      year1Data.forEach(nc => {
-        if (!nc.department_id || !deptsToInclude.includes(nc.department_id)) return;
-        
-        const deptId = nc.department_id;
-        const dept = departments.find(d => d.id === deptId);
-        const deptName = dept?.name || "Unknown Department";
-        
-        if (!deptMap[deptId]) {
-          deptMap[deptId] = { 
-            name: deptName, 
-            [`${year1}`]: 0,
-            [`${year2}`]: 0,
-            total: 0,
-            value: 0
-          };
-        }
-        
-        deptMap[deptId][`${year1}`]++;
-        deptMap[deptId].total++;
-        deptMap[deptId].value = deptMap[deptId][`${year1}`];
-      });
-      
-      // Process year 2 data
-      year2Data.forEach(nc => {
-        if (!nc.department_id || !deptsToInclude.includes(nc.department_id)) return;
-        
-        const deptId = nc.department_id;
-        const dept = departments.find(d => d.id === deptId);
-        const deptName = dept?.name || "Unknown Department";
-        
-        if (!deptMap[deptId]) {
-          deptMap[deptId] = { 
-            name: deptName, 
-            [`${year1}`]: 0,
-            [`${year2}`]: 0,
-            total: 0,
-            value: 0
-          };
-        }
-        
-        deptMap[deptId][`${year2}`]++;
-        deptMap[deptId].total++;
-      });
-      
-      // Convert to array and sort by name
-      const result = Object.values(deptMap)
-        .sort((a, b) => a.name.localeCompare(b.name));
-      
-      setComparisonData(result);
+      setComparisonData(processedData);
     } catch (error) {
       console.error("Error processing comparison data:", error);
     } finally {
