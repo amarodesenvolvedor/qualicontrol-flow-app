@@ -11,6 +11,7 @@ import { AvailableReports } from "@/components/exports/AvailableReports";
 import { getReportData } from "@/components/exports/utils/reportDataTransformers";
 import { generateExcelReport, generatePDFReport } from "@/components/exports/exportUtils";
 import { FileIcon } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const ExportPage = () => {
   const [exportFormat, setExportFormat] = useState<string>("excel");
@@ -72,7 +73,7 @@ const ExportPage = () => {
       if (!reportData || reportData.length === 0) {
         console.warn(`Nenhum dado disponível para o relatório ${reportType} após transformação`);
         toast({
-          variant: "warning",
+          variant: "default", // Changed from "warning" to "default"
           title: "Dados não encontrados",
           description: "Nenhum registro encontrado para os filtros selecionados."
         });
