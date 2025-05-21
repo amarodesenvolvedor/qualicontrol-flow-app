@@ -1,5 +1,5 @@
 
-import { NonConformance } from "@/hooks/useNonConformances";
+import { NonConformance } from "@/types/nonConformance";
 import { DataItem } from "@/components/charts/types";
 
 export const generateTrendData = (nonConformances: NonConformance[]): DataItem[] => {
@@ -52,4 +52,9 @@ export const generateComparisonData = (): DataItem[] => {
     { name: "Logística", value: 9, "2025-1": 9, "2024-2": 11 },
     { name: "Manutenção", value: 16, "2025-1": 16, "2024-2": 15 }
   ];
+};
+
+// Create a simple functional component that can be used in ISORequirementsTab
+export const StatisticsDataUtils = ({ data }: { data: NonConformance[] }) => {
+  return null; // This component doesn't render anything, it's just for utility functions
 };

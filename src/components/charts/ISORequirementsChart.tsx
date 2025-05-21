@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Label } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +18,15 @@ interface ISORequirementsChartProps {
   onExport?: (format: string) => void;
   height?: number;
 }
+
+type DataItem = {
+  name: string;
+  pending: number;
+  inProgress: number;
+  closed: number;
+  total: number;
+  value: number;
+};
 
 type DateRange = {
   from: Date | null;
@@ -72,6 +80,7 @@ export function ISORequirementsChart({
       closed: number;
       total: number;
       name: string;
+      value: number; // Add value property to match DataItem interface
     }> = {};
     
     // Initialize with all ISO requirements
@@ -82,7 +91,8 @@ export function ISORequirementsChart({
           inProgress: 0,
           closed: 0,
           total: 0,
-          name: req.value
+          name: req.value,
+          value: 0 // Initialize value to 0
         };
       });
     } else {
@@ -100,7 +110,8 @@ export function ISORequirementsChart({
           inProgress: 0,
           closed: 0,
           total: 0,
-          name: chapter
+          name: chapter,
+          value: 0 // Initialize value to 0
         };
       });
     }
@@ -123,12 +134,14 @@ export function ISORequirementsChart({
           inProgress: 0,
           closed: 0,
           total: 0,
-          name: key
+          name: key,
+          value: 0 // Initialize value to 0
         };
       }
       
       // Increment counts by status
       requirementCounts[key].total += 1;
+      requirementCounts[key].value += 1; // Update value property to match total
       
       if (nc.status === "pending") {
         requirementCounts[key].pending += 1;
@@ -159,7 +172,7 @@ export function ISORequirementsChart({
         return aMinor - bMinor;
       });
     
-    return result;
+    return result as DataItem[];
   }, [filteredByDateData, groupingType]);
   
   // Get the requirement labels for tooltips

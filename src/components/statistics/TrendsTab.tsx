@@ -1,32 +1,14 @@
+import { FC } from "react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InteractiveChart } from "@/components/reports/InteractiveChart";
-import { DataItem } from "@/components/charts/types";
-
-interface TrendsTabProps {
-  trendData: DataItem[];
+export interface TrendsTabProps {
+  selectedYear: string;
 }
 
-export const TrendsTab = ({ trendData }: TrendsTabProps) => {
+export const TrendsTab: FC<TrendsTabProps> = ({ selectedYear }) => {
   return (
-    <div className="grid gap-6 animate-fade-in">
-      <Card className="rounded-xl shadow hover:shadow-md transition-all duration-300">
-        <CardHeader>
-          <CardTitle>Tendência de Não Conformidades</CardTitle>
-          <CardDescription>Evolução mensal por status</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2">
-          <div className="h-[400px]">
-            <InteractiveChart
-              title=""
-              data={trendData}
-              type="line"
-              dataKey="value"
-              height={400}
-            />
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <h2>Tendências - {selectedYear}</h2>
+      {/* Trends content goes here */}
     </div>
   );
 };
