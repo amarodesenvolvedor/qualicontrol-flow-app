@@ -1,6 +1,11 @@
 
+import { FC } from "react";
 import { NonConformance } from "@/types/nonConformance";
 import { DataItem } from "@/components/charts/types";
+
+interface StatisticsDataUtilsProps {
+  data: NonConformance[];
+}
 
 export const generateTrendData = (nonConformances: NonConformance[]): DataItem[] => {
   // Ensure nonConformances is an array
@@ -54,7 +59,7 @@ export const generateComparisonData = (): DataItem[] => {
   ];
 };
 
-// Create a simple functional component that can be used in ISORequirementsTab
-export const StatisticsDataUtils = ({ data }: { data: NonConformance[] }) => {
+// Create a functional component that can be exported and used in ISORequirementsTab
+export const StatisticsDataUtils: FC<StatisticsDataUtilsProps> = ({ data }) => {
   return null; // This component doesn't render anything, it's just for utility functions
 };

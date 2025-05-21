@@ -29,17 +29,21 @@ const StatisticsPage = () => {
         isLoading={isLoading}
       />
 
-      <div className="mt-8">
+      <div className="mt-8 container mx-auto">
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
+          <TabsList className="w-full border-b flex overflow-x-auto pb-px">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="iso-requirements">Requisitos ISO</TabsTrigger>
             <TabsTrigger value="trends">Tendências</TabsTrigger>
             <TabsTrigger value="comparison">Comparação</TabsTrigger>
-            <TabsTrigger value="iso-requirements">Requisitos ISO</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
             <OverviewTab selectedYear={selectedYear} />
+          </TabsContent>
+          
+          <TabsContent value="iso-requirements" className="space-y-4">
+            <ISORequirementsTab />
           </TabsContent>
 
           <TabsContent value="trends" className="space-y-4">
@@ -48,10 +52,6 @@ const StatisticsPage = () => {
 
           <TabsContent value="comparison" className="space-y-4">
             <ComparisonTab selectedYear={selectedYear} />
-          </TabsContent>
-          
-          <TabsContent value="iso-requirements" className="space-y-4">
-            <ISORequirementsTab />
           </TabsContent>
         </Tabs>
       </div>
