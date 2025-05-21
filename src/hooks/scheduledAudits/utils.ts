@@ -6,6 +6,9 @@ import { ScheduledAudit } from "@/types/audit";
 
 /**
  * Returns start and end dates for a given week number and year
+ * @param year The year (e.g., 2025)
+ * @param weekNumber The week number (1-53)
+ * @returns Object with startDate and endDate
  */
 export function getWeekDates(year: number, weekNumber: number) {
   // Enhanced validation with more informative error messages
@@ -32,6 +35,8 @@ export function getWeekDates(year: number, weekNumber: number) {
   }
 
   try {
+    console.log(`Calculando datas para Ano ${year}, Semana ${weekNumber}`);
+    
     // Create a date representing the first day of the year
     const firstDayOfYear = new Date(year, 0, 1);
     
@@ -43,6 +48,8 @@ export function getWeekDates(year: number, weekNumber: number) {
     
     // Calculate the end of the week (6 days later)
     const targetWeekEnd = addDays(targetWeekStart, 6);
+    
+    console.log(`Resultado: início em ${format(targetWeekStart, "yyyy-MM-dd")}, fim em ${format(targetWeekEnd, "yyyy-MM-dd")}`);
     
     return {
       startDate: targetWeekStart,

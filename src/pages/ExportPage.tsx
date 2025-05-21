@@ -37,6 +37,9 @@ const ExportPage = () => {
     });
     
     try {
+      console.log(`Iniciando exportação de ${reportType}`);
+      console.log(`Dados disponíveis: ${scheduledAudits.length} auditorias programadas`);
+      
       // Create export options object with filters
       const exportOptions = {
         dateRange,
@@ -45,9 +48,12 @@ const ExportPage = () => {
         includeFields,
       };
       
-      // Debug: Log the data being sent for export
-      console.log(`Exportando ${reportType} com ${scheduledAudits.length} auditorias programadas`);
-      console.log('Scheduled audits enviados para exportação:', scheduledAudits);
+      console.log('Opções de exportação:', exportOptions);
+      console.log('Quantidade de auditorias programadas disponíveis:', scheduledAudits.length);
+      
+      if (scheduledAudits.length > 0) {
+        console.log('Amostra dos dados de auditorias programadas:', scheduledAudits.slice(0, 2));
+      }
       
       // Get report data based on type and filters
       const reportData = getReportData(
@@ -58,11 +64,24 @@ const ExportPage = () => {
         exportOptions
       );
       
-      // Debug: Check the data after transformation
-      console.log("Dados após getReportData:", reportData);
+      console.log(`Dados transformados para relatório ${reportType}:`, { 
+        quantidadeRegistros: reportData?.length || 0,
+        amostraDados: reportData?.slice(0, 2) || []
+      });
+      
+      if (!reportData || reportData.length === 0) {
+        console.warn(`Nenhum dado disponível para o relatório ${reportType} após transformação`);
+        toast({
+          variant: "warning",
+          title: "Dados não encontrados",
+          description: "Nenhum registro encontrado para os filtros selecionados."
+        });
+        return;
+      }
       
       if (exportFormat === 'excel') {
         // Generate Excel file
+        console.log('Gerando relatório Excel...');
         await generateExcelReport(reportType, reportData);
       } else {
         try {
@@ -74,6 +93,8 @@ const ExportPage = () => {
             forceLandscape: reportType.includes("Cronograma de Auditorias"),
             allowLandscape: true
           };
+          
+          console.log('Gerando relatório PDF com opções:', pdfOptions);
           
           // Generate PDF file with improved formatting
           await generatePDFReport(reportType, reportData, pdfOptions);
@@ -112,7 +133,7 @@ const ExportPage = () => {
             <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full">
               <FileIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-slate-950">
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Exportar Dados
             </h1>
           </div>

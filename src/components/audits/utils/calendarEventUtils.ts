@@ -1,6 +1,6 @@
 
 import { AuditReport, ScheduledAudit } from "@/types/audit";
-import { CalendarEvent } from "@/components/shared/CalendarView";
+import { CalendarEvent } from "@/components/shared/calendar/types";
 
 // Convert audit reports to calendar events
 export const mapReportsToEvents = (auditReports: AuditReport[]): CalendarEvent[] => {
@@ -21,7 +21,7 @@ export const mapScheduledToEvents = (
 ): CalendarEvent[] => {
   return scheduledAudits.map(audit => {
     try {
-      // Fixed: Correctly passing parameters in correct order (year first, then week_number)
+      // CORREÇÃO: Certifique-se de que os parâmetros estão na ordem correta: year seguido por week_number
       const { startDate } = getWeekDates(audit.year, audit.week_number);
       
       return {

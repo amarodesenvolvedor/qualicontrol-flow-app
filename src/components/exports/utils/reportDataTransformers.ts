@@ -95,12 +95,18 @@ export const getReportData = (
       
     case "Cronograma de Auditorias":
       // Usar os dados de auditorias programadas com formatação aprimorada
+      console.log(`Processando ${filteredScheduledAudits.length} auditorias para o relatório`);
+      
       return filteredScheduledAudits.map(audit => {
         try {
-          // Get week dates for better display
-          const { startDate, endDate } = getWeekDates(audit.week_number, audit.year);
+          console.log(`Processando auditoria: Semana ${audit.week_number}, Ano ${audit.year}`);
+          
+          // CORREÇÃO: Invertendo os parâmetros para (year, week_number) - ordem correta
+          const { startDate, endDate } = getWeekDates(audit.year, audit.week_number);
           const formattedStartDate = format(startDate, "dd/MM/yyyy", { locale: ptBR });
           const formattedEndDate = format(endDate, "dd/MM/yyyy", { locale: ptBR });
+          
+          console.log(`Datas calculadas: ${formattedStartDate} - ${formattedEndDate}`);
           
           return {
             semana: `Semana ${audit.week_number}`,
@@ -112,11 +118,13 @@ export const getReportData = (
             observacoes: audit.notes || "N/A"
           };
         } catch (error) {
-          console.error(`Erro ao processar auditoria: ${error.message}`, audit);
-          // Return a fallback object with available data
+          // Melhorado o log de erro com mais detalhes
+          console.error(`Erro ao processar auditoria (Semana ${audit.week_number}, Ano ${audit.year}): ${error.message}`, audit);
+          
+          // Retornar objeto com dados disponíveis mesmo em caso de erro
           return {
             semana: `Semana ${audit.week_number || 'N/A'}`,
-            periodo: `N/A`,
+            periodo: `Período indisponível`,
             departamento: audit.department?.name || "N/A",
             auditor_responsavel: audit.responsible_auditor || "N/A",
             status: statusMap[audit.status] || audit.status || "N/A",
@@ -194,10 +202,11 @@ function applyDateFilters(
     // For scheduled audits, check if the specific date falls within the week period
     filteredScheduledAudits = filteredScheduledAudits.filter(item => {
       try {
-        const { startDate, endDate } = getWeekDates(item.week_number, item.year);
+        // CORREÇÃO: Invertendo os parâmetros para (year, week_number) - ordem correta
+        const { startDate, endDate } = getWeekDates(item.year, item.week_number);
         return isWithinInterval(specificDate, { start: startDate, end: endDate });
       } catch (error) {
-        console.error(`Error filtering by specific date: ${error.message}`, item);
+        console.error(`Erro ao filtrar por data específica (Semana ${item.week_number}, Ano ${item.year}): ${error.message}`, item);
         return false; // Exclude items that cause errors
       }
     });
@@ -244,15 +253,24 @@ function applyDateFilters(
     // For scheduled audits, use a different approach based on weeks
     filteredScheduledAudits = filteredScheduledAudits.filter(item => {
       try {
-        // Calculate if the week overlaps with the date range
-        const { startDate, endDate } = getWeekDates(item.week_number, item.year);
-        return (
+        // CORREÇÃO: Invertendo os parâmetros para (year, week_number) - ordem correta
+        const { startDate, endDate } = getWeekDates(item.year, item.week_number);
+        
+        // Melhorado o log para depuração
+        console.log(`Filtrando auditoria da Semana ${item.week_number}, Ano ${item.year}:`);
+        console.log(`- Período da semana: ${format(startDate, "dd/MM/yyyy")} - ${format(endDate, "dd/MM/yyyy")}`);
+        console.log(`- Período do filtro: ${format(startFilterDate, "dd/MM/yyyy")} - ${format(endFilterDate, "dd/MM/yyyy")}`);
+        
+        const overlap = (
           (startDate <= endFilterDate && startDate >= startFilterDate) ||
           (endDate >= startFilterDate && endDate <= endFilterDate) ||
           (startDate <= startFilterDate && endDate >= endFilterDate)
         );
+        
+        console.log(`- Resultado do filtro: ${overlap ? 'Incluído' : 'Excluído'}`);
+        return overlap;
       } catch (error) {
-        console.error(`Error in date range filter: ${error.message}`, item);
+        console.error(`Erro no filtro de intervalo de datas (Semana ${item.week_number}, Ano ${item.year}): ${error.message}`, item);
         return false; // Exclude items that cause errors
       }
     });

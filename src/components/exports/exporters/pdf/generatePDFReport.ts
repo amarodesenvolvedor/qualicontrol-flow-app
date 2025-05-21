@@ -19,10 +19,16 @@ export const generatePDFReport = async (
 ): Promise<void> => {
   try {
     console.log(`Generating PDF report for ${reportType} with ${data?.length || 0} records`);
+    console.log('PDF data sample:', data?.slice(0, 2));
+    
     // Ensure data is an array
     if (!Array.isArray(data)) {
       console.error("Data provided to generatePDFReport is not an array", data);
       data = [];
+    }
+
+    if (data.length === 0) {
+      console.warn(`Nenhum dado disponível para gerar o relatório ${reportType}`);
     }
     
     // Determine if we should use landscape orientation
@@ -30,6 +36,8 @@ export const generatePDFReport = async (
       reportType.includes("Cronograma de Auditorias") || 
       (data.length > 15 && Object.keys(data[0] || {}).length > 4) ||
       options?.forceLandscape;
+    
+    console.log(`Using ${useLandscape ? 'landscape' : 'portrait'} orientation for PDF`);
     
     // Create PDF document with appropriate orientation
     const doc = new jsPDF({
@@ -72,13 +80,20 @@ export const generatePDFReport = async (
     
     // If data exists
     if (data.length > 0) {
+      console.log(`Rendering ${data.length} records to PDF`);
+      
+      // Log column keys for debugging table structure
+      console.log('PDF report columns:', Object.keys(data[0]));
+      
       // Determine if we need to create a table or just list the items
       if (data.length <= 5) {
         // Simple listing format for small datasets
+        console.log('Using simple list format for PDF content');
         y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, options);
       } else {
         // Create enhanced table format for larger datasets
         // Pass options to allow landscape mode if needed
+        console.log('Using table format for PDF content');
         y = addTableContent(doc, data, y, pageWidth, lineHeight, {
           ...options,
           allowLandscape: true
@@ -86,6 +101,7 @@ export const generatePDFReport = async (
       }
     } else {
       // No data message
+      console.warn('No data available for PDF report, showing empty state');
       y = addNoDataMessage(doc, y, pageWidth, lineHeight);
     }
     
@@ -117,8 +133,8 @@ export const generatePDFReport = async (
     }
     
     // Save the PDF
+    console.log(`PDF generation completed successfully with ${doc.getNumberOfPages()} pages`);
     doc.save(`${reportType.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.pdf`);
-    console.log(`PDF report generated successfully for ${reportType}`);
     
   } catch (error) {
     console.error(`Error generating PDF report for ${reportType}:`, error);
