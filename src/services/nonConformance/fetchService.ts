@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { NonConformance, NonConformanceFilter } from '@/types/nonConformance';
 import { format } from 'date-fns';
@@ -27,9 +28,10 @@ export const fetchNonConformances = async (filters: NonConformanceFilter = {}): 
       query = query.ilike('responsible_name', `%${filters.responsibleName}%`);
     }
 
-    // Fix the excessive type instantiation by using a straightforward equality check
-    if (filters.isoRequirement) {
-      query = query.eq('iso_requirement', filters.isoRequirement);
+    // Handle ISO requirement filtering with explicit type casting to avoid deep instantiation
+    const isoReq = filters.isoRequirement;
+    if (typeof isoReq === 'string' && isoReq.length > 0) {
+      query = query.eq('iso_requirement', isoReq);
     }
     
     if (filters.dateRange?.from || filters.dateRange?.to) {
