@@ -8,6 +8,7 @@ export const useNonConformanceList = (filters: NonConformanceFilter) => {
     queryKey: ['nonConformances', filters],
     queryFn: async () => {
       try {
+        console.log('Fetching with filters:', filters);
         const data = await fetchNonConformances(filters);
         // Ensure we always return an array
         return Array.isArray(data) ? data : [];

@@ -28,10 +28,9 @@ export const fetchNonConformances = async (filters: NonConformanceFilter = {}): 
       query = query.ilike('responsible_name', `%${filters.responsibleName}%`);
     }
 
-    // Handle ISO requirement filtering with explicit type casting to avoid deep instantiation
-    const isoReq = filters.isoRequirement;
-    if (typeof isoReq === 'string' && isoReq.length > 0) {
-      query = query.eq('iso_requirement', isoReq);
+    // Simplify ISO requirement filtering to avoid type instantiation issues
+    if (filters.isoRequirement && filters.isoRequirement !== '') {
+      query = query.eq('iso_requirement', filters.isoRequirement);
     }
     
     if (filters.dateRange?.from || filters.dateRange?.to) {

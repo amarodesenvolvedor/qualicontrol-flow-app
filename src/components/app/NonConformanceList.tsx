@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,6 +102,7 @@ const NonConformanceList = ({
                     <TableHead>Código</TableHead>
                     <TableHead>Título</TableHead>
                     <TableHead>Departamento</TableHead>
+                    <TableHead>Requisito ISO</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead>Ações</TableHead>
@@ -112,6 +114,7 @@ const NonConformanceList = ({
                       <TableCell className="font-medium">{nc.code}</TableCell>
                       <TableCell>{nc.title}</TableCell>
                       <TableCell>{nc.department?.name || '-'}</TableCell>
+                      <TableCell>{nc.iso_requirement || '-'}</TableCell>
                       <TableCell>
                         <StatusBadge status={nc.status} />
                       </TableCell>
