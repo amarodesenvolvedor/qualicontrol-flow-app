@@ -1,22 +1,35 @@
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useNonConformances } from "@/hooks/useNonConformances";
+import { generateTrendData } from "@/components/statistics/StatisticsDataUtils";
 
 export interface TrendsTabProps {
   selectedYear: string;
 }
 
 export const TrendsTab: FC<TrendsTabProps> = ({ selectedYear }) => {
-  // Dados de exemplo para as tendências
-  const trendsData = [
-    { name: 'Jan', pendentes: 4, concluidas: 2, total: 6 },
-    { name: 'Fev', pendentes: 3, concluidas: 4, total: 7 },
-    { name: 'Mar', pendentes: 2, concluidas: 3, total: 5 },
-    { name: 'Abr', pendentes: 6, concluidas: 4, total: 10 },
-    { name: 'Mai', pendentes: 5, concluidas: 3, total: 8 },
-    { name: 'Jun', pendentes: 7, concluidas: 5, total: 12 }
-  ];
+  const { nonConformances, isLoading } = useNonConformances();
+  const [trendsData, setTrendsData] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!nonConformances) return;
+
+    // Filter by selected year
+    const yearData = nonConformances.filter(nc => {
+      const ncDate = new Date(nc.occurrence_date);
+      return ncDate.getFullYear().toString() === selectedYear;
+    });
+
+    // Generate trend data using utility function
+    const processedData = generateTrendData(yearData);
+    setTrendsData(processedData);
+  }, [nonConformances, selectedYear]);
+
+  if (isLoading) {
+    return <div className="p-8 text-center">Carregando dados...</div>;
+  }
   
   return (
     <div className="space-y-6">
@@ -34,30 +47,23 @@ export const TrendsTab: FC<TrendsTabProps> = ({ selectedYear }) => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} />
-                <Line type="monotone" dataKey="pendentes" stroke="#f59e0b" strokeWidth={2} />
-                <Line type="monotone" dataKey="concluidas" stroke="#10b981" strokeWidth={2} />
+                <Line type="monotone" dataKey="value" name="Total" stroke="#3b82f6" strokeWidth={2} />
+                <Line type="monotone" dataKey="Pendentes" stroke="#f59e0b" strokeWidth={2} />
+                <Line type="monotone" dataKey="Em Andamento" stroke="#ec4899" strokeWidth={2} />
+                <Line type="monotone" dataKey="Resolvidas" stroke="#10b981" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Análise de Tendências</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <p>Análise das tendências para o ano de {selectedYear}:</p>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Observa-se um aumento constante no número total de não conformidades.</li>
-              <li>A taxa de resolução manteve um crescimento gradual durante os meses.</li>
-              <li>Os departamentos com maior incidência foram: Produção, Qualidade e Logística.</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+      {trendsData.length === 0 && (
+        <Card>
+          <CardContent className="p-6 text-center text-muted-foreground">
+            Não há dados suficientes para mostrar tendências no ano selecionado.
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

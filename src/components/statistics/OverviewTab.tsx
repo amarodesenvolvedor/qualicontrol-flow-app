@@ -1,22 +1,76 @@
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useNonConformances } from "@/hooks/useNonConformances";
+import { NonConformance } from "@/types/nonConformance";
 
 export interface OverviewTabProps {
   selectedYear: string;
 }
 
 export const OverviewTab: FC<OverviewTabProps> = ({ selectedYear }) => {
-  // Dados de exemplo para a visão geral
-  const overviewData = [
-    { name: 'Jan', value: 4 },
-    { name: 'Fev', value: 7 },
-    { name: 'Mar', value: 5 },
-    { name: 'Abr', value: 10 },
-    { name: 'Mai', value: 8 },
-    { name: 'Jun', value: 12 }
-  ];
+  const { nonConformances, isLoading } = useNonConformances();
+  const [overviewData, setOverviewData] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    pending: 0,
+    inProgress: 0,
+    completed: 0,
+    total: 0,
+    monthlyAvg: 0
+  });
+
+  useEffect(() => {
+    if (!nonConformances) return;
+
+    // Filter non-conformances by selected year
+    const yearData = nonConformances.filter(nc => {
+      const ncDate = new Date(nc.occurrence_date);
+      return ncDate.getFullYear().toString() === selectedYear;
+    });
+
+    // Process monthly data
+    const monthlyData: {[key: string]: number} = {};
+    const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+    months.forEach(month => {
+      monthlyData[month] = 0;
+    });
+
+    yearData.forEach(nc => {
+      const date = new Date(nc.occurrence_date);
+      const monthIdx = date.getMonth();
+      const monthName = months[monthIdx];
+      monthlyData[monthName] = (monthlyData[monthName] || 0) + 1;
+    });
+
+    const formattedData = Object.keys(monthlyData).map(month => ({
+      name: month,
+      value: monthlyData[month]
+    }));
+
+    setOverviewData(formattedData);
+
+    // Calculate stats
+    const pending = yearData.filter(nc => nc.status === 'pending').length;
+    const inProgress = yearData.filter(nc => nc.status === 'in-progress').length;
+    const completed = yearData.filter(nc => 
+      nc.status === 'resolved' || nc.status === 'closed'
+    ).length;
+
+    setStats({
+      pending,
+      inProgress,
+      completed,
+      total: yearData.length,
+      monthlyAvg: yearData.length > 0 ? +(yearData.length / 12).toFixed(1) : 0
+    });
+
+  }, [nonConformances, selectedYear]);
+
+  if (isLoading) {
+    return <div className="p-8 text-center">Carregando dados...</div>;
+  }
   
   return (
     <div className="space-y-6">
@@ -49,15 +103,15 @@ export const OverviewTab: FC<OverviewTabProps> = ({ selectedYear }) => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Pendentes</span>
-                <span className="font-bold">24</span>
+                <span className="font-bold">{stats.pending}</span>
               </div>
               <div className="flex justify-between">
                 <span>Em Andamento</span>
-                <span className="font-bold">15</span>
+                <span className="font-bold">{stats.inProgress}</span>
               </div>
               <div className="flex justify-between">
                 <span>Concluídas</span>
-                <span className="font-bold">32</span>
+                <span className="font-bold">{stats.completed}</span>
               </div>
             </div>
           </CardContent>
@@ -71,15 +125,17 @@ export const OverviewTab: FC<OverviewTabProps> = ({ selectedYear }) => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Total de Não Conformidades</span>
-                <span className="font-bold">71</span>
+                <span className="font-bold">{stats.total}</span>
               </div>
               <div className="flex justify-between">
                 <span>Média Mensal</span>
-                <span className="font-bold">11.8</span>
+                <span className="font-bold">{stats.monthlyAvg}</span>
               </div>
               <div className="flex justify-between">
                 <span>% Resolvidas</span>
-                <span className="font-bold">45%</span>
+                <span className="font-bold">
+                  {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+                </span>
               </div>
             </div>
           </CardContent>

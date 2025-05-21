@@ -1,73 +1,167 @@
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useNonConformances } from "@/hooks/useNonConformances";
+import { useDepartments } from "@/hooks/useDepartments";
+import { ComparisonChart } from "@/components/statistics/comparison/ComparisonChart";
+import { ComparisonFilters } from "@/components/statistics/comparison/ComparisonFilters";
 
 export interface ComparisonTabProps {
   selectedYear: string;
 }
 
 export const ComparisonTab: FC<ComparisonTabProps> = ({ selectedYear }) => {
-  // Dados de exemplo para comparação entre anos
-  const comparisonData = [
-    { name: 'Produção', atual: 24, anterior: 18 },
-    { name: 'Qualidade', atual: 14, anterior: 12 },
-    { name: 'Logística', atual: 9, anterior: 11 },
-    { name: 'Manutenção', atual: 16, anterior: 15 }
-  ];
+  const { nonConformances, isLoading } = useNonConformances();
+  const { departments } = useDepartments();
   
+  const [year1, setYear1] = useState(selectedYear);
+  const [year2, setYear2] = useState((parseInt(selectedYear) - 1).toString());
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [comparisonData, setComparisonData] = useState<any[]>([]);
+  const [isComparing, setIsComparing] = useState(false);
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!nonConformances?.length) return;
+
+    // Calculate available years from data
+    const yearsSet = new Set<string>();
+    nonConformances.forEach(nc => {
+      const year = new Date(nc.occurrence_date).getFullYear().toString();
+      yearsSet.add(year);
+    });
+    
+    // Sort years descending
+    const years = Array.from(yearsSet).sort((a, b) => parseInt(b) - parseInt(a));
+    setAvailableYears(years);
+
+    // Default to current year and previous year
+    if (years.length >= 1) setYear1(years[0]);
+    if (years.length >= 2) setYear2(years[1]);
+  }, [nonConformances]);
+
+  const handleCompare = () => {
+    if (!nonConformances?.length) return;
+    setIsComparing(true);
+    
+    try {
+      // Filter nonconformances by years
+      const year1Data = nonConformances.filter(nc => {
+        const year = new Date(nc.occurrence_date).getFullYear().toString();
+        return year === year1;
+      });
+      
+      const year2Data = nonConformances.filter(nc => {
+        const year = new Date(nc.occurrence_date).getFullYear().toString();
+        return year === year2;
+      });
+      
+      // Get departments to include
+      const deptFiltered = selectedDepartments.length > 0;
+      const deptsToInclude = deptFiltered ? selectedDepartments : departments.map(d => d.id || "");
+      
+      // Group by department
+      const deptMap: Record<string, { name: string, [year: string]: number }> = {};
+      
+      // Process year 1 data
+      year1Data.forEach(nc => {
+        if (!nc.department_id || !deptsToInclude.includes(nc.department_id)) return;
+        
+        const deptId = nc.department_id;
+        const dept = departments.find(d => d.id === deptId);
+        const deptName = dept?.name || "Unknown Department";
+        
+        if (!deptMap[deptId]) {
+          deptMap[deptId] = { 
+            name: deptName, 
+            [`${year1}`]: 0,
+            [`${year2}`]: 0,
+            total: 0,
+            value: 0
+          };
+        }
+        
+        deptMap[deptId][`${year1}`]++;
+        deptMap[deptId].total++;
+        deptMap[deptId].value = deptMap[deptId][`${year1}`];
+      });
+      
+      // Process year 2 data
+      year2Data.forEach(nc => {
+        if (!nc.department_id || !deptsToInclude.includes(nc.department_id)) return;
+        
+        const deptId = nc.department_id;
+        const dept = departments.find(d => d.id === deptId);
+        const deptName = dept?.name || "Unknown Department";
+        
+        if (!deptMap[deptId]) {
+          deptMap[deptId] = { 
+            name: deptName, 
+            [`${year1}`]: 0,
+            [`${year2}`]: 0,
+            total: 0,
+            value: 0
+          };
+        }
+        
+        deptMap[deptId][`${year2}`]++;
+        deptMap[deptId].total++;
+      });
+      
+      // Convert to array and sort by name
+      const result = Object.values(deptMap)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      
+      setComparisonData(result);
+    } catch (error) {
+      console.error("Error processing comparison data:", error);
+    } finally {
+      setIsComparing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Comparação - {selectedYear}</h2>
+      <h2 className="text-2xl font-bold">Comparação</h2>
       
-      <Card className="w-full shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Comparativo entre {selectedYear} e {parseInt(selectedYear) - 1}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={comparisonData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="atual" name={`${selectedYear}`} fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="anterior" name={`${parseInt(selectedYear) - 1}`} fill="#f59e0b" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      <ComparisonFilters 
+        availableYears={availableYears}
+        year1={year1}
+        year2={year2}
+        selectedDepartments={selectedDepartments}
+        departments={departments}
+        isComparing={isComparing}
+        onYear1Change={setYear1}
+        onYear2Change={setYear2}
+        onDepartmentChange={setSelectedDepartments}
+        onCompare={handleCompare}
+      />
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Análise Comparativa</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <p>Comparação com o ano anterior ({parseInt(selectedYear) - 1}):</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border rounded-md p-4">
-                <h3 className="font-bold mb-2">Melhorias</h3>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Redução de 15% em não conformidades críticas</li>
-                  <li>Tempo médio de resolução reduzido em 3 dias</li>
-                  <li>Maior taxa de conformidade no departamento de Logística</li>
-                </ul>
-              </div>
-              <div className="border rounded-md p-4">
-                <h3 className="font-bold mb-2">Pontos de Atenção</h3>
-                <ul className="list-disc pl-5 space-y-1">
-                  <li>Aumento de 22% em não conformidades na Produção</li>
-                  <li>Taxa de recorrência cresceu 8%</li>
-                  <li>Requisito 8.5.1 com maior incidência pelo segundo ano</li>
-                </ul>
-              </div>
+      <ComparisonChart 
+        data={comparisonData} 
+        isLoading={isLoading || isComparing}
+        year1={year1}
+        year2={year2}
+      />
+      
+      {comparisonData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Análise Comparativa</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p>Comparação entre {year1} e {year2}:</p>
+              {comparisonData.length === 0 ? (
+                <div className="text-center text-muted-foreground">
+                  Sem dados para comparação nos anos selecionados.
+                </div>
+              ) : null}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
