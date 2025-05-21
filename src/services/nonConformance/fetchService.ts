@@ -28,8 +28,9 @@ export const fetchNonConformances = async (filters: NonConformanceFilter = {}): 
       query = query.ilike('responsible_name', `%${filters.responsibleName}%`);
     }
 
-    // Simplify ISO requirement filtering to avoid type instantiation issues
-    if (filters.isoRequirement && filters.isoRequirement !== '') {
+    // Fix the ISO requirement filtering to avoid type instantiation issues
+    if (typeof filters.isoRequirement === 'string' && filters.isoRequirement !== '') {
+      console.log('Filtering by ISO requirement:', filters.isoRequirement);
       query = query.eq('iso_requirement', filters.isoRequirement);
     }
     
@@ -60,6 +61,7 @@ export const fetchNonConformances = async (filters: NonConformanceFilter = {}): 
       throw new Error(error.message);
     }
     
+    console.log('Fetched non-conformances count:', data?.length || 0);
     return data as NonConformance[];
     
   } catch (error) {

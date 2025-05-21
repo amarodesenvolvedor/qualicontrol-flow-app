@@ -3,6 +3,7 @@ import { NonConformanceFilter } from "@/types/nonConformance";
 import { AdvancedFilters, DateRangeFilter, MultiSelectFilter } from "../shared/filters";
 import { useDepartments } from "@/hooks/useDepartments";
 import { ISO_REQUIREMENTS } from "@/utils/isoRequirements";
+import { useEffect } from "react";
 
 interface NonConformanceFiltersProps {
   filters: NonConformanceFilter;
@@ -29,6 +30,11 @@ const NonConformanceFilters = ({
     label: req.label
   }));
 
+  // Log when filters change to help debug
+  useEffect(() => {
+    console.log('Current filter values:', filters);
+  }, [filters]);
+
   const handleStatusChange = (values: string[]) => {
     onFilterChange({
       ...filters,
@@ -44,6 +50,7 @@ const NonConformanceFilters = ({
   };
 
   const handleISORequirementChange = (values: string[]) => {
+    console.log('ISO requirement changed to:', values);
     onFilterChange({
       ...filters,
       isoRequirement: values.length ? values[0] : undefined

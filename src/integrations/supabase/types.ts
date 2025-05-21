@@ -223,6 +223,7 @@ export type Database = {
           effectiveness_verification_date: string | null
           id: string
           immediate_actions: string | null
+          iso_requirement: string | null
           location: string | null
           occurrence_date: string
           response_date: string | null
@@ -243,6 +244,7 @@ export type Database = {
           effectiveness_verification_date?: string | null
           id?: string
           immediate_actions?: string | null
+          iso_requirement?: string | null
           location?: string | null
           occurrence_date: string
           response_date?: string | null
@@ -263,6 +265,7 @@ export type Database = {
           effectiveness_verification_date?: string | null
           id?: string
           immediate_actions?: string | null
+          iso_requirement?: string | null
           location?: string | null
           occurrence_date?: string
           response_date?: string | null
