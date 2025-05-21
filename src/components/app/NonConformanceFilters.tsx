@@ -2,6 +2,7 @@
 import { NonConformanceFilter } from "@/types/nonConformance";
 import { AdvancedFilters, DateRangeFilter, MultiSelectFilter } from "../shared/filters";
 import { useDepartments } from "@/hooks/useDepartments";
+import { ISO_REQUIREMENTS } from "@/utils/isoRequirements";
 
 interface NonConformanceFiltersProps {
   filters: NonConformanceFilter;
@@ -23,6 +24,11 @@ const NonConformanceFilters = ({
     { value: 'closed', label: 'Encerrado' }
   ];
 
+  const isoRequirementOptions = ISO_REQUIREMENTS.map(req => ({
+    value: req.value,
+    label: req.label
+  }));
+
   const handleStatusChange = (values: string[]) => {
     onFilterChange({
       ...filters,
@@ -34,6 +40,13 @@ const NonConformanceFilters = ({
     onFilterChange({
       ...filters,
       departmentId: values.length ? values.join(',') : undefined
+    });
+  };
+
+  const handleISORequirementChange = (values: string[]) => {
+    onFilterChange({
+      ...filters,
+      isoRequirement: values.length ? values[0] : undefined
     });
   };
 
@@ -67,6 +80,16 @@ const NonConformanceFilters = ({
           options={departments.map(dept => ({ value: dept.id, label: dept.name }))}
           selectedValues={filters.departmentId ? filters.departmentId.split(',') : []}
           onChange={handleDepartmentChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Requisito ISO 9001:2015</label>
+        <MultiSelectFilter
+          label="Selecionar requisito"
+          options={isoRequirementOptions}
+          selectedValues={filters.isoRequirement ? [filters.isoRequirement] : []}
+          onChange={handleISORequirementChange}
         />
       </div>
 

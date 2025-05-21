@@ -1,83 +1,114 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { NonConformance, NonConformanceFilter } from '@/types/nonConformance';
+import { format } from 'date-fns';
 
-// Function to fetch all non conformances with filters
-export const fetchNonConformances = async (filters: NonConformanceFilter): Promise<NonConformance[]> => {
-  let query = supabase
-    .from('non_conformances')
-    .select(`
-      *,
-      department:department_id (
-        id,
-        name
-      )
-    `)
-    .order('created_at', { ascending: false });
-
-  // Apply filters
-  if (filters.status) {
-    const statuses = filters.status.split(',');
-    if (statuses.length > 0) {
-      query = query.in('status', statuses);
+export const fetchNonConformances = async (filters: NonConformanceFilter = {}): Promise<NonConformance[]> => {
+  try {
+    console.log('Fetching non-conformances with filters:', filters);
+    
+    let query = supabase
+      .from('non_conformances')
+      .select(`
+        *,
+        department:departments(*)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (filters.status) {
+      query = query.eq('status', filters.status);
     }
-  }
-
-  if (filters.departmentId) {
-    const departments = filters.departmentId.split(',');
-    if (departments.length > 0) {
-      query = query.in('department_id', departments);
+    
+    if (filters.departmentId) {
+      const departmentIds = filters.departmentId.split(',');
+      query = query.in('department_id', departmentIds);
     }
-  }
-
-  if (filters.dateRange?.from) {
-    query = query.gte('occurrence_date', filters.dateRange.from.toISOString().split('T')[0]);
-  }
-
-  if (filters.dateRange?.to) {
-    query = query.lte('occurrence_date', filters.dateRange.to.toISOString().split('T')[0]);
-  }
-
-  if (filters.searchTerm) {
-    query = query.or(`title.ilike.%${filters.searchTerm}%,code.ilike.%${filters.searchTerm}%`);
-  }
-
-  if (filters.responsibleName) {
-    const responsibles = filters.responsibleName.split(',');
-    if (responsibles.length > 0) {
-      query = query.in('responsible_name', responsibles);
+    
+    if (filters.responsibleName) {
+      query = query.ilike('responsible_name', `%${filters.responsibleName}%`);
     }
+
+    if (filters.isoRequirement) {
+      query = query.eq('iso_requirement', filters.isoRequirement);
+    }
+    
+    if (filters.dateRange?.from || filters.dateRange?.to) {
+      if (filters.dateRange.from) {
+        const formattedFrom = format(filters.dateRange.from, 'yyyy-MM-dd');
+        query = query.gte('occurrence_date', formattedFrom);
+      }
+      
+      if (filters.dateRange.to) {
+        const formattedTo = format(filters.dateRange.to, 'yyyy-MM-dd');
+        query = query.lte('occurrence_date', formattedTo);
+      }
+    }
+    
+    if (filters.searchTerm) {
+      query = query.or(`
+        title.ilike.%${filters.searchTerm}%, 
+        description.ilike.%${filters.searchTerm}%, 
+        code.ilike.%${filters.searchTerm}%
+      `);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching non-conformances:', error);
+      throw new Error(error.message);
+    }
+    
+    return data as NonConformance[];
+    
+  } catch (error) {
+    console.error('Error in fetchNonConformances:', error);
+    throw error;
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error fetching non conformances:', error);
-    throw new Error('Error fetching non conformances');
-  }
-
-  return data as unknown as NonConformance[];
 };
 
-// Function to get all responsible names
-export const fetchResponsibleNames = async (): Promise<string[]> => {
-  const { data, error } = await supabase
-    .from('non_conformances')
-    .select('responsible_name')
-    .order('responsible_name');
+export const fetchNonConformanceById = async (id: string): Promise<NonConformance> => {
+  try {
+    const { data, error } = await supabase
+      .from('non_conformances')
+      .select(`
+        *,
+        department:departments(*)
+      `)
+      .eq('id', id)
+      .single();
     
-  if (error) {
-    console.error('Error fetching responsible names:', error);
-    throw new Error('Error fetching responsible names');
-  }
-  
-  // Extract unique responsible names
-  const names = new Set<string>();
-  data.forEach(item => {
-    if (item.responsible_name) {
-      names.add(item.responsible_name);
+    if (error) {
+      console.error('Error fetching non-conformance by ID:', error);
+      throw new Error(error.message);
     }
-  });
-  
-  return Array.from(names);
+    
+    return data as NonConformance;
+    
+  } catch (error) {
+    console.error('Error in fetchNonConformanceById:', error);
+    throw error;
+  }
+};
+
+export const fetchResponsibleNames = async (): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('non_conformances')
+      .select('responsible_name')
+      .order('responsible_name');
+    
+    if (error) {
+      console.error('Error fetching responsible names:', error);
+      throw new Error(error.message);
+    }
+    
+    // Extract unique names
+    const uniqueNames = [...new Set(data.map(item => item.responsible_name))];
+    return uniqueNames;
+    
+  } catch (error) {
+    console.error('Error in fetchResponsibleNames:', error);
+    throw error;
+  }
 };

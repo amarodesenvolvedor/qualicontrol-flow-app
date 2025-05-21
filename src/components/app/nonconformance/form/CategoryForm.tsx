@@ -4,6 +4,7 @@ import { Control } from "react-hook-form";
 import { NonConformanceFormValues } from "@/utils/nonConformanceFormSchema";
 import { useDepartments } from "@/hooks/useDepartments";
 import SelectField from "../edit/SelectField";
+import ISORequirementField from "./ISORequirementField";
 
 interface CategoryFormProps {
   control: Control<NonConformanceFormValues>;
@@ -38,6 +39,8 @@ const CategoryForm = ({ control }: CategoryFormProps) => {
           options={departmentOptions}
           required
         />
+        
+        <ISORequirementField control={control} />
         
         <SelectField 
           control={control} 

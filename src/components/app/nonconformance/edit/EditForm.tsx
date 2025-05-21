@@ -8,6 +8,7 @@ import DateField from "./DateField";
 import EditFormActions from "./EditFormActions";
 import { useNonConformanceEdit } from "@/hooks/useNonConformanceEdit";
 import { useEffect } from "react";
+import ISORequirementSelectField from "./ISORequirementSelectField";
 
 const EditForm = () => {
   const { form, onSubmit, handleCancel, isSubmitting, generateAcac } = useNonConformanceEdit();
@@ -70,6 +71,10 @@ const EditForm = () => {
         </FormFieldGroup>
 
         <FormFieldGroup>
+          <ISORequirementSelectField
+            control={form.control}
+            required
+          />
           <SelectField 
             control={form.control} 
             name="status" 
@@ -77,51 +82,54 @@ const EditForm = () => {
             options={statusOptions}
             required
           />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <DateField 
             control={form.control} 
             name="occurrence_date" 
             label="Data de Ocorrência" 
             required
           />
-        </FormFieldGroup>
-
-        <FormFieldGroup>
           <DateField 
             control={form.control}
             name="response_date"
             label="Resposta"
             placeholder="Selecione uma data (opcional)"
           />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <DateField 
             control={form.control}
             name="action_verification_date"
             label="Verificação da Ação" 
             placeholder="Selecione uma data (opcional)"
           />
-        </FormFieldGroup>
-
-        <FormFieldGroup>
           <DateField 
             control={form.control}
             name="effectiveness_verification_date"
             label="Data de Verificação da Eficácia" 
             placeholder="Selecione uma data (opcional)"
           />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <DateField 
             control={form.control}
             name="completion_date"
             label="Data de Conclusão" 
             placeholder="Selecione uma data (opcional)"
           />
-        </FormFieldGroup>
-
-        <FormFieldGroup>
           <TextField 
             control={form.control} 
             name="responsible_name" 
             label="Responsável pela Ação" 
             required
           />
+        </FormFieldGroup>
+
+        <FormFieldGroup>
           <TextField 
             control={form.control} 
             name="auditor_name" 

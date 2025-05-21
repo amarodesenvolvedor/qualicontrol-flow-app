@@ -57,6 +57,7 @@ export const useNonConformanceSubmit = (id: string | undefined) => {
         description: values.description,
         location: values.location || null,
         department_id: values.department_id,
+        iso_requirement: values.iso_requirement || null,
         immediate_actions: values.immediate_actions || null,
         responsible_name: values.responsible_name,
         auditor_name: values.auditor_name,

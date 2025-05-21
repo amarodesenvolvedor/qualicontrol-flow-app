@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 
 export const nonConformanceFormSchema = z.object({
@@ -9,6 +10,9 @@ export const nonConformanceFormSchema = z.object({
   location: z.string().optional(),
   department_id: z.string().min(1, {
     message: "Por favor, selecione um departamento.",
+  }),
+  iso_requirement: z.string().min(1, {
+    message: "Por favor, selecione um requisito da ISO 9001:2015.",
   }),
   immediate_actions: z.string().optional(),
   responsible_name: z.string().min(3, {

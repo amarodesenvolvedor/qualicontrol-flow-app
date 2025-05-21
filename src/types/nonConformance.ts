@@ -23,6 +23,7 @@ export type NonConformance = {
   updated_at?: string;
   root_cause_analysis?: string | null;
   corrective_action?: string | null;
+  iso_requirement?: string | null;
 };
 
 export type NonConformanceCreateData = Omit<NonConformance, 'id' | 'created_at' | 'department' | 'created_by' | 'updated_at'>;
@@ -35,4 +36,5 @@ export type NonConformanceFilter = {
   responsibleName?: string;
   dateRange?: { from: Date | null; to: Date | null } | null;
   searchTerm?: string;
+  isoRequirement?: string;
 };
