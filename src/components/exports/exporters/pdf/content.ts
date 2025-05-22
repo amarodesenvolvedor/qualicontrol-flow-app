@@ -28,11 +28,11 @@ export function addSimpleListContent(
     // Se o conteúdo não couber na página atual, criar nova página
     if (y + boxHeight > pageHeight - 40) {
       if (options?.showFooter !== false) {
-        addFooterToPDF(doc, "Report", doc.getNumberOfPages(), doc.getNumberOfPages());
+        addFooterToPDF(doc, "Relatório de Não Conformidades", doc.getNumberOfPages(), doc.getNumberOfPages());
       }
       doc.addPage();
       if (options?.showHeader !== false) {
-        addHeaderToPDF(doc, "Report");
+        addHeaderToPDF(doc, "Relatório de Não Conformidades");
       }
       y = 40; // Reset Y position
     }
@@ -102,17 +102,17 @@ export function addTableContent(
   // Get headers
   const headers = Object.keys(data[0]);
   
-  // Determine optimal table orientation - use landscape for many records or wide tables
-  const isLandscape = (data.length > 15 || headers.length > 5) && options?.allowLandscape !== false;
+  // Determine optimal table orientation - always use landscape for non-conformance full reports
+  const isLandscape = options?.forceLandscape || (data.length > 5 || headers.length > 5);
   
   if (isLandscape && doc.internal.pageSize.getWidth() < doc.internal.pageSize.getHeight()) {
     // Switch to landscape if not already
     if (options?.showFooter !== false) {
-      addFooterToPDF(doc, "Report", doc.getNumberOfPages(), doc.getNumberOfPages());
+      addFooterToPDF(doc, "Relatório de Não Conformidades", doc.getNumberOfPages(), doc.getNumberOfPages());
     }
     doc.addPage('landscape');
     if (options?.showHeader !== false) {
-      addHeaderToPDF(doc, "Report");
+      addHeaderToPDF(doc, "Relatório de Não Conformidades");
     }
     y = 40;
     pageWidth = doc.internal.pageSize.getWidth();
@@ -125,19 +125,18 @@ export function addTableContent(
   const margin = options?.margin || 15;
   const tableWidth = pageWidth - (margin * 2);
   
-  // Select columns to display - prioritize key information
-  const priorityColumns = ['semana', 'periodo', 'departamento', 'auditor_responsavel', 'status', 'ano', 'observacoes'];
-  const maxColumns = isLandscape ? 6 : 4;
+  // Por padrão, incluímos todos os headers para relatórios completos
+  const priorityHeaders = [
+    'codigo', 'id', 'titulo', 'departamento', 'responsavel', 'status',
+    'data_ocorrencia', 'data_encerramento', 'requisito_iso', 'descricao'
+  ];
   
-  // First try to use priority columns if they exist
-  let visibleHeaders = headers.filter(header => priorityColumns.includes(header));
+  // Primeiro priorizamos os campos mais importantes
+  let visibleHeaders = headers.filter(header => priorityHeaders.includes(header));
   
-  // If no priority columns match or too few, fall back to all headers
-  if (visibleHeaders.length < 2) {
-    visibleHeaders = headers.slice(0, maxColumns);
-  } else if (visibleHeaders.length > maxColumns) {
-    // Limit to max columns if we have too many
-    visibleHeaders = visibleHeaders.slice(0, maxColumns);
+  // Se há poucos headers prioritários, incluímos outros disponíveis
+  if (visibleHeaders.length < 4) {
+    visibleHeaders = headers;
   }
   
   // Calculate column widths based on content
@@ -164,8 +163,8 @@ export function addTableContent(
   
   // Draw data rows with improved styling
   doc.setTextColor(0, 0, 0);
-  doc.setFont("helvetica", "normal"); // Normal para todo o conteúdo
-  doc.setFontSize(9); // Reduzido para caber melhor
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
   
   // Show ALL rows with pagination
   for (let i = 0; i < data.length; i++) {
@@ -174,11 +173,11 @@ export function addTableContent(
     // Check if we need a new page
     if (y > pageHeight - 40) {
       if (options?.showFooter !== false) {
-        addFooterToPDF(doc, "Report", doc.getNumberOfPages(), doc.getNumberOfPages());
+        addFooterToPDF(doc, "Relatório de Não Conformidades", doc.getNumberOfPages(), doc.getNumberOfPages());
       }
       doc.addPage(isLandscape ? 'landscape' : 'portrait');
       if (options?.showHeader !== false) {
-        addHeaderToPDF(doc, "Report");
+        addHeaderToPDF(doc, "Relatório de Não Conformidades");
       }
       y = 40;
       
