@@ -2,17 +2,18 @@
  * Options for PDF export
  */
 export interface PDFExportOptions {
+  dateRange?: string;
+  year?: number;
+  specificDate?: Date;
+  includeFields?: Record<string, boolean>;
   showHeader?: boolean;
   showFooter?: boolean;
-  forceLandscape?: boolean;
-  allowLandscape?: boolean;
+  margin?: number;
   improveLineBreaks?: boolean;
   adjustLineSpacing?: boolean;
-  fontSize?: number;
-  margin?: number;
-  contentWidth?: number;
-  pageHeight?: number;
-  reportType?: string;  // Added report type property
+  forceLandscape?: boolean;
+  allowLandscape?: boolean;
+  reportType?: string;
 }
 
 /**

@@ -18,18 +18,17 @@ export function calculateColumnWidths(
   
   // Definir pesos para colunas específicas
   const columnWeights: Record<string, number> = {
-    'id': 0.5,
-    'codigo': 0.8,
-    'titulo': 2.2,      // Aumentado de 2.0 para 2.2
-    'departamento': 1.4, // Aumentado de 1.2 para 1.4
-    'responsavel': 1.4,  // Aumentado de 1.2 para 1.4
-    'status': 0.8,
-    'data_ocorrencia': 0.9, // Aumentado de 0.8 para 0.9
-    'data_encerramento': 0.9, // Aumentado de 0.8 para 0.9
-    'descricao': 3.0,    // Aumentado de 2.5 para 3.0
-    'acoes_imediatas': 2.5, // Aumentado de 2.0 para 2.5
-    'acao_corretiva': 2.5,  // Aumentado de 2.0 para 2.5
-    'requisito_iso': 1.0   // Aumentado de 0.9 para 1.0
+    'codigo': 0.9,   // Ligeiramente maior agora que 'id' foi removido
+    'titulo': 2.5,   // Aumentado para aproveitar mais espaço
+    'departamento': 1.6, // Aumentado 
+    'responsavel': 1.5,  // Aumentado 
+    'status': 0.9,
+    'data_ocorrencia': 1.0, // Aumentado
+    'data_encerramento': 1.0, // Aumentado
+    'descricao': 3.2,    // Aumentado
+    'acoes_imediatas': 2.8, // Aumentado
+    'acao_corretiva': 2.8,  // Aumentado
+    'requisito_iso': 1.1   // Aumentado
   };
   
   // If we have the PDF document and data, use them for better column width estimation
@@ -42,7 +41,7 @@ export function calculateColumnWidths(
     
     // Calculate average content width for each column with consideration for column weights
     const contentWidths = headers.map((header, index) => {
-      // Sample up to 15 rows for better accuracy (era 10)
+      // Sample up to 15 rows for better accuracy
       const sampleSize = Math.min(15, data.length);
       let totalWidth = 0;
       let maxWidth = 0;
@@ -54,10 +53,14 @@ export function calculateColumnWidths(
         
         if (text.length > 30) {
           // Para textos muito longos, aplicar fator de ajuste baseado no comprimento
+          const estimatedLines = Math.ceil(text.length / 30);
           textWidth = Math.min(
-            doc.getTextWidth(text.substring(0, 30)) * 1.5, // Não deixar ficar muito largo
-            doc.getTextWidth(text) * 0.8  // Reduzir um pouco, considerando quebras
-          ) + 25; // Padding maior
+            doc.getTextWidth(text.substring(0, 40)) * 1.2, // Considerar apenas os primeiros caracteres
+            doc.getTextWidth(text) * 0.6  // Reduzir mais, considerando quebras
+          ) + 30; // Padding maior
+          
+          // Aplicar um ajuste adicional baseado no número estimado de linhas
+          textWidth = Math.max(textWidth, (40 * Math.sqrt(estimatedLines)));
         } else {
           textWidth = doc.getTextWidth(text) + 25; // Padding maior
         }

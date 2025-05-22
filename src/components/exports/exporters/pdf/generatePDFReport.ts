@@ -1,10 +1,11 @@
+
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { PDFExportOptions } from "../../utils/types";
 import { addHeaderToPDF, addFooterToPDF } from "../../utils/pdfHelpers";
 import { calculateColumnWidths } from "./utils/columnUtils";
 import { estimateContentHeight } from "./utils/contentUtils";
-import { addSimpleListContent, addTableContent } from "./content";
+import { addSimpleListContent, addTableContent, addDetailedReports } from "./content";
 import { addSummarySection } from "./sections/summary";
 import { addNoDataMessage } from "./sections/noData";
 
@@ -46,7 +47,13 @@ export const generatePDFReport = async (
       unit: 'mm'
     });
     
-    if (options?.showHeader !== false) {
+    // Passa o tipo de relatório como parte das opções
+    const updatedOptions: PDFExportOptions = {
+      ...options,
+      reportType
+    };
+    
+    if (updatedOptions?.showHeader !== false) {
       addHeaderToPDF(doc, reportType);
     }
     
@@ -83,11 +90,11 @@ export const generatePDFReport = async (
     
     // If we're close to the page bottom before adding content
     if (y > pageHeight - 60) {
-      if (options?.showFooter !== false) {
+      if (updatedOptions?.showFooter !== false) {
         addFooterToPDF(doc, reportType, doc.getNumberOfPages(), doc.getNumberOfPages());
       }
       doc.addPage(useLandscape ? 'landscape' : 'portrait');
-      if (options?.showHeader !== false) {
+      if (updatedOptions?.showHeader !== false) {
         addHeaderToPDF(doc, reportType);
       }
       y = 30; // Reset Y position after page break
@@ -97,37 +104,25 @@ export const generatePDFReport = async (
     if (data.length > 0) {
       console.log(`Rendering ${data.length} records to PDF`);
       
-      // Transmitir o tipo de relatório para as funções de renderização
-      const renderOptions = {
-        ...options,
-        reportType,
-        allowLandscape: true,
-        forceLandscape: useLandscape,
-        margin,
-        contentWidth,
-        pageHeight,
-        improveLineBreaks: true
-      };
-      
       // Para relatórios completos ou com muitos campos, sempre usar tabela
       if (reportType === "Não Conformidades Completo" || 
           reportType === "Ações Corretivas" ||
           Object.keys(data[0]).length > 3) {
         
         console.log('Using table format for PDF content');
-        y = addTableContent(doc, data, y, pageWidth, lineHeight, renderOptions);
+        y = addTableContent(doc, data, y, pageWidth, lineHeight, updatedOptions);
       } else if (reportType === "Indicadores de Desempenho") {
         // Para indicadores, usar lista simples
         console.log('Using simple list format for indicators');
-        y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, renderOptions);
+        y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, updatedOptions);
       } else {
         // Determine se usamos tabela ou lista baseado na quantidade de registros
         if (data.length <= 5) {
           console.log('Using simple list format for PDF content (small dataset)');
-          y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, renderOptions);
+          y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, updatedOptions);
         } else {
           console.log('Using table format for PDF content (larger dataset)');
-          y = addTableContent(doc, data, y, pageWidth, lineHeight, renderOptions);
+          y = addTableContent(doc, data, y, pageWidth, lineHeight, updatedOptions);
         }
       }
     } else {
@@ -142,11 +137,11 @@ export const generatePDFReport = async (
       
       // Check if we need a new page for the summary
       if (y > pageHeight - 50) {
-        if (options?.showFooter !== false) {
+        if (updatedOptions?.showFooter !== false) {
           addFooterToPDF(doc, reportType, doc.getNumberOfPages(), doc.getNumberOfPages());
         }
         doc.addPage(useLandscape ? 'landscape' : 'portrait');
-        if (options?.showHeader !== false) {
+        if (updatedOptions?.showHeader !== false) {
           addHeaderToPDF(doc, reportType);
         }
         y = 30;
@@ -154,10 +149,15 @@ export const generatePDFReport = async (
       
       // Add summary section with statistics
       y = addSummarySection(doc, data, y, pageWidth, lineHeight);
+      
+      // Add detailed reports for each non-conformance (each on a separate page)
+      if (reportType === "Não Conformidades Completo") {
+        addDetailedReports(doc, data, updatedOptions);
+      }
     }
     
     // Add footer to all pages
-    if (options?.showFooter !== false) {
+    if (updatedOptions?.showFooter !== false) {
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);

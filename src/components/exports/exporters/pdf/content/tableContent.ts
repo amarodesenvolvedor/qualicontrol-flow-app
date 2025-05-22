@@ -3,6 +3,7 @@ import { jsPDF } from "jspdf";
 import { PDFExportOptions } from "../../../utils/types";
 import { addHeaderToPDF, addFooterToPDF } from "../../../utils/pdfHelpers";
 import { calculateColumnWidths } from "../utils/columnUtils";
+import { wrapTextToFit } from "../utils/contentUtils";
 
 /**
  * Add content for table format (larger datasets)
@@ -44,24 +45,26 @@ export function addTableContent(
   const margin = options?.margin || 15;
   const tableWidth = pageWidth - (margin * 2);
   
-  // Campos prioritários para mostrar na tabela
+  // Campos prioritários para mostrar na tabela - removendo 'id'
   const priorityHeaders = [
-    'codigo', 'id', 'titulo', 'departamento', 'responsavel', 'status', 
-    'data_ocorrencia', 'data_encerramento'
+    'codigo', 'titulo', 'departamento', 'responsavel', 'status', 
+    'data_ocorrencia', 'data_encerramento', 'requisito_iso'
   ];
   
-  // Para relatórios completos, tentamos incluir mais campos
+  // Para relatórios completos, tentamos incluir mais campos, exceto 'id'
   if (currentReportType === "Não Conformidades Completo" || 
       currentReportType === "Ações Corretivas") {
-    priorityHeaders.push('requisito_iso', 'descricao', 'acoes_imediatas', 'acao_corretiva');
+    priorityHeaders.push('descricao', 'acoes_imediatas', 'acao_corretiva');
   }
   
-  // Primeiro priorizamos os campos mais importantes
-  let visibleHeaders = headers.filter(header => priorityHeaders.includes(header));
+  // Primeiro priorizamos os campos mais importantes, excluindo explicitamente 'id'
+  let visibleHeaders = headers.filter(header => 
+    priorityHeaders.includes(header) && header !== 'id'
+  );
   
-  // Se há poucos headers prioritários, incluímos outros disponíveis
+  // Se há poucos headers prioritários, incluímos outros disponíveis exceto 'id'
   if (visibleHeaders.length < 4) {
-    visibleHeaders = headers;
+    visibleHeaders = headers.filter(header => header !== 'id');
   }
   
   // Calculate column widths based on content - improved algorithm
@@ -76,7 +79,7 @@ export function addTableContent(
   doc.setFontSize(10); // Reduzido para melhor ajuste
   doc.setFont("helvetica", "bold");
   
-  // Draw header cells
+  // Draw header cells with centered text
   let xPos = margin + 3;
   visibleHeaders.forEach((header, i) => {
     const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
@@ -84,8 +87,14 @@ export function addTableContent(
     const truncatedHeader = formattedHeader.length > 15 ? 
                           formattedHeader.substring(0, 15) + '...' : 
                           formattedHeader;
-    doc.text(truncatedHeader, xPos, y + 7);
-    xPos += colWidths[i];
+    
+    // Centralizar o texto do cabeçalho
+    const headerWidth = colWidths[i];
+    const textWidth = doc.getTextWidth(truncatedHeader);
+    const centeredX = xPos + (headerWidth - textWidth) / 2;
+    
+    doc.text(truncatedHeader, centeredX, y + 7);
+    xPos += headerWidth;
   });
   
   y += lineHeight + 4;
@@ -124,8 +133,14 @@ export function addTableContent(
         const truncatedHeader = formattedHeader.length > 15 ? 
                               formattedHeader.substring(0, 15) + '...' : 
                               formattedHeader;
-        doc.text(truncatedHeader, xPos, y + 7);
-        xPos += colWidths[j];
+        
+        // Centralizar o texto do cabeçalho em cada página nova
+        const headerWidth = colWidths[j];
+        const textWidth = doc.getTextWidth(truncatedHeader);
+        const centeredX = xPos + (headerWidth - textWidth) / 2;
+        
+        doc.text(truncatedHeader, centeredX, y + 7);
+        xPos += headerWidth;
       });
       
       y += lineHeight + 4;
@@ -150,7 +165,7 @@ export function addTableContent(
       
       // Calcular altura para textos que precisam de quebra de linha
       if (text.length > 10) { // Reduzido para detectar mais textos que precisam de quebra
-        const wrapped = doc.splitTextToSize(text, colWidth);
+        const wrapped = wrapTextToFit(doc, text, colWidth);
         const contentHeight = wrapped.length * (lineHeight * 0.8); // Increased line spacing
         rowContentHeights.push(contentHeight);
         maxRowHeight = Math.max(maxRowHeight, contentHeight + 3); // Added more padding
@@ -172,7 +187,7 @@ export function addTableContent(
       const colWidth = colWidths[j] - 12; // Increased padding for safety
       
       // Sempre usar quebra de linha para garantir que o texto não ultrapasse a coluna
-      const wrapped = doc.splitTextToSize(text, colWidth);
+      const wrapped = wrapTextToFit(doc, text, colWidth);
       
       // Deixar um espaço vertical adicional entre o texto e os limites da célula
       const cellYPos = y + 2;
