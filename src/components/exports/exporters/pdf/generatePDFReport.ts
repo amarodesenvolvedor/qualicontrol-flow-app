@@ -1,4 +1,3 @@
-
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { PDFExportOptions } from "../../utils/types";
