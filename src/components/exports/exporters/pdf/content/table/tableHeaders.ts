@@ -33,8 +33,8 @@ export function renderTableHeaders(
     const textWidth = doc.getTextWidth(formattedHeader);
     const centeredX = xPos + (headerWidth / 2) - (textWidth / 2);
     
-    // Position text vertically centered
-    const verticalCenter = y + (headerHeight / 2) + 2.5;
+    // Position text vertically centered - adjusted for better vertical alignment
+    const verticalCenter = y + (headerHeight / 2) + 0.5;
     
     doc.text(formattedHeader, centeredX, verticalCenter);
     xPos += headerWidth;

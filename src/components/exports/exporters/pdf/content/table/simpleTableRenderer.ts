@@ -17,6 +17,9 @@ export function renderSimpleTable(
   margin: number,
   options?: PDFExportOptions
 ): number {
+  // Increased initial Y position for better page usage
+  if (y < 45) y = 45;
+  
   // Extract headers from data
   const headers = Object.keys(data[0]);
   

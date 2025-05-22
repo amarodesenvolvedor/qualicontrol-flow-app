@@ -19,6 +19,9 @@ export function renderDetailedTable(
   margin: number,
   options?: PDFExportOptions
 ): number {
+  // Increased initial Y position for better page usage
+  if (y < 45) y = 45;
+  
   // Specific fields to show in the main table - exclude unnecessary fields
   const priorityHeaders = [
     'codigo', 'titulo', 'departamento', 'requisito_iso', 'status', 
@@ -28,7 +31,7 @@ export function renderDetailedTable(
   // Extract headers from data
   const headers = Object.keys(data[0]);
   
-  // Filter to show only columns defined in priority
+  // Filter to show only columns defined in priority and exclude 'id' field
   let visibleHeaders = headers.filter(header => 
     priorityHeaders.includes(header) && header !== 'id'
   );

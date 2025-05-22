@@ -27,8 +27,8 @@ export const addHeaderToPdf = (
   const titleWidth = doc.getTextWidth(title);
   const centerX = styling.pageWidth / 2;
   
-  // Position text centered in the blue bar
-  doc.text(title, centerX, 10, { align: 'center' });
+  // Position text centered in the blue bar - adjusted for better vertical alignment
+  doc.text(title, centerX, 9, { align: 'center' });
 };
 
 /**
