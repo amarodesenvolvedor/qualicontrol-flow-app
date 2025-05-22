@@ -103,30 +103,26 @@ export const generatePDFReport = async (
           Object.keys(data[0]).length > 3) {
         
         console.log('Using table format for PDF content');
-        // Fixed: Matching the parameters expected by addTableContent
         y = addTableContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
       } else if (reportType === "Indicadores de Desempenho") {
         // Para indicadores, usar lista simples
         console.log('Using simple list format for indicators');
-        // Fixed: Matching the parameters expected by addSimpleListContent
         y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
       } else {
         // Determine se usamos tabela ou lista baseado na quantidade de registros
         if (data.length <= 5) {
           console.log('Using simple list format for PDF content (small dataset)');
-          // Fixed: Matching the parameters expected by addSimpleListContent
           y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
         } else {
           console.log('Using table format for PDF content (larger dataset)');
-          // Fixed: Matching the parameters expected by addTableContent
           y = addTableContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
         }
       }
     } else {
       // No data message
       console.warn('No data available for PDF report, showing empty state');
-      // Fixed: Matching the parameters expected by addNoDataMessage
-      y = addNoDataMessage(doc, y, pageWidth, lineHeight, margin);
+      // Fixed: Matching the parameters expected by addNoDataMessage - removed margin which isn't expected
+      y = addNoDataMessage(doc, y, pageWidth, lineHeight);
     }
     
     // Add summary section for non-conformance reports
@@ -146,12 +142,11 @@ export const generatePDFReport = async (
       }
       
       // Add summary section with statistics
-      // Fixed: Matching the parameters expected by addSummarySection
-      y = addSummarySection(doc, data, y, pageWidth, lineHeight, margin);
+      // Fixed: Matching the parameters expected by addSummarySection - removed margin which isn't expected
+      y = addSummarySection(doc, data, y, pageWidth, lineHeight);
       
       // Add detailed reports for each non-conformance (each on a separate page)
       if (reportType === "Não Conformidades Completo") {
-        // Fixed: Matching the parameters expected by addDetailedReports
         addDetailedReports(doc, data, updatedOptions);
       }
     }

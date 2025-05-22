@@ -2,7 +2,7 @@
 import { jsPDF } from "jspdf";
 
 /**
- * Add message for when no data is available
+ * Add no data message to PDF report
  */
 export function addNoDataMessage(
   doc: jsPDF,
