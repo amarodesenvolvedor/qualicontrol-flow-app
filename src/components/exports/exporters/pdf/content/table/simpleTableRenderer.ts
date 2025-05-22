@@ -17,6 +17,9 @@ export function renderSimpleTable(
   margin: number,
   options?: PDFExportOptions
 ): number {
+  // Ensure minimum margin of 20px
+  const safeMargin = Math.max(margin, 20);
+  
   // Increased initial Y position for better page usage
   if (y < 45) y = 45;
   
@@ -38,13 +41,13 @@ export function renderSimpleTable(
     visibleHeaders = headers.filter(header => header !== 'id');
   }
   
-  // Calculate column widths based on content - improved algorithm
-  const tableWidth = pageWidth - (margin * 2);
+  // Calculate column widths based on content with proper margins
+  const tableWidth = pageWidth - (safeMargin * 2);
   const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
   
   // Draw table header with brand color background
   doc.setFillColor(41, 65, 148);
-  doc.rect(margin, y, tableWidth, lineHeight + 2, 'F');
+  doc.rect(safeMargin, y, tableWidth, lineHeight + 2, 'F');
   
   // Header text
   doc.setTextColor(255, 255, 255);
@@ -52,7 +55,7 @@ export function renderSimpleTable(
   doc.setFont("helvetica", "bold");
   
   // Draw header cells with centered text
-  let xPos = margin + 3;
+  let xPos = safeMargin + 3;
   visibleHeaders.forEach((header, i) => {
     const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
     // Limitar o texto do cabeçalho
@@ -65,6 +68,7 @@ export function renderSimpleTable(
     const textWidth = doc.getTextWidth(truncatedHeader);
     const centeredX = xPos + (headerWidth - textWidth) / 2;
     
+    // Ajustar alinhamento vertical
     doc.text(truncatedHeader, centeredX, y + 7);
     xPos += headerWidth;
   });
@@ -90,7 +94,7 @@ export function renderSimpleTable(
       pageHeight, 
       visibleHeaders, 
       colWidths, 
-      margin, 
+      safeMargin, 
       lineHeight, 
       options, 
       options?.forceLandscape || false
@@ -102,7 +106,7 @@ export function renderSimpleTable(
       item,
       visibleHeaders,
       colWidths,
-      margin,
+      safeMargin,
       y,
       lineHeight,
       i % 2 === 0

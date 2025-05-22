@@ -36,7 +36,7 @@ export function addDetailedReports(
     let y = 35;
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 20; // Ensure minimum margin of 20px
     const contentWidth = pageWidth - (2 * margin);
     
     // Adicionar título no topo da página
@@ -51,7 +51,7 @@ export function addDetailedReports(
     
     y += 20;
     
-    // Function to add a section with title - aprimorada para lidar com texto longo
+    // Function to add a section with title - melhorada para exibir o texto completo
     const addSection = (sectionTitle: string, content: string | null | undefined, currentY: number): number => {
       if (!content) return currentY;
       
@@ -71,9 +71,9 @@ export function addDetailedReports(
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
       
-      // Wrap text to fit and handle multiple lines, sem truncamento
+      // Wrap text to fit and handle multiple lines, sem qualquer truncamento
       const wrappedText = wrapTextToFit(doc, content, contentWidth - 10);
-      const lineHeight = 5.5; // Aumentado para melhor legibilidade
+      const lineHeight = 6; // Aumentado para melhor legibilidade
       
       // Check if content would go beyond page, if so add a new page
       if (currentY + (wrappedText.length * lineHeight) + 10 > pageHeight - 30) {
@@ -88,9 +88,11 @@ export function addDetailedReports(
       }
       
       // Garantir que todo o texto seja exibido, sem truncamento
-      wrappedText.forEach((line, i) => {
+      let linesProcessed = 0;
+      
+      for (let i = 0; i < wrappedText.length; i++) {
         // Se estiver chegando ao final da página, adicione uma nova
-        if (currentY + (i * lineHeight) > pageHeight - 30) {
+        if (currentY + ((i - linesProcessed) * lineHeight) > pageHeight - 30) {
           if (options?.showFooter !== false) {
             addFooterToPDF(doc, currentReportType, doc.getNumberOfPages(), doc.getNumberOfPages() + 1);
           }
@@ -99,17 +101,14 @@ export function addDetailedReports(
             addHeaderToPDF(doc, `${currentReportType} - Detalhe #${index + 1}`);
           }
           currentY = 35;
-          // Recomeçar a contagem de linhas
-          wrappedText.slice(i).forEach((remainingLine, j) => {
-            doc.text(remainingLine, margin + 5, currentY + (j * lineHeight));
-          });
-          // Ajustar a posição Y para depois do texto
-          return currentY + ((wrappedText.length - i) * lineHeight) + 10;
+          linesProcessed = i;
         }
-        doc.text(line, margin + 5, currentY + (i * lineHeight));
-      });
+        
+        // Renderizar a linha atual
+        doc.text(wrappedText[i], margin + 5, currentY + ((i - linesProcessed) * lineHeight));
+      }
       
-      return currentY + (wrappedText.length * lineHeight) + 10;
+      return currentY + ((wrappedText.length - linesProcessed) * lineHeight) + 10;
     };
     
     // Add basic information section
@@ -137,10 +136,9 @@ export function addDetailedReports(
     // Second column values
     doc.setFont("helvetica", "normal");
     
-    // Corrigir exibição do departamento - lógica aprimorada
+    // Lógica aprimorada para exibir o departamento corretamente
     let departmentName = 'N/A';
     
-    // Verificar todas as possíveis fontes de nome do departamento
     if (item.department && typeof item.department === 'object' && item.department.name) {
       departmentName = item.department.name;
     } else if (item.departamento && typeof item.departamento === 'object' && item.departamento.name) {
@@ -169,7 +167,7 @@ export function addDetailedReports(
     
     y += 65; // Aumentado para dar mais espaço entre as seções
     
-    // Add content sections - garantir que o texto seja exibido completamente
+    // Add content sections - exibindo o texto completo sem truncamento
     y = addSection("DESCRIÇÃO", item.descricao || item.description, y);
     y = addSection("AÇÕES IMEDIATAS", item.acoes_imediatas || item.immediate_actions, y);
     y = addSection("ANÁLISE DE CAUSA", item.analise_causa || item.root_cause_analysis, y);

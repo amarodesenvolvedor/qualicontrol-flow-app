@@ -8,7 +8,7 @@ import { handleTablePagination } from "./paginationUtils";
 
 /**
  * Render a detailed table for full reports
- * Improved version with better column width calculation
+ * Improved version with better column width calculation and margins
  */
 export function renderDetailedTable(
   doc: jsPDF,
@@ -19,6 +19,9 @@ export function renderDetailedTable(
   margin: number,
   options?: PDFExportOptions
 ): number {
+  // Ensure minimum margin of 20px
+  const safeMargin = Math.max(margin, 20);
+  
   // Increased initial Y position for better page usage
   if (y < 45) y = 45;
   
@@ -39,13 +42,13 @@ export function renderDetailedTable(
   // Sort headers in the defined sequence
   visibleHeaders = priorityHeaders.filter(header => visibleHeaders.includes(header));
   
-  // Calculate column widths based on content - improved algorithm
-  const tableWidth = pageWidth - (margin * 2);
+  // Calculate column widths based on content with proper margins
+  const tableWidth = pageWidth - (safeMargin * 2);
   const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
   
   // Increase header height for better visualization
   const headerHeight = lineHeight + 5;
-  renderTableHeaders(doc, visibleHeaders, colWidths, margin, y, headerHeight);
+  renderTableHeaders(doc, visibleHeaders, colWidths, safeMargin, y, headerHeight);
   
   y += headerHeight + 2;
   
@@ -68,7 +71,7 @@ export function renderDetailedTable(
       pageHeight, 
       visibleHeaders, 
       colWidths, 
-      margin, 
+      safeMargin, 
       lineHeight, 
       options, 
       true
@@ -80,7 +83,7 @@ export function renderDetailedTable(
       item,
       visibleHeaders,
       colWidths,
-      margin,
+      safeMargin,
       y,
       lineHeight,
       i % 2 === 0

@@ -3,7 +3,7 @@ import { jsPDF } from "jspdf";
 
 /**
  * Render table headers with brand color background
- * Improved version with better text centering
+ * Improved version with better text centering and proper margins
  */
 export function renderTableHeaders(
   doc: jsPDF,

@@ -19,7 +19,6 @@ export const generatePDFReport = async (
 ): Promise<void> => {
   try {
     console.log(`Generating PDF report for ${reportType} with ${data?.length || 0} records`);
-    console.log('PDF data sample:', data?.slice(0, 2));
     
     // Ensure data is an array
     if (!Array.isArray(data)) {
@@ -59,9 +58,9 @@ export const generatePDFReport = async (
     
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15; // Margens menores para maximizar espaço
+    const margin = 20; // Margem mínima de 20px
     const contentWidth = pageWidth - (margin * 2); // Largura útil do conteúdo
-    const lineHeight = 6; // Espaçamento menor entre linhas
+    const lineHeight = 6; // Espaçamento entre linhas
     let y = 30; // Start closer to header
     
     // Add title
@@ -87,18 +86,6 @@ export const generatePDFReport = async (
       doc.text(`Total de registros: ${data.length}`, pageWidth - margin - 5, y + 3, { align: 'right' });
     }
     y += lineHeight * 2;
-    
-    // If we're close to the page bottom before adding content
-    if (y > pageHeight - 60) {
-      if (updatedOptions?.showFooter !== false) {
-        addFooterToPDF(doc, reportType, doc.getNumberOfPages(), doc.getNumberOfPages());
-      }
-      doc.addPage(useLandscape ? 'landscape' : 'portrait');
-      if (updatedOptions?.showHeader !== false) {
-        addHeaderToPDF(doc, reportType);
-      }
-      y = 30; // Reset Y position after page break
-    }
     
     // If data exists
     if (data.length > 0) {
