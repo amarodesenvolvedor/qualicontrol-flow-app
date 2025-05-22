@@ -1,4 +1,3 @@
-
 /**
  * Options for PDF export
  */
@@ -13,6 +12,7 @@ export interface PDFExportOptions {
   margin?: number;
   contentWidth?: number;
   pageHeight?: number;
+  reportType?: string;  // Added report type property
 }
 
 /**

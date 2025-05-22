@@ -1,3 +1,4 @@
+
 import { jsPDF } from "jspdf";
 import { PDFExportOptions } from "../../utils/types";
 import { addHeaderToPDF, addFooterToPDF } from "../../utils/pdfHelpers";
@@ -27,11 +28,11 @@ export function addSimpleListContent(
     // Se o conteúdo não couber na página atual, criar nova página
     if (y + boxHeight > pageHeight - 40) {
       if (options?.showFooter !== false) {
-        addFooterToPDF(doc, "Relatório de Não Conformidades", doc.getNumberOfPages(), doc.getNumberOfPages());
+        addFooterToPDF(doc, options?.reportType || "Relatório de Não Conformidades", doc.getNumberOfPages(), doc.getNumberOfPages());
       }
       doc.addPage();
       if (options?.showHeader !== false) {
-        addHeaderToPDF(doc, "Relatório de Não Conformidades");
+        addHeaderToPDF(doc, options?.reportType || "Relatório de Não Conformidades");
       }
       y = 40; // Reset Y position
     }
@@ -97,18 +98,19 @@ export function addTableContent(
   const headers = Object.keys(data[0]);
   
   // Determine optimal table orientation - always use landscape for non-conformance full reports
+  const currentReportType = options?.reportType || "Relatório";
   const isLandscape = options?.forceLandscape || 
-                      reportType === "Não Conformidades Completo" ||
+                      currentReportType === "Não Conformidades Completo" ||
                       (data.length > 5 || headers.length > 5);
   
   if (isLandscape && doc.internal.pageSize.getWidth() < doc.internal.pageSize.getHeight()) {
     // Switch to landscape if not already
     if (options?.showFooter !== false) {
-      addFooterToPDF(doc, "Relatório de Não Conformidades", doc.getNumberOfPages(), doc.getNumberOfPages());
+      addFooterToPDF(doc, currentReportType, doc.getNumberOfPages(), doc.getNumberOfPages());
     }
     doc.addPage('landscape');
     if (options?.showHeader !== false) {
-      addHeaderToPDF(doc, "Relatório de Não Conformidades");
+      addHeaderToPDF(doc, currentReportType);
     }
     y = 40;
     pageWidth = doc.internal.pageSize.getWidth();
@@ -128,8 +130,8 @@ export function addTableContent(
   ];
   
   // Para relatórios completos, tentamos incluir mais campos
-  if (options?.reportType === "Não Conformidades Completo" || 
-      options?.reportType === "Ações Corretivas") {
+  if (currentReportType === "Não Conformidades Completo" || 
+      currentReportType === "Ações Corretivas") {
     priorityHeaders.push('requisito_iso', 'descricao', 'acoes_imediatas', 'acao_corretiva');
   }
   
