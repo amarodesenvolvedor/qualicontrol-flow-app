@@ -34,7 +34,7 @@ export function renderDetailedTable(
   // Extract headers from data
   const headers = Object.keys(data[0]);
   
-  // Filter to show only columns defined in priority and exclude 'id' field
+  // Filter to show only columns defined in priority and EXPLICITLY exclude 'id' field
   let visibleHeaders = headers.filter(header => 
     priorityHeaders.includes(header) && header !== 'id'
   );

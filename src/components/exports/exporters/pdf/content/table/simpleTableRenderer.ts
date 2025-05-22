@@ -51,25 +51,21 @@ export function renderSimpleTable(
   
   // Header text
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10); // Reduzido para melhor ajuste
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   
   // Draw header cells with centered text
   let xPos = safeMargin + 3;
   visibleHeaders.forEach((header, i) => {
     const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
-    // Limitar o texto do cabeçalho
-    const truncatedHeader = formattedHeader.length > 15 ? 
-                          formattedHeader.substring(0, 15) + '...' : 
-                          formattedHeader;
     
     // Centralizar o texto do cabeçalho
     const headerWidth = colWidths[i];
-    const textWidth = doc.getTextWidth(truncatedHeader);
+    const textWidth = doc.getTextWidth(formattedHeader);
     const centeredX = xPos + (headerWidth - textWidth) / 2;
     
     // Ajustar alinhamento vertical
-    doc.text(truncatedHeader, centeredX, y + 7);
+    doc.text(formattedHeader, centeredX, y + 7);
     xPos += headerWidth;
   });
   

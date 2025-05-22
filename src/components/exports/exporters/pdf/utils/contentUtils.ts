@@ -1,3 +1,4 @@
+
 import { jsPDF } from "jspdf";
 
 /**
@@ -49,7 +50,7 @@ export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): strin
   const processedText = text.replace(/([\/\-\–\—\(\)])/g, '$1\u200B');
   
   // Split text into words, preserving spaces
-  const words = processedText.split(' ');
+  const words = processedText.split(/\s+/);
   const lines: string[] = [];
   let currentLine = '';
   
@@ -101,7 +102,7 @@ export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): strin
       currentLine = testLine;
     } else {
       // Word doesn't fit, check if it's a very long word
-      if (doc.getTextWidth(word) > maxWidth * 0.9) {
+      if (doc.getTextWidth(word) > maxWidth * 0.8) {
         // Very long word needs to be broken
         if (currentLine) lines.push(currentLine);
         
@@ -114,7 +115,7 @@ export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): strin
         currentLine = wordParts[wordParts.length - 1];
       } else {
         // Normal word, start a new line
-        lines.push(currentLine);
+        if (currentLine) lines.push(currentLine);
         currentLine = word;
       }
     }

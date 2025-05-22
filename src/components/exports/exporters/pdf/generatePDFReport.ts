@@ -20,10 +20,16 @@ export const generatePDFReport = async (
   try {
     console.log(`Generating PDF report for ${reportType} with ${data?.length || 0} records`);
     
-    // Ensure data is an array
+    // Ensure data is an array and remove ID field from each item
     if (!Array.isArray(data)) {
       console.error("Data provided to generatePDFReport is not an array", data);
       data = [];
+    } else if (data.length > 0) {
+      // Remove ID field from each item to prevent it from appearing in reports
+      data = data.map(item => {
+        const { id, ...rest } = item;
+        return rest;
+      });
     }
 
     if (data.length === 0) {
@@ -58,7 +64,7 @@ export const generatePDFReport = async (
     
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20; // Margem mínima de 20px
+    const margin = 25; // Margem mínima aumentada para 25px
     const contentWidth = pageWidth - (margin * 2); // Largura útil do conteúdo
     const lineHeight = 6; // Espaçamento entre linhas
     let y = 30; // Start closer to header
@@ -97,25 +103,26 @@ export const generatePDFReport = async (
           Object.keys(data[0]).length > 3) {
         
         console.log('Using table format for PDF content');
-        y = addTableContent(doc, data, y, pageWidth, lineHeight, updatedOptions);
+        // Passar margin maior e garantir que y inicie em um valor adequado para aproveitar a página
+        y = addTableContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
       } else if (reportType === "Indicadores de Desempenho") {
         // Para indicadores, usar lista simples
         console.log('Using simple list format for indicators');
-        y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, updatedOptions);
+        y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
       } else {
         // Determine se usamos tabela ou lista baseado na quantidade de registros
         if (data.length <= 5) {
           console.log('Using simple list format for PDF content (small dataset)');
-          y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, updatedOptions);
+          y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
         } else {
           console.log('Using table format for PDF content (larger dataset)');
-          y = addTableContent(doc, data, y, pageWidth, lineHeight, updatedOptions);
+          y = addTableContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
         }
       }
     } else {
       // No data message
       console.warn('No data available for PDF report, showing empty state');
-      y = addNoDataMessage(doc, y, pageWidth, lineHeight);
+      y = addNoDataMessage(doc, y, pageWidth, lineHeight, margin);
     }
     
     // Add summary section for non-conformance reports
@@ -125,7 +132,7 @@ export const generatePDFReport = async (
       // Check if we need a new page for the summary
       if (y > pageHeight - 50) {
         if (updatedOptions?.showFooter !== false) {
-          addFooterToPDF(doc, reportType, doc.getNumberOfPages(), doc.getNumberOfPages());
+          addFooterToPDF(doc, reportType, doc.getNumberOfPages(), doc.getNumberOfPages() + 1);
         }
         doc.addPage(useLandscape ? 'landscape' : 'portrait');
         if (updatedOptions?.showHeader !== false) {
@@ -135,7 +142,7 @@ export const generatePDFReport = async (
       }
       
       // Add summary section with statistics
-      y = addSummarySection(doc, data, y, pageWidth, lineHeight);
+      y = addSummarySection(doc, data, y, pageWidth, lineHeight, margin);
       
       // Add detailed reports for each non-conformance (each on a separate page)
       if (reportType === "Não Conformidades Completo") {
