@@ -38,7 +38,7 @@ export function estimateContentHeight(doc: jsPDF, item: Record<string, any>): nu
 
 /**
  * Split text to fit within available width and return the resulting lines
- * with improved line breaking
+ * with improved line breaking that preserves complete content
  */
 export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): string[] {
   if (!text) return [''];

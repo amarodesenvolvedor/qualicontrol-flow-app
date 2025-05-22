@@ -71,7 +71,7 @@ export function addDetailedReports(
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
       
-      // Wrap text to fit and handle multiple lines
+      // Wrap text to fit and handle multiple lines, without truncation
       const wrappedText = wrapTextToFit(doc, content, contentWidth - 10);
       const lineHeight = 5;
       
@@ -118,7 +118,14 @@ export function addDetailedReports(
     
     // Second column values
     doc.setFont("helvetica", "normal");
-    doc.text(item.departamento?.name || item.department?.name || 'N/A', margin + 80, fieldY);
+    
+    // Corrigir exibição do departamento - usar o nome do departamento ou o campo departamento diretamente
+    const departmentName = 
+      (item.department && item.department.name) ? item.department.name : 
+      (item.departamento && item.departamento.name) ? item.departamento.name : 
+      item.departamento || 'N/A';
+    
+    doc.text(departmentName, margin + 80, fieldY);
     doc.text(item.responsavel || item.responsible_name || 'N/A', margin + 80, fieldY + 10);
     doc.text(item.status || 'N/A', margin + 80, fieldY + 20);
     
@@ -136,7 +143,7 @@ export function addDetailedReports(
     
     y += 60;
     
-    // Add content sections
+    // Add content sections - sem truncamento de texto longo
     y = addSection("DESCRIÇÃO", item.descricao || item.description, y);
     y = addSection("AÇÕES IMEDIATAS", item.acoes_imediatas || item.immediate_actions, y);
     y = addSection("ANÁLISE DE CAUSA", item.analise_causa || item.root_cause_analysis, y);

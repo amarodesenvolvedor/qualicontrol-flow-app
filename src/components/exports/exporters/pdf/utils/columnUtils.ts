@@ -13,22 +13,18 @@ export function calculateColumnWidths(
   // Default to equal distribution
   if (headers.length === 0) return [];
   
-  // Largura mínima de coluna - aumentada para dar mais espaço
-  const minColWidth = 35; // Aumentado de 30 para 35
+  // Largura mínima de coluna
+  const minColWidth = 38; // Aumentado para dar mais espaço
   
-  // Definir pesos para colunas específicas
+  // Definir pesos para colunas específicas - ajustados para melhor distribuição
   const columnWeights: Record<string, number> = {
-    'codigo': 0.9,   // Ligeiramente maior agora que 'id' foi removido
-    'titulo': 2.5,   // Aumentado para aproveitar mais espaço
-    'departamento': 1.6, // Aumentado 
-    'responsavel': 1.5,  // Aumentado 
-    'status': 0.9,
-    'data_ocorrencia': 1.0, // Aumentado
-    'data_encerramento': 1.0, // Aumentado
-    'descricao': 3.2,    // Aumentado
-    'acoes_imediatas': 2.8, // Aumentado
-    'acao_corretiva': 2.8,  // Aumentado
-    'requisito_iso': 1.1   // Aumentado
+    'codigo': 0.9,   // Código precisa ser menor
+    'titulo': 2.5,   // Título precisa de mais espaço
+    'departamento': 1.6, 
+    'responsavel': 1.5,  
+    'status': 0.9,   // Status é geralmente curto
+    'data_ocorrencia': 1.1, // Data precisa de mais espaço
+    'requisito_iso': 1.1   // Requisito ISO também precisa de mais espaço
   };
   
   // If we have the PDF document and data, use them for better column width estimation
@@ -36,7 +32,7 @@ export function calculateColumnWidths(
     // Get text widths for headers
     const headerWidths = headers.map(header => {
       const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
-      return doc.getTextWidth(formattedHeader) + 25; // Adicionar padding maior (era 20)
+      return doc.getTextWidth(formattedHeader) + 25; // Adicionar padding maior
     });
     
     // Calculate average content width for each column with consideration for column weights
@@ -67,7 +63,7 @@ export function calculateColumnWidths(
         
         totalWidth += textWidth;
         maxWidth = Math.max(maxWidth, textWidth);
-      }
+      });
       
       // Usar média com peso adicional para o valor máximo encontrado
       const avgWidth = (totalWidth / sampleSize + maxWidth) / 2;
