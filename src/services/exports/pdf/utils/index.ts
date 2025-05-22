@@ -1,22 +1,16 @@
 
-// Selectively export from pdfGenerationUtils to avoid conflicts
-export {
-  initializePdfStyling,
-  checkForPageBreak,
-  addHeaderToPdf,
-  addFooterToPdf,
-  updatePageNumbers,
-  addSectionTitle,
-  addField,
-  addTextContent,
-  // Commenting out the duplicate export
-  // addStatusBadge,
-  calculateTextHeight,
-  generateFilename,
-  type PdfStylingOptions
-} from "./pdfGenerationUtils";
+// Re-export from core
+export * from './core/stylingUtils';
 
-// Export all from other utility files
+// Re-export from layout
+export * from './layout/headerFooterUtils';
+
+// Re-export from content
+export * from './content/sectionUtils';
+export * from './content/textUtils';
+export * from './content/badgeUtils';
+
+// Re-export all from other utility files
 export * from "./statusUtils";
 export * from "./headerUtils";
 export * from "./infoSectionUtils";

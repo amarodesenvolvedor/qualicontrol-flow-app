@@ -1,7 +1,8 @@
 
 import { jsPDF } from "jspdf";
 import { NonConformance } from "@/types/nonConformance";
-import { PdfStylingOptions, addHeaderToPdf } from "./pdfGenerationUtils";
+import { PdfStylingOptions } from "./core/stylingUtils";
+import { addHeaderToPdf } from "./layout/headerFooterUtils";
 import { getStatusColor, statusMap } from "./statusUtils";
 
 /**
