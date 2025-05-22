@@ -13,18 +13,18 @@ export function calculateColumnWidths(
   // Default to equal distribution
   if (headers.length === 0) return [];
   
-  // Largura mínima de coluna
-  const minColWidth = 38; // Aumentado para dar mais espaço
+  // Largura mínima de coluna - aumentada para garantir espaço suficiente
+  const minColWidth = 40;
   
   // Definir pesos para colunas específicas - ajustados para melhor distribuição
   const columnWeights: Record<string, number> = {
-    'codigo': 0.9,   // Código precisa ser menor
-    'titulo': 2.5,   // Título precisa de mais espaço
-    'departamento': 1.6, 
-    'responsavel': 1.5,  
-    'status': 0.9,   // Status é geralmente curto
-    'data_ocorrencia': 1.1, // Data precisa de mais espaço
-    'requisito_iso': 1.1   // Requisito ISO também precisa de mais espaço
+    'codigo': 0.8,       // Código pode ser mais compacto
+    'titulo': 2.8,       // Título precisa de bastante espaço
+    'departamento': 1.8, // Aumentado para acomodar nomes de departamentos longos
+    'responsavel': 1.9,  // Aumentado para evitar truncamento de nomes
+    'status': 1.0,       // Status precisa de espaço para status longos como "Em Andamento"
+    'data_ocorrencia': 1.4, // Data precisa de mais espaço para formatação completa
+    'requisito_iso': 1.3   // Requisito ISO precisa de espaço adequado
   };
   
   // If we have the PDF document and data, use them for better column width estimation
@@ -32,13 +32,13 @@ export function calculateColumnWidths(
     // Get text widths for headers
     const headerWidths = headers.map(header => {
       const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
-      return doc.getTextWidth(formattedHeader) + 25; // Adicionar padding maior
+      return doc.getTextWidth(formattedHeader) + 30; // Padding maior para garantir que caiba
     });
     
     // Calculate average content width for each column with consideration for column weights
     const contentWidths = headers.map((header, index) => {
-      // Sample up to 15 rows for better accuracy
-      const sampleSize = Math.min(15, data.length);
+      // Sample up to 20 rows for better accuracy (aumentado de 15 para 20)
+      const sampleSize = Math.min(20, data.length);
       let totalWidth = 0;
       let maxWidth = 0;
       
@@ -47,18 +47,18 @@ export function calculateColumnWidths(
         // Para textos longos, estimar largura considerando quebras de linha
         let textWidth = 0;
         
-        if (text.length > 30) {
+        if (text.length > 25) { // Reduzido para capturar mais textos potencialmente longos
           // Para textos muito longos, aplicar fator de ajuste baseado no comprimento
-          const estimatedLines = Math.ceil(text.length / 30);
+          const estimatedLines = Math.ceil(text.length / 25);
           textWidth = Math.min(
-            doc.getTextWidth(text.substring(0, 40)) * 1.2, // Considerar apenas os primeiros caracteres
-            doc.getTextWidth(text) * 0.6  // Reduzir mais, considerando quebras
-          ) + 30; // Padding maior
+            doc.getTextWidth(text.substring(0, 50)) * 1.3, // Considerar mais caracteres
+            doc.getTextWidth(text) * 0.7  // Redução menor para preservar mais espaço
+          ) + 35; // Padding maior para garantir espaço
           
           // Aplicar um ajuste adicional baseado no número estimado de linhas
-          textWidth = Math.max(textWidth, (40 * Math.sqrt(estimatedLines)));
+          textWidth = Math.max(textWidth, (45 * Math.sqrt(estimatedLines)));
         } else {
-          textWidth = doc.getTextWidth(text) + 25; // Padding maior
+          textWidth = doc.getTextWidth(text) + 30; // Padding maior
         }
         
         totalWidth += textWidth;
@@ -66,7 +66,7 @@ export function calculateColumnWidths(
       }
       
       // Usar média com peso adicional para o valor máximo encontrado
-      const avgWidth = (totalWidth / sampleSize + maxWidth) / 2;
+      const avgWidth = (totalWidth / sampleSize + maxWidth) / 1.8; // Modificado para dar mais peso à largura máxima
       const weight = columnWeights[header] || 1;
       return Math.max(headerWidths[index], avgWidth) * weight;
     });
@@ -79,7 +79,8 @@ export function calculateColumnWidths(
     const scaleFactor = totalCalculatedWidth > totalWidth ? totalWidth / totalCalculatedWidth : 1;
     
     // Return scaled column widths with minimum width guarantee
-    return adjustedWidths.map(width => Math.max(minColWidth, width * scaleFactor));
+    // Add a small buffer (0.95) to ensure we don't use the entire available width
+    return adjustedWidths.map(width => Math.max(minColWidth, width * scaleFactor * 0.95));
   }
   
   // Fall back to weighted distribution based on column importance
@@ -88,6 +89,6 @@ export function calculateColumnWidths(
   return headers.map(header => {
     const weight = columnWeights[header] || 1;
     const proportion = weight / totalWeights;
-    return Math.max(minColWidth, Math.floor(proportion * totalWidth));
+    return Math.max(minColWidth, Math.floor(proportion * totalWidth * 0.95)); // 5% margin de segurança
   });
 }

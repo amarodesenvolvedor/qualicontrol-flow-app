@@ -32,8 +32,8 @@ export function estimateContentHeight(doc: jsPDF, item: Record<string, any>): nu
   doc.setFontSize(defaultFontSize);
   doc.setFont(defaultFont.fontName);
   
-  // Adicionar margem de segurança
-  return estimatedHeight * 1.2;
+  // Adicionar margem de segurança maior
+  return estimatedHeight * 1.3;
 }
 
 /**
@@ -49,48 +49,88 @@ export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): strin
   // Melhorar a quebra de texto para caracteres especiais
   const processSpecialChars = (text: string): string => {
     // Substituir caracteres que podem causar problemas na quebra
-    return text.replace(/([\/\-])/g, '$1\u200B');
+    return text.replace(/([\/\-\–\—\(\)])/g, '$1\u200B');
   };
   
   // Processar texto com caracteres especiais
   const processedText = processSpecialChars(text);
+  
+  // Dividir texto em palavras, preservando espaços
   const words = processedText.split(' ');
   const lines: string[] = [];
   let currentLine = '';
   
-  words.forEach(word => {
-    // Para palavras muito longas, quebrar em partes menores
-    if (doc.getTextWidth(word) > maxWidth * 0.8) {
-      // Se a palavra atual é muito longa, quebrar em caracteres
-      let partialWord = '';
-      for (let i = 0; i < word.length; i++) {
-        const testChar = partialWord + word[i];
-        if (doc.getTextWidth(testChar) <= maxWidth * 0.8) {
-          partialWord = testChar;
+  // Função para verificar se uma palavra muito longa precisa ser quebrada
+  const breakLongWord = (word: string): string[] => {
+    // Se a palavra não é tão longa, retorná-la diretamente
+    if (doc.getTextWidth(word) <= maxWidth * 0.85) return [word];
+    
+    // Para palavras muito longas, quebrar em partes
+    const parts: string[] = [];
+    let currentPart = '';
+    
+    // Tentar quebrar em caracteres naturais de separação primeiro
+    const naturalBreakPoints = word.split(/(?=[\/\-\–\—\(\)])/);
+    
+    if (naturalBreakPoints.length > 1) {
+      // A palavra tem separadores naturais
+      for (const part of naturalBreakPoints) {
+        if (doc.getTextWidth(currentPart + part) <= maxWidth * 0.85) {
+          currentPart += part;
         } else {
-          // Adicionar parte da palavra e iniciar nova linha
-          lines.push(partialWord);
-          partialWord = word[i];
+          if (currentPart) parts.push(currentPart);
+          currentPart = part;
         }
       }
-      // Adicionar último pedaço da palavra longa
-      if (partialWord) {
-        currentLine = partialWord;
-      }
+      if (currentPart) parts.push(currentPart);
+      return parts;
     } else {
-      // Check if adding this word would exceed the max width
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      if (doc.getTextWidth(testLine) <= maxWidth) {
-        currentLine = testLine;
+      // Quebrar por caracteres
+      for (let i = 0; i < word.length; i++) {
+        const nextChar = word[i];
+        if (doc.getTextWidth(currentPart + nextChar) <= maxWidth * 0.85) {
+          currentPart += nextChar;
+        } else {
+          parts.push(currentPart);
+          currentPart = nextChar;
+        }
+      }
+      if (currentPart) parts.push(currentPart);
+      return parts;
+    }
+  };
+  
+  // Processar cada palavra
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    // Verificar se adicionar essa palavra excederia a largura máxima
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    
+    if (doc.getTextWidth(testLine) <= maxWidth) {
+      // A palavra cabe na linha atual
+      currentLine = testLine;
+    } else {
+      // A palavra não cabe, precisamos verificar se é uma palavra muito longa
+      if (doc.getTextWidth(word) > maxWidth * 0.85) {
+        // Palavra muito longa, precisa ser quebrada
+        if (currentLine) lines.push(currentLine);
+        
+        const wordParts = breakLongWord(word);
+        // Adicionar todas as partes menos a última
+        for (let j = 0; j < wordParts.length - 1; j++) {
+          lines.push(wordParts[j]);
+        }
+        // Manter a última parte como início da nova linha
+        currentLine = wordParts[wordParts.length - 1];
       } else {
-        // Line would be too long, push current line and start a new one
+        // Palavra normal, apenas iniciar uma nova linha
         lines.push(currentLine);
         currentLine = word;
       }
     }
-  });
+  }
   
-  // Add the last line
+  // Adicionar a última linha
   if (currentLine) {
     lines.push(currentLine);
   }

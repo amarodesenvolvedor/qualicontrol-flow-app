@@ -1,3 +1,4 @@
+
 import { jsPDF } from "jspdf";
 import { PDFExportOptions } from "../../../utils/types";
 import { addHeaderToPDF, addFooterToPDF } from "../../../utils/pdfHelpers";
@@ -44,7 +45,7 @@ export function addTableContent(
   const margin = options?.margin || 15;
   const tableWidth = pageWidth - (margin * 2);
   
-  // Campos específicos para mostrar na tabela principal - remover 'id' e 'data_encerramento'
+  // Campos específicos para mostrar na tabela principal - excluir campos desnecessários
   const priorityHeaders = [
     'codigo', 'titulo', 'departamento', 'requisito_iso', 'status', 
     'responsavel', 'data_ocorrencia'
@@ -58,12 +59,17 @@ export function addTableContent(
       priorityHeaders.includes(header) && header !== 'id'
     );
     
+    // Ordenar os cabeçalhos na sequência definida
+    visibleHeaders = priorityHeaders.filter(header => visibleHeaders.includes(header));
+    
     // Calculate column widths based on content - improved algorithm
     const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
     
     // Draw table header with brand color background
+    // Aumentar altura do cabeçalho para melhor visualização
+    const headerHeight = lineHeight + 5;
     doc.setFillColor(41, 65, 148);
-    doc.rect(margin, y, tableWidth, lineHeight + 2, 'F');
+    doc.rect(margin, y, tableWidth, headerHeight, 'F');
     
     // Header text
     doc.setTextColor(255, 255, 255);
@@ -73,18 +79,23 @@ export function addTableContent(
     // Draw header cells with centered text
     let xPos = margin;
     visibleHeaders.forEach((header, i) => {
+      // Formatar cabeçalho de forma mais legível
       const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
       const headerWidth = colWidths[i];
       
-      // Centralizar o texto do cabeçalho na coluna
+      // Centralizar o texto do cabeçalho na coluna - ajustado para centralização precisa
       const textWidth = doc.getTextWidth(formattedHeader);
+      // Posição centralizada, considerando o espaço exato
       const centeredX = xPos + (headerWidth / 2) - (textWidth / 2);
       
-      doc.text(formattedHeader, centeredX, y + 7);
+      // Posicionar texto verticalmente centralizado
+      const verticalCenter = y + (headerHeight / 2) + 2.5;
+      
+      doc.text(formattedHeader, centeredX, verticalCenter);
       xPos += headerWidth;
     });
     
-    y += lineHeight + 4;
+    y += headerHeight + 2;
     
     // Draw data rows with improved styling
     doc.setTextColor(0, 0, 0);
@@ -108,7 +119,7 @@ export function addTableContent(
         
         // Redesenhar cabeçalho na nova página
         doc.setFillColor(41, 65, 148);
-        doc.rect(margin, y, tableWidth, lineHeight + 2, 'F');
+        doc.rect(margin, y, tableWidth, headerHeight, 'F');
         
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
@@ -122,60 +133,62 @@ export function addTableContent(
           // Centralizar o texto do cabeçalho em cada página nova
           const textWidth = doc.getTextWidth(formattedHeader);
           const centeredX = xPos + (headerWidth / 2) - (textWidth / 2);
+          const verticalCenter = y + (headerHeight / 2) + 2.5;
           
-          doc.text(formattedHeader, centeredX, y + 7);
+          doc.text(formattedHeader, centeredX, verticalCenter);
           xPos += headerWidth;
         });
         
-        y += lineHeight + 4;
+        y += headerHeight + 2;
         doc.setTextColor(0, 0, 0);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
       }
       
-      // Alternate row background for readability
-      if (i % 2 === 0) {
-        doc.setFillColor(245, 245, 250);
-        doc.rect(margin, y - 4, tableWidth, lineHeight + 8, 'F'); // Increased height for text
-      }
-      
       // Pre-process row to determine height
       const rowContentHeights = [];
-      let maxRowHeight = lineHeight;
+      let maxRowHeight = lineHeight * 1.5; // Mínimo aumentado para melhor espaçamento
       
       visibleHeaders.forEach((header, j) => {
         const text = String(item[header] || '');
+        // Reduzir a margem interna para dar mais espaço ao texto
         const colWidth = colWidths[j] - 6;
         
         // Calcular altura para textos que precisam de quebra de linha
-        if (text.length > 10) {
+        if (text.length > 0) { // Processar todos os textos, mesmo curtos
           const wrapped = wrapTextToFit(doc, text, colWidth);
-          const contentHeight = wrapped.length * (lineHeight * 0.8);
+          const contentHeight = wrapped.length * (lineHeight * 0.9);
           rowContentHeights.push(contentHeight);
-          maxRowHeight = Math.max(maxRowHeight, contentHeight + 3);
+          maxRowHeight = Math.max(maxRowHeight, contentHeight + 4); // Adicionado padding extra
         } else {
           rowContentHeights.push(lineHeight);
         }
       });
       
-      // Re-draw background for taller row if needed
-      if (maxRowHeight > lineHeight && i % 2 === 0) {
+      // Alternate row background for readability
+      if (i % 2 === 0) {
         doc.setFillColor(245, 245, 250);
-        doc.rect(margin, y - 4, tableWidth, maxRowHeight + 4, 'F');
+        doc.rect(margin, y - 4, tableWidth, maxRowHeight + 6, 'F'); // Extra height for padding
       }
       
       // Add cell content with proper wrapping
       xPos = margin;
       visibleHeaders.forEach((header, j) => {
         const text = String(item[header] || '');
+        // Ajustar para garantir espaço suficiente para o texto
         const colWidth = colWidths[j] - 6;
         
         // Sempre usar quebra de linha para garantir que o texto não ultrapasse a coluna
         const wrapped = wrapTextToFit(doc, text, colWidth);
         
-        // Deixar um espaço vertical adicional entre o texto e os limites da célula
-        const cellYPos = y + 2;
-        doc.text(wrapped, xPos + 3, cellYPos);
+        // Posicionamento vertical melhorado
+        const cellYPos = y;
+        
+        // Adicionar cada linha de texto com espaçamento adequado
+        wrapped.forEach((line, lineIndex) => {
+          const lineY = cellYPos + (lineIndex * lineHeight * 0.9);
+          doc.text(line, xPos + 3, lineY);
+        });
         
         xPos += colWidths[j];
       });

@@ -51,7 +51,7 @@ export function addDetailedReports(
     
     y += 20;
     
-    // Function to add a section with title
+    // Function to add a section with title - aprimorada para lidar com texto longo
     const addSection = (sectionTitle: string, content: string | null | undefined, currentY: number): number => {
       if (!content) return currentY;
       
@@ -71,9 +71,9 @@ export function addDetailedReports(
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
       
-      // Wrap text to fit and handle multiple lines, without truncation
+      // Wrap text to fit and handle multiple lines, sem truncamento
       const wrappedText = wrapTextToFit(doc, content, contentWidth - 10);
-      const lineHeight = 5;
+      const lineHeight = 5.5; // Aumentado para melhor legibilidade
       
       // Check if content would go beyond page, if so add a new page
       if (currentY + (wrappedText.length * lineHeight) + 10 > pageHeight - 30) {
@@ -87,7 +87,25 @@ export function addDetailedReports(
         currentY = 35;
       }
       
+      // Garantir que todo o texto seja exibido, sem truncamento
       wrappedText.forEach((line, i) => {
+        // Se estiver chegando ao final da página, adicione uma nova
+        if (currentY + (i * lineHeight) > pageHeight - 30) {
+          if (options?.showFooter !== false) {
+            addFooterToPDF(doc, currentReportType, doc.getNumberOfPages(), doc.getNumberOfPages() + 1);
+          }
+          doc.addPage();
+          if (options?.showHeader !== false) {
+            addHeaderToPDF(doc, `${currentReportType} - Detalhe #${index + 1}`);
+          }
+          currentY = 35;
+          // Recomeçar a contagem de linhas
+          wrappedText.slice(i).forEach((remainingLine, j) => {
+            doc.text(remainingLine, margin + 5, currentY + (j * lineHeight));
+          });
+          // Ajustar a posição Y para depois do texto
+          return currentY + ((wrappedText.length - i) * lineHeight) + 10;
+        }
         doc.text(line, margin + 5, currentY + (i * lineHeight));
       });
       
@@ -96,9 +114,9 @@ export function addDetailedReports(
     
     // Add basic information section
     doc.setFillColor(245, 245, 250);
-    doc.rect(margin, y, contentWidth, 50, 'F');
+    doc.rect(margin, y, contentWidth, 55, 'F'); // Aumentado para dar mais espaço
     doc.setDrawColor(220, 220, 220);
-    doc.rect(margin, y, contentWidth, 50, 'S');
+    doc.rect(margin, y, contentWidth, 55, 'S');
     
     doc.setFont("helvetica", "bold");
     doc.setTextColor(41, 65, 148);
@@ -119,11 +137,19 @@ export function addDetailedReports(
     // Second column values
     doc.setFont("helvetica", "normal");
     
-    // Corrigir exibição do departamento - usar o nome do departamento ou o campo departamento diretamente
-    const departmentName = 
-      (item.department && item.department.name) ? item.department.name : 
-      (item.departamento && item.departamento.name) ? item.departamento.name : 
-      item.departamento || 'N/A';
+    // Corrigir exibição do departamento - lógica aprimorada
+    let departmentName = 'N/A';
+    
+    // Verificar todas as possíveis fontes de nome do departamento
+    if (item.department && typeof item.department === 'object' && item.department.name) {
+      departmentName = item.department.name;
+    } else if (item.departamento && typeof item.departamento === 'object' && item.departamento.name) {
+      departmentName = item.departamento.name;
+    } else if (typeof item.departamento === 'string' && item.departamento) {
+      departmentName = item.departamento;
+    } else if (typeof item.department === 'string' && item.department) {
+      departmentName = item.department;
+    }
     
     doc.text(departmentName, margin + 80, fieldY);
     doc.text(item.responsavel || item.responsible_name || 'N/A', margin + 80, fieldY + 10);
@@ -141,9 +167,9 @@ export function addDetailedReports(
     doc.text(item.data_encerramento || item.completion_date || 'N/A', margin + contentWidth/2 + 80, fieldY + 10);
     doc.text(item.requisito_iso || item.iso_requirement || 'N/A', margin + contentWidth/2 + 80, fieldY + 20);
     
-    y += 60;
+    y += 65; // Aumentado para dar mais espaço entre as seções
     
-    // Add content sections - sem truncamento de texto longo
+    // Add content sections - garantir que o texto seja exibido completamente
     y = addSection("DESCRIÇÃO", item.descricao || item.description, y);
     y = addSection("AÇÕES IMEDIATAS", item.acoes_imediatas || item.immediate_actions, y);
     y = addSection("ANÁLISE DE CAUSA", item.analise_causa || item.root_cause_analysis, y);
