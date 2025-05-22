@@ -19,15 +19,15 @@ export function renderDetailedTable(
   margin: number,
   options?: PDFExportOptions
 ): number {
-  // Ensure minimum margin of 20px
-  const safeMargin = Math.max(margin, 20);
+  // Ensure minimum margin of 25px for better readability
+  const safeMargin = Math.max(margin, 25);
   
   // Increased initial Y position for better page usage
   if (y < 45) y = 45;
   
-  // Specific fields to show in the main table - exclude unnecessary fields
+  // Specific fields to show in the main table - exclude requisito_iso as requested
   const priorityHeaders = [
-    'codigo', 'titulo', 'departamento', 'requisito_iso', 'status', 
+    'codigo', 'titulo', 'departamento', 'status', 
     'responsavel', 'data_ocorrencia'
   ];
 

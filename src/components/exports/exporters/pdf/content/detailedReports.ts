@@ -52,7 +52,7 @@ export function addDetailedReports(
     
     y += 20;
     
-    // Function to add a section with title - removido truncamento de texto
+    // Function to add a section with title - improved to ensure complete text rendering
     const addSection = (sectionTitle: string, content: string | null | undefined, currentY: number): number => {
       if (!content) return currentY;
       
@@ -72,7 +72,7 @@ export function addDetailedReports(
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
       
-      // Wrap text to fit and handle multiple lines - sem truncamento
+      // Wrap text to fit and handle multiple lines - ensure NO truncation
       const wrappedText = wrapTextToFit(doc, content, contentWidth - 10);
       const lineHeight = 6; // Aumentado para melhor legibilidade
       
@@ -88,13 +88,13 @@ export function addDetailedReports(
         currentY = 35;
       }
       
-      // Garantir que todo o texto seja exibido, sem truncamento
+      // Make sure all text is displayed, with NO truncation
       let linesProcessed = 0;
       
-      // Paginação aprimorada para lidar com textos muito longos
+      // Enhanced pagination to handle very long texts
       for (let i = 0; i < wrappedText.length; i++) {
-        // Se estiver chegando ao final da página, adicione uma nova
-        if (currentY + ((i - linesProcessed) * lineHeight) > pageHeight - 30) {
+        // If we're approaching the bottom of the page, add a new one
+        if (currentY + ((i - linesProcessed) * lineHeight) > pageHeight - 35) {
           if (options?.showFooter !== false) {
             addFooterToPDF(doc, currentReportType, doc.getNumberOfPages(), doc.getNumberOfPages() + 1);
           }
@@ -106,7 +106,7 @@ export function addDetailedReports(
           linesProcessed = i;
         }
         
-        // Renderizar a linha atual com margem adequada
+        // Render the current line with adequate margin
         doc.text(wrappedText[i], margin + 5, currentY + ((i - linesProcessed) * lineHeight));
       }
       
@@ -115,7 +115,7 @@ export function addDetailedReports(
     
     // Add basic information section with improved margins
     doc.setFillColor(245, 245, 250);
-    doc.rect(margin, y, contentWidth, 60, 'F'); // Aumentado para dar mais espaço
+    doc.rect(margin, y, contentWidth, 60, 'F'); // Increased for more space
     doc.setDrawColor(220, 220, 220);
     doc.rect(margin, y, contentWidth, 60, 'S');
     
@@ -138,7 +138,7 @@ export function addDetailedReports(
     // Second column values - improved margin and alignment
     doc.setFont("helvetica", "normal");
     
-    // Lógica aprimorada para exibir o departamento corretamente
+    // Improved logic to correctly display the department
     let departmentName = 'N/A';
     
     if (item.department && typeof item.department === 'object' && item.department.name) {
@@ -151,7 +151,7 @@ export function addDetailedReports(
       departmentName = item.department;
     }
     
-    // Garantir que os valores tenham margem adequada
+    // Ensure values have adequate margin
     doc.text(departmentName, margin + 85, fieldY);
     doc.text(item.responsavel || item.responsible_name || 'N/A', margin + 85, fieldY + 12);
     doc.text(item.status || 'N/A', margin + 85, fieldY + 24);
@@ -161,17 +161,15 @@ export function addDetailedReports(
     doc.setFont("helvetica", "bold");
     doc.text("Data ocorrência:", rightColX, fieldY);
     doc.text("Data encerramento:", rightColX, fieldY + 12);
-    doc.text("Requisito ISO:", rightColX, fieldY + 24);
     
     // Fourth column values with proper alignment
     doc.setFont("helvetica", "normal");
     doc.text(item.data_ocorrencia || item.occurrence_date || 'N/A', rightColX + 85, fieldY);
     doc.text(item.data_encerramento || item.completion_date || 'N/A', rightColX + 85, fieldY + 12);
-    doc.text(item.requisito_iso || item.iso_requirement || 'N/A', rightColX + 85, fieldY + 24);
     
-    y += 70; // Aumentado para dar mais espaço entre as seções
+    y += 70; // Increased for more space between sections
     
-    // Add content sections - exibindo o texto completo sem truncamento
+    // Add content sections - displaying complete text with no truncation
     y = addSection("DESCRIÇÃO", item.descricao || item.description, y);
     y = addSection("AÇÕES IMEDIATAS", item.acoes_imediatas || item.immediate_actions, y);
     y = addSection("ANÁLISE DE CAUSA", item.analise_causa || item.root_cause_analysis, y);

@@ -17,7 +17,7 @@ export function estimateContentHeight(doc: jsPDF, item: Record<string, any>): nu
     
     // Use more accurate calculation for text width
     const textWidth = doc.getTextWidth(`${key}: ${valueStr}`);
-    const availableWidth = doc.internal.pageSize.getWidth() - 40; // Ensure 20px margins on each side
+    const availableWidth = doc.internal.pageSize.getWidth() - 50; // Ensure 25px margins on each side
     
     if (textWidth > availableWidth) {
       // Calculate how many lines this text will need
@@ -102,7 +102,7 @@ export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): strin
       currentLine = testLine;
     } else {
       // Word doesn't fit, check if it's a very long word
-      if (doc.getTextWidth(word) > maxWidth * 0.8) {
+      if (doc.getTextWidth(word) > maxWidth * 0.7) { // Reduced threshold to catch more long words
         // Very long word needs to be broken
         if (currentLine) lines.push(currentLine);
         

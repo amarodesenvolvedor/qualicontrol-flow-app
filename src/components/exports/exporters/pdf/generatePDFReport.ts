@@ -121,7 +121,6 @@ export const generatePDFReport = async (
     } else {
       // No data message
       console.warn('No data available for PDF report, showing empty state');
-      // Fixed: Matching the parameters expected by addNoDataMessage - removed margin which isn't expected
       y = addNoDataMessage(doc, y, pageWidth, lineHeight);
     }
     
@@ -142,7 +141,6 @@ export const generatePDFReport = async (
       }
       
       // Add summary section with statistics
-      // Fixed: Matching the parameters expected by addSummarySection - removed margin which isn't expected
       y = addSummarySection(doc, data, y, pageWidth, lineHeight);
       
       // Add detailed reports for each non-conformance (each on a separate page)

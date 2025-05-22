@@ -20,12 +20,11 @@ export function calculateColumnWidths(
   // Define weights for specific columns - adjusted for better distribution
   const columnWeights: Record<string, number> = {
     'codigo': 0.8,       // Code can be more compact
-    'titulo': 2.8,       // Title needs lots of space
+    'titulo': 3.5,       // Title needs significantly more space (increased from 2.8)
     'departamento': 1.8, // Increased to accommodate long department names
     'responsavel': 1.9,  // Increased to avoid name truncation
     'status': 1.0,       // Status needs space for longer status like "Em Andamento"
     'data_ocorrencia': 1.4, // Date needs more space for full formatting
-    'requisito_iso': 1.3   // ISO requirement needs adequate space
   };
   
   // If we have the PDF document and data, use them for better column width estimation
@@ -48,16 +47,16 @@ export function calculateColumnWidths(
         // For long texts, estimate width considering line breaks
         let textWidth = 0;
         
-        if (text.length > 25) { // Reduced to capture more potentially long texts
+        if (text.length > 20) { // Reduced threshold to capture more potentially long texts
           // For very long texts, apply adjustment factor based on length
-          const estimatedLines = Math.ceil(text.length / 25);
+          const estimatedLines = Math.ceil(text.length / 20);
           textWidth = Math.min(
             doc.getTextWidth(text.substring(0, 50)) * 1.3, // Consider more characters
             doc.getTextWidth(text) * 0.7  // Smaller reduction to preserve more space
-          ) + 35; // Larger padding to ensure space
+          ) + 40; // Larger padding to ensure space
           
           // Apply additional adjustment based on estimated number of lines
-          textWidth = Math.max(textWidth, (45 * Math.sqrt(estimatedLines)));
+          textWidth = Math.max(textWidth, (50 * Math.sqrt(estimatedLines)));
         } else {
           textWidth = doc.getTextWidth(text) + 30; // Larger padding
         }
