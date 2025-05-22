@@ -14,6 +14,7 @@ export function addTableContent(
   y: number, 
   pageWidth: number, 
   lineHeight: number,
+  margin: number,
   options?: PDFExportOptions
 ): number {
   if (!data || data.length === 0) {
@@ -40,13 +41,13 @@ export function addTableContent(
   }
   
   // Configure table column settings
-  const margin = options?.margin || 15;
+  const safeMargin = Math.max(margin, 20);
   
   // Para relatórios completos, usar renderizador detalhado
   if (currentReportType === "Não Conformidades Completo" || 
       currentReportType === "Ações Corretivas") {
-    return renderDetailedTable(doc, data, y, pageWidth, lineHeight, margin, options);
+    return renderDetailedTable(doc, data, y, pageWidth, lineHeight, safeMargin, options);
   } else {
-    return renderSimpleTable(doc, data, y, pageWidth, lineHeight, margin, options);
+    return renderSimpleTable(doc, data, y, pageWidth, lineHeight, safeMargin, options);
   }
 }

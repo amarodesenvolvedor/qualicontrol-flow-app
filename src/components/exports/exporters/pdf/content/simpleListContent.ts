@@ -13,11 +13,12 @@ export function addSimpleListContent(
   y: number, 
   pageWidth: number, 
   lineHeight: number, 
+  margin: number,
   options?: PDFExportOptions
 ): number {
-  const margin = options?.margin || 20;
+  const safeMargin = Math.max(margin, 20);
   const pageHeight = doc.internal.pageSize.getHeight();
-  const contentWidth = pageWidth - (margin * 2);
+  const contentWidth = pageWidth - (safeMargin * 2);
 
   data.forEach((item, index) => {
     // Verificar se precisamos de uma nova página antes de adicionar o item
@@ -39,15 +40,15 @@ export function addSimpleListContent(
     // Add item box with light background
     doc.setFillColor(245, 245, 250);
     
-    doc.rect(margin, y - 5, contentWidth, boxHeight, 'F');
+    doc.rect(safeMargin, y - 5, contentWidth, boxHeight, 'F');
     doc.setDrawColor(200, 200, 200);
-    doc.rect(margin, y - 5, contentWidth, boxHeight, 'S');
+    doc.rect(safeMargin, y - 5, contentWidth, boxHeight, 'S');
     
     // Item title with brand color
     doc.setFontSize(12);
     doc.setTextColor(41, 65, 148);
     doc.setFont("helvetica", "bold"); // Usar negrito apenas para o título do item
-    doc.text(`Item ${index + 1}`, margin + 5, y);
+    doc.text(`Item ${index + 1}`, safeMargin + 5, y);
     y += lineHeight;
     
     // Item details with proper line breaks
@@ -60,10 +61,10 @@ export function addSimpleListContent(
       const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
       
       // Handle value display with potential line breaks
-      const valueStr = String(value);
-      const labelOffset = margin + 15;
-      const valueOffset = margin + 45;
-      const maxValueWidth = contentWidth - (valueOffset - margin) - 10; // 10px margin de segurança
+      const valueStr = String(value || '');
+      const labelOffset = safeMargin + 15;
+      const valueOffset = safeMargin + 45;
+      const maxValueWidth = contentWidth - (valueOffset - safeMargin) - 10; // 10px margin de segurança
       
       // Sempre exibir o rótulo na posição correta
       doc.setFont("helvetica", "bold"); // Negrito apenas para o rótulo
