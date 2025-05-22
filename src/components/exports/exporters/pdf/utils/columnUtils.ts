@@ -63,7 +63,7 @@ export function calculateColumnWidths(
         
         totalWidth += textWidth;
         maxWidth = Math.max(maxWidth, textWidth);
-      });
+      }
       
       // Usar média com peso adicional para o valor máximo encontrado
       const avgWidth = (totalWidth / sampleSize + maxWidth) / 2;
