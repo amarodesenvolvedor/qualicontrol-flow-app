@@ -137,7 +137,7 @@ export function addTableContent(
     // Alternate row background for readability
     if (i % 2 === 0) {
       doc.setFillColor(245, 245, 250);
-      doc.rect(margin, y - 4, tableWidth, lineHeight + 5, 'F');
+      doc.rect(margin, y - 4, tableWidth, lineHeight + 8, 'F'); // Increased height for text
     }
     
     // Pre-process row to determine height
@@ -146,14 +146,14 @@ export function addTableContent(
     
     visibleHeaders.forEach((header, j) => {
       const text = String(item[header] || '');
-      const colWidth = colWidths[j] - 10; // Padding
+      const colWidth = colWidths[j] - 12; // Increased padding
       
       // Calcular altura para textos que precisam de quebra de linha
-      if (text.length > 12) { // Reduzido para detectar mais textos que precisam de quebra
-        const wrapped = doc.splitTextToSize(text, colWidth - 4); // Margem extra para evitar sobreposição
-        const contentHeight = wrapped.length * (lineHeight * 0.7);
+      if (text.length > 10) { // Reduzido para detectar mais textos que precisam de quebra
+        const wrapped = doc.splitTextToSize(text, colWidth);
+        const contentHeight = wrapped.length * (lineHeight * 0.8); // Increased line spacing
         rowContentHeights.push(contentHeight);
-        maxRowHeight = Math.max(maxRowHeight, contentHeight + 2);
+        maxRowHeight = Math.max(maxRowHeight, contentHeight + 3); // Added more padding
       } else {
         rowContentHeights.push(lineHeight);
       }
@@ -162,23 +162,26 @@ export function addTableContent(
     // Re-draw background for taller row if needed
     if (maxRowHeight > lineHeight && i % 2 === 0) {
       doc.setFillColor(245, 245, 250);
-      doc.rect(margin, y - 4, tableWidth, maxRowHeight + 2, 'F');
+      doc.rect(margin, y - 4, tableWidth, maxRowHeight + 4, 'F'); // Increased height
     }
     
     // Add cell content with proper wrapping
     xPos = margin + 3;
     visibleHeaders.forEach((header, j) => {
       const text = String(item[header] || '');
-      const colWidth = colWidths[j] - 6; // Margem reduzida para evitar sobreposição
+      const colWidth = colWidths[j] - 12; // Increased padding for safety
       
       // Sempre usar quebra de linha para garantir que o texto não ultrapasse a coluna
       const wrapped = doc.splitTextToSize(text, colWidth);
-      doc.text(wrapped, xPos, y + 2);
+      
+      // Deixar um espaço vertical adicional entre o texto e os limites da célula
+      const cellYPos = y + 2;
+      doc.text(wrapped, xPos, cellYPos);
       
       xPos += colWidths[j];
     });
     
-    y += maxRowHeight + 1; // Adicionar margem extra entre linhas
+    y += maxRowHeight + 2; // Adicionar margem extra entre linhas
   }
   
   return y;
