@@ -38,7 +38,7 @@ export const addNonConformanceHeader = (
   doc.setFont('helvetica', 'bold');
   
   // Handle long titles with proper wrapping
-  const titleLines = doc.splitTextToSize(nonConformance.title, styling.contentWidth);
+  const titleLines = doc.splitTextToSize(nonConformance.title || "", styling.contentWidth);
   doc.text(titleLines, styling.margin, y);
   y += (titleLines.length * 7);
   

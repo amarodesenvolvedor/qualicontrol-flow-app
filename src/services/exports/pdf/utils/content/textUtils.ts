@@ -4,6 +4,7 @@ import { PdfStylingOptions, checkForPageBreak } from "../core/stylingUtils";
 
 /**
  * Add text content with proper page break handling
+ * Improved version with better text wrapping and no truncation
  */
 export const addTextContent = (
   doc: jsPDF, 
@@ -16,7 +17,12 @@ export const addTextContent = (
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
   
-  // Split text into lines that fit the page width
+  // Handle empty or null text
+  if (!text || text.trim() === '') {
+    return y + 5; // Return y position with a small margin
+  }
+  
+  // Split text into lines that fit the page width, ensuring full content
   const textLines = doc.splitTextToSize(text, styling.contentWidth);
   
   // Calculate total height needed

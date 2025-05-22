@@ -6,18 +6,18 @@ import { jsPDF } from "jspdf";
  */
 export function estimateContentHeight(doc: jsPDF, item: Record<string, any>): number {
   let estimatedHeight = 0;
-  const lineHeight = 8; // Reduzido para um espaçamento mais compacto
+  const lineHeight = 8; // Reduced for more compact spacing
   const defaultFontSize = doc.getFontSize();
   const defaultFont = doc.getFont();
   
-  doc.setFontSize(10); // Usar fonte menor para o cálculo
+  doc.setFontSize(10); // Use smaller font for calculation
   
   Object.entries(item).forEach(([key, value]) => {
     const valueStr = String(value);
     
     // Use the PDF document's text width calculation for more accurate results
     const textWidth = doc.getTextWidth(`${key}: ${valueStr}`);
-    const availableWidth = doc.internal.pageSize.getWidth() - 100; // Mais espaço para margens
+    const availableWidth = doc.internal.pageSize.getWidth() - 100; // More space for margins
     
     if (textWidth > availableWidth) {
       // Calculate how many lines this text will need
@@ -32,7 +32,7 @@ export function estimateContentHeight(doc: jsPDF, item: Record<string, any>): nu
   doc.setFontSize(defaultFontSize);
   doc.setFont(defaultFont.fontName);
   
-  // Adicionar margem de segurança maior
+  // Add larger safety margin
   return estimatedHeight * 1.3;
 }
 
@@ -46,34 +46,34 @@ export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): strin
   // For very short text, no need to process
   if (doc.getTextWidth(text) <= maxWidth) return [text];
   
-  // Melhorar a quebra de texto para caracteres especiais
+  // Improve text wrapping for special characters
   const processSpecialChars = (text: string): string => {
-    // Substituir caracteres que podem causar problemas na quebra
+    // Replace characters that might cause problems with line breaking
     return text.replace(/([\/\-\–\—\(\)])/g, '$1\u200B');
   };
   
-  // Processar texto com caracteres especiais
+  // Process text with special characters
   const processedText = processSpecialChars(text);
   
-  // Dividir texto em palavras, preservando espaços
+  // Split text into words, preserving spaces
   const words = processedText.split(' ');
   const lines: string[] = [];
   let currentLine = '';
   
-  // Função para verificar se uma palavra muito longa precisa ser quebrada
+  // Function to check if a very long word needs to be broken
   const breakLongWord = (word: string): string[] => {
-    // Se a palavra não é tão longa, retorná-la diretamente
+    // If the word isn't that long, return it directly
     if (doc.getTextWidth(word) <= maxWidth * 0.85) return [word];
     
-    // Para palavras muito longas, quebrar em partes
+    // For very long words, break into parts
     const parts: string[] = [];
     let currentPart = '';
     
-    // Tentar quebrar em caracteres naturais de separação primeiro
+    // Try to break at natural separation characters first
     const naturalBreakPoints = word.split(/(?=[\/\-\–\—\(\)])/);
     
     if (naturalBreakPoints.length > 1) {
-      // A palavra tem separadores naturais
+      // The word has natural separators
       for (const part of naturalBreakPoints) {
         if (doc.getTextWidth(currentPart + part) <= maxWidth * 0.85) {
           currentPart += part;
@@ -85,7 +85,7 @@ export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): strin
       if (currentPart) parts.push(currentPart);
       return parts;
     } else {
-      // Quebrar por caracteres
+      // Break by characters
       for (let i = 0; i < word.length; i++) {
         const nextChar = word[i];
         if (doc.getTextWidth(currentPart + nextChar) <= maxWidth * 0.85) {
@@ -100,41 +100,41 @@ export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): strin
     }
   };
   
-  // Processar cada palavra
+  // Process each word
   for (let i = 0; i < words.length; i++) {
     const word = words[i];
-    // Verificar se adicionar essa palavra excederia a largura máxima
+    // Check if adding this word would exceed the maximum width
     const testLine = currentLine ? `${currentLine} ${word}` : word;
     
     if (doc.getTextWidth(testLine) <= maxWidth) {
-      // A palavra cabe na linha atual
+      // The word fits on the current line
       currentLine = testLine;
     } else {
-      // A palavra não cabe, precisamos verificar se é uma palavra muito longa
+      // The word doesn't fit, we need to check if it's a very long word
       if (doc.getTextWidth(word) > maxWidth * 0.85) {
-        // Palavra muito longa, precisa ser quebrada
+        // Very long word, needs to be broken
         if (currentLine) lines.push(currentLine);
         
         const wordParts = breakLongWord(word);
-        // Adicionar todas as partes menos a última
+        // Add all parts except the last one
         for (let j = 0; j < wordParts.length - 1; j++) {
           lines.push(wordParts[j]);
         }
         // Manter a última parte como início da nova linha
         currentLine = wordParts[wordParts.length - 1];
       } else {
-        // Palavra normal, apenas iniciar uma nova linha
+        // Normal word, just start a new line
         lines.push(currentLine);
         currentLine = word;
       }
     }
   }
   
-  // Adicionar a última linha
+  // Add the last line
   if (currentLine) {
     lines.push(currentLine);
   }
   
-  // Remover caracteres invisíveis de quebra do resultado final
+  // Remove invisible break characters from the final result
   return lines.map(line => line.replace(/\u200B/g, ''));
 }

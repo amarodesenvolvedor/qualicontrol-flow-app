@@ -3,6 +3,7 @@ import { jsPDF } from "jspdf";
 
 /**
  * Render table headers with brand color background
+ * Improved version with better text centering
  */
 export function renderTableHeaders(
   doc: jsPDF,
@@ -21,19 +22,18 @@ export function renderTableHeaders(
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   
-  // Draw header cells with centered text
+  // Draw header cells with true centered text
   let xPos = margin;
   headers.forEach((header, i) => {
-    // Formatar cabeçalho de forma mais legível
+    // Format header for better readability
     const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
     const headerWidth = colWidths[i];
     
-    // Centralizar o texto do cabeçalho na coluna - ajustado para centralização precisa
+    // Calculate exact center position for text
     const textWidth = doc.getTextWidth(formattedHeader);
-    // Posição centralizada, considerando o espaço exato
     const centeredX = xPos + (headerWidth / 2) - (textWidth / 2);
     
-    // Posicionar texto verticalmente centralizado
+    // Position text vertically centered
     const verticalCenter = y + (headerHeight / 2) + 2.5;
     
     doc.text(formattedHeader, centeredX, verticalCenter);

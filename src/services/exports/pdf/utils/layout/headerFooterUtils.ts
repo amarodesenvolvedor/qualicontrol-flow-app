@@ -4,86 +4,80 @@ import { format } from "date-fns";
 import { PdfStylingOptions } from "../core/stylingUtils";
 
 /**
- * Add a standard header to a PDF page
+ * Add header with title to PDF document
+ * Improved version with proper title centering
  */
 export const addHeaderToPdf = (
   doc: jsPDF, 
-  title: string, 
+  title: string,
   styling: PdfStylingOptions
 ): void => {
-  doc.setFillColor(30, 100, 200); // Blue header
+  // Create a header with a blue background
+  doc.setFillColor(41, 65, 148); // Corporate blue
+  
+  // Draw header background
   doc.rect(0, 0, styling.pageWidth, 15, 'F');
   
-  doc.setTextColor(255, 255, 255); // White text
-  doc.setFontSize(14);
+  // Add title text with white color
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(title, styling.pageWidth / 2, 10, { align: 'center' });
+  
+  // Ensure the title is exactly centered
+  const titleWidth = doc.getTextWidth(title);
+  const centerX = styling.pageWidth / 2;
+  
+  // Position text centered in the blue bar
+  doc.text(title, centerX, 10, { align: 'center' });
 };
 
 /**
- * Add a standard footer to a PDF page
+ * Add footer with page numbers to all pages
  */
 export const addFooterToPdf = (
-  doc: jsPDF, 
-  styling: PdfStylingOptions,
-  systemName: string = 'Sistema ACAC'
+  doc: jsPDF,
+  styling: PdfStylingOptions
 ): void => {
-  // Footer line
-  const footerY = styling.pageHeight - 15;
+  // Draw footer line
   doc.setDrawColor(200, 200, 200);
-  doc.line(styling.margin, footerY, styling.pageWidth - styling.margin, footerY);
+  doc.line(
+    styling.margin, 
+    styling.pageHeight - 20, 
+    styling.pageWidth - styling.margin, 
+    styling.pageHeight - 20
+  );
   
-  // Footer text
+  // Add generation date
   doc.setTextColor(100, 100, 100);
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'italic');
-  
-  // Page number
-  const currentPage = doc.getNumberOfPages();
+  doc.setFont('helvetica', 'normal');
   doc.text(
-    `Página ${currentPage} de ${currentPage}`, // Will be updated later with total pages
-    styling.pageWidth / 2, 
-    footerY + 5, 
-    { align: 'center' }
-  );
-  
-  // Generation date on the right
-  const currentDate = format(new Date(), "dd/MM/yyyy HH:mm");
-  doc.text(
-    `Gerado em: ${currentDate}`, 
-    styling.pageWidth - styling.margin, 
-    footerY + 5, 
-    { align: 'right' }
-  );
-  
-  // System info on the left
-  doc.text(
-    systemName, 
+    `Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, 
     styling.margin, 
-    footerY + 5
+    styling.pageHeight - 15
   );
 };
 
 /**
- * Update page numbers in all page footers
+ * Update page numbers in footer of all pages
  */
-export const updatePageNumbers = (doc: jsPDF, styling: PdfStylingOptions): void => {
+export const updatePageNumbers = (
+  doc: jsPDF,
+  styling: PdfStylingOptions
+): void => {
   const pageCount = doc.getNumberOfPages();
+  
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     
-    // Footer line
-    const footerY = styling.pageHeight - 15;
-    
-    // Update page number
+    // Add page number
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'italic');
     doc.text(
       `Página ${i} de ${pageCount}`, 
-      styling.pageWidth / 2, 
-      footerY + 5, 
-      { align: 'center' }
+      styling.pageWidth - styling.margin, 
+      styling.pageHeight - 15, 
+      { align: 'right' }
     );
   }
 };

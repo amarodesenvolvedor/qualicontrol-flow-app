@@ -4,6 +4,7 @@ import { wrapTextToFit } from "../../utils/contentUtils";
 
 /**
  * Render a single table row with proper styling and text wrapping
+ * Enhanced version with better text handling
  */
 export function renderTableRow(
   doc: jsPDF,
@@ -17,19 +18,19 @@ export function renderTableRow(
 ): number {
   // Pre-process row to determine height
   const rowContentHeights = [];
-  let maxRowHeight = lineHeight * 1.5; // Mínimo aumentado para melhor espaçamento
+  let maxRowHeight = lineHeight * 1.5; // Minimum increased for better spacing
   
   headers.forEach((header, j) => {
     const text = String(item[header] || '');
-    // Reduzir a margem interna para dar mais espaço ao texto
+    // Reduce internal margin to give more space to text
     const colWidth = colWidths[j] - 6;
     
-    // Calcular altura para textos que precisam de quebra de linha
-    if (text.length > 0) { // Processar todos os textos, mesmo curtos
+    // Calculate height for texts that need line breaks
+    if (text.length > 0) { // Process all texts, even short ones
       const wrapped = wrapTextToFit(doc, text, colWidth);
       const contentHeight = wrapped.length * (lineHeight * 0.9);
       rowContentHeights.push(contentHeight);
-      maxRowHeight = Math.max(maxRowHeight, contentHeight + 4); // Adicionado padding extra
+      maxRowHeight = Math.max(maxRowHeight, contentHeight + 4); // Added extra padding
     } else {
       rowContentHeights.push(lineHeight);
     }
@@ -45,16 +46,16 @@ export function renderTableRow(
   let xPos = margin;
   headers.forEach((header, j) => {
     const text = String(item[header] || '');
-    // Ajustar para garantir espaço suficiente para o texto
+    // Adjust to ensure sufficient space for text
     const colWidth = colWidths[j] - 6;
     
-    // Sempre usar quebra de linha para garantir que o texto não ultrapasse a coluna
+    // Always use line wrapping to ensure text doesn't exceed column
     const wrapped = wrapTextToFit(doc, text, colWidth);
     
-    // Posicionamento vertical melhorado
+    // Improved vertical positioning
     const cellYPos = y;
     
-    // Adicionar cada linha de texto com espaçamento adequado
+    // Add each line of text with proper spacing
     wrapped.forEach((line, lineIndex) => {
       const lineY = cellYPos + (lineIndex * lineHeight * 0.9);
       doc.text(line, xPos + 3, lineY);
@@ -87,8 +88,8 @@ export function renderSimpleTableRow(
     const text = String(item[header] || '');
     const colWidth = colWidths[j] - 12; // Increased padding
     
-    // Calcular altura para textos que precisam de quebra de linha
-    if (text.length > 10) { // Reduzido para detectar mais textos que precisam de quebra
+    // Calculate height for texts that need line breaks
+    if (text.length > 10) { // Reduced to detect more texts that need breaks
       const wrapped = wrapTextToFit(doc, text, colWidth);
       const contentHeight = wrapped.length * (lineHeight * 0.8); // Increased line spacing
       rowContentHeights.push(contentHeight);
@@ -110,15 +111,15 @@ export function renderSimpleTableRow(
     const text = String(item[header] || '');
     const colWidth = colWidths[j] - 12; // Increased padding for safety
     
-    // Sempre usar quebra de linha para garantir que o texto não ultrapasse a coluna
+    // Always use line wrapping to ensure text doesn't exceed column
     const wrapped = wrapTextToFit(doc, text, colWidth);
     
-    // Deixar um espaço vertical adicional entre o texto e os limites da célula
+    // Leave additional vertical space between text and cell boundaries
     const cellYPos = y + 2;
     doc.text(wrapped, xPos, cellYPos);
     
     xPos += colWidths[j];
   });
   
-  return maxRowHeight + 2; // Adicionar margem extra entre linhas
+  return maxRowHeight + 2; // Add extra margin between rows
 }

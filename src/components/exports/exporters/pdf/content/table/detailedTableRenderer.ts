@@ -8,6 +8,7 @@ import { handleTablePagination } from "./paginationUtils";
 
 /**
  * Render a detailed table for full reports
+ * Improved version with better column width calculation
  */
 export function renderDetailedTable(
   doc: jsPDF,
@@ -18,7 +19,7 @@ export function renderDetailedTable(
   margin: number,
   options?: PDFExportOptions
 ): number {
-  // Campos específicos para mostrar na tabela principal - excluir campos desnecessários
+  // Specific fields to show in the main table - exclude unnecessary fields
   const priorityHeaders = [
     'codigo', 'titulo', 'departamento', 'requisito_iso', 'status', 
     'responsavel', 'data_ocorrencia'
@@ -27,19 +28,19 @@ export function renderDetailedTable(
   // Extract headers from data
   const headers = Object.keys(data[0]);
   
-  // Filtrar para mostrar apenas as colunas definidas na prioridade
+  // Filter to show only columns defined in priority
   let visibleHeaders = headers.filter(header => 
     priorityHeaders.includes(header) && header !== 'id'
   );
   
-  // Ordenar os cabeçalhos na sequência definida
+  // Sort headers in the defined sequence
   visibleHeaders = priorityHeaders.filter(header => visibleHeaders.includes(header));
   
   // Calculate column widths based on content - improved algorithm
   const tableWidth = pageWidth - (margin * 2);
   const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
   
-  // Aumentar altura do cabeçalho para melhor visualização
+  // Increase header height for better visualization
   const headerHeight = lineHeight + 5;
   renderTableHeaders(doc, visibleHeaders, colWidths, margin, y, headerHeight);
   
