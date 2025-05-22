@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { NonConformance } from "@/types/nonConformance";
@@ -26,13 +25,11 @@ export const transformNonConformanceData = (
       data_ocorrencia: formatDate(nc.occurrence_date),
       data_resposta: formatDate(nc.response_date),
       data_encerramento: formatDate(nc.completion_date),
-      data_verificacao_acao: formatDate(nc.action_verification_date),
-      data_verificacao_eficacia: formatDate(nc.effectiveness_verification_date),
-      localizacao: nc.location || '',
-      descricao: nc.description || '',
-      acoes_imediatas: nc.immediate_actions || '',
-      analise_causa_raiz: nc.root_cause_analysis || '',
-      acao_corretiva: nc.corrective_action || ''
+      // Truncamos descrições muito longas para o relatório tabular
+      descricao: truncateText(nc.description || '', 100),
+      acoes_imediatas: truncateText(nc.immediate_actions || '', 80),
+      analise_causa: truncateText(nc.root_cause_analysis || '', 80),
+      acao_corretiva: truncateText(nc.corrective_action || '', 80)
     }));
   }
   
@@ -46,8 +43,8 @@ export const transformNonConformanceData = (
       responsavel: nc.responsible_name,
       data_ocorrencia: formatDate(nc.occurrence_date),
       data_encerramento: formatDate(nc.completion_date),
-      acoes_imediatas: nc.immediate_actions || 'Não especificado',
-      acao_corretiva: nc.corrective_action || 'Não especificado'
+      acoes_imediatas: truncateText(nc.immediate_actions || 'Não especificado', 80),
+      acao_corretiva: truncateText(nc.corrective_action || 'Não especificado', 80)
     }));
   }
   
@@ -139,4 +136,14 @@ const formatDate = (dateString: string | null | undefined): string => {
   } catch (error) {
     return dateString;
   }
+};
+
+/**
+ * Trunca textos longos para melhor visualização em tabelas
+ */
+const truncateText = (text: string, maxLength: number): string => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  
+  return text.substring(0, maxLength) + '...';
 };

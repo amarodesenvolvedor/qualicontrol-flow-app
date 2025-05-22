@@ -57,8 +57,10 @@ const ExportPage = () => {
         improveLineBreaks: true,
         adjustLineSpacing: true,
         // Use landscape orientation for detailed reports
-        forceLandscape: reportType === "Não Conformidades Completo",
-        allowLandscape: true
+        forceLandscape: reportType === "Não Conformidades Completo" || reportType === "Ações Corretivas",
+        allowLandscape: true,
+        // Transmitimos o tipo de relatório para as funções de renderização
+        reportType
       };
 
       console.log('Opções de exportação:', exportOptions);

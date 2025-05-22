@@ -31,11 +31,11 @@ export const generatePDFReport = async (
       console.warn(`Nenhum dado disponível para gerar o relatório ${reportType}`);
     }
     
-    // Determine if we should use landscape orientation
-    // Relatório de Não Conformidades Completo sempre em landscape
+    // Sempre usar orientação paisagem para relatórios completos
     const useLandscape = 
       reportType.includes("Cronograma de Auditorias") || 
       reportType === "Não Conformidades Completo" ||
+      reportType === "Ações Corretivas" ||
       (data.length > 0 && Object.keys(data[0]).length > 4) ||
       options?.forceLandscape;
     
@@ -98,8 +98,17 @@ export const generatePDFReport = async (
     if (data.length > 0) {
       console.log(`Rendering ${data.length} records to PDF`);
       
-      // Log column keys for debugging table structure
-      console.log('PDF report columns:', Object.keys(data[0]));
+      // Transmitir o tipo de relatório para as funções de renderização
+      const renderOptions = {
+        ...options,
+        reportType,
+        allowLandscape: true,
+        forceLandscape: useLandscape,
+        margin,
+        contentWidth,
+        pageHeight,
+        improveLineBreaks: true
+      };
       
       // Para relatórios completos ou com muitos campos, sempre usar tabela
       if (reportType === "Não Conformidades Completo" || 
@@ -107,46 +116,19 @@ export const generatePDFReport = async (
           Object.keys(data[0]).length > 3) {
         
         console.log('Using table format for PDF content');
-        y = addTableContent(doc, data, y, pageWidth, lineHeight, {
-          ...options,
-          allowLandscape: true,
-          forceLandscape: useLandscape,
-          margin,
-          contentWidth,
-          pageHeight,
-          improveLineBreaks: true
-        });
+        y = addTableContent(doc, data, y, pageWidth, lineHeight, renderOptions);
       } else if (reportType === "Indicadores de Desempenho") {
         // Para indicadores, usar lista simples
         console.log('Using simple list format for indicators');
-        y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, {
-          ...options,
-          margin,
-          contentWidth,
-          pageHeight,
-          improveLineBreaks: true
-        });
+        y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, renderOptions);
       } else {
         // Determine se usamos tabela ou lista baseado na quantidade de registros
         if (data.length <= 5) {
           console.log('Using simple list format for PDF content (small dataset)');
-          y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, {
-            ...options,
-            margin,
-            contentWidth,
-            pageHeight,
-            improveLineBreaks: true
-          });
+          y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, renderOptions);
         } else {
           console.log('Using table format for PDF content (larger dataset)');
-          y = addTableContent(doc, data, y, pageWidth, lineHeight, {
-            ...options,
-            allowLandscape: true,
-            margin,
-            contentWidth,
-            pageHeight,
-            improveLineBreaks: true
-          });
+          y = addTableContent(doc, data, y, pageWidth, lineHeight, renderOptions);
         }
       }
     } else {

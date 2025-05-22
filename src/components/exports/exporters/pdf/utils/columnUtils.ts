@@ -13,8 +13,24 @@ export function calculateColumnWidths(
   // Default to equal distribution
   if (headers.length === 0) return [];
   
-  // Minimum column width
-  const minColWidth = 60;
+  // Largura mínima de coluna - aumentada para dar mais espaço
+  const minColWidth = 30;
+  
+  // Definir pesos para colunas específicas
+  const columnWeights: Record<string, number> = {
+    'id': 0.5,
+    'codigo': 0.8,
+    'titulo': 2.0,
+    'departamento': 1.2,
+    'responsavel': 1.2,
+    'status': 0.8,
+    'data_ocorrencia': 0.8,
+    'data_encerramento': 0.8,
+    'descricao': 2.5,
+    'acoes_imediatas': 2.0,
+    'acao_corretiva': 2.0,
+    'requisito_iso': 0.9
+  };
   
   // If we have the PDF document and data, use them for better column width estimation
   if (doc && data && data.length > 0) {
@@ -24,7 +40,7 @@ export function calculateColumnWidths(
       return doc.getTextWidth(formattedHeader) + 20; // Add padding
     });
     
-    // Calculate average content width for each column
+    // Calculate average content width for each column with consideration for column weights
     const contentWidths = headers.map((header, index) => {
       // Sample up to 10 rows for performance
       const sampleSize = Math.min(10, data.length);
@@ -37,7 +53,8 @@ export function calculateColumnWidths(
       }
       
       const avgWidth = totalWidth / sampleSize;
-      return Math.max(headerWidths[index], avgWidth);
+      const weight = columnWeights[header] || 1;
+      return Math.max(headerWidths[index], avgWidth) * weight;
     });
     
     // Ensure each column meets the minimum width
@@ -51,13 +68,12 @@ export function calculateColumnWidths(
     return adjustedWidths.map(width => width * scaleFactor);
   }
   
-  // Fall back to simple distribution if we don't have the doc or data
-  // Calculate proportional widths based on header names
-  const totalChars = headers.reduce((sum, header) => sum + header.length, 0);
+  // Fall back to weighted distribution based on column importance
+  const totalWeights = headers.reduce((sum, header) => sum + (columnWeights[header] || 1), 0);
   
   return headers.map(header => {
-    const proportion = Math.max(0.1, header.length / totalChars);
-    // Ensure minimum width and adjust proportionally
+    const weight = columnWeights[header] || 1;
+    const proportion = weight / totalWeights;
     return Math.max(minColWidth, Math.floor(proportion * totalWidth));
   });
 }

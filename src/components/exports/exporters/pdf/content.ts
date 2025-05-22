@@ -1,4 +1,3 @@
-
 import { jsPDF } from "jspdf";
 import { PDFExportOptions } from "../../utils/types";
 import { addHeaderToPDF, addFooterToPDF } from "../../utils/pdfHelpers";
@@ -64,22 +63,17 @@ export function addSimpleListContent(
       const valueStr = String(value);
       const labelOffset = margin + 15;
       const valueOffset = margin + 45;
-      const maxValueWidth = contentWidth - (valueOffset - margin);
+      const maxValueWidth = contentWidth - (valueOffset - margin) - 10; // 10px margin de segurança
       
       // Sempre exibir o rótulo na posição correta
       doc.setFont("helvetica", "bold"); // Negrito apenas para o rótulo
       doc.text(`${formattedKey}:`, labelOffset, y);
       doc.setFont("helvetica", "normal"); // Normal para o valor
       
-      if (valueStr.length > 40 && options?.improveLineBreaks) {
-        // Para textos longos, fazer a quebra de linha apropriada
-        const lines = doc.splitTextToSize(valueStr, maxValueWidth);
-        doc.text(lines, valueOffset, y);
-        y += lines.length * lineHeight; // Ajustar posição Y com base no número de linhas
-      } else {
-        doc.text(valueStr, valueOffset, y);
-        y += lineHeight;
-      }
+      // Para textos longos, fazer a quebra de linha apropriada
+      const lines = doc.splitTextToSize(valueStr, maxValueWidth);
+      doc.text(lines, valueOffset, y);
+      y += (lines.length > 1 ? lines.length * lineHeight : lineHeight); // Ajustar posição Y com base no número de linhas
     });
     
     y += lineHeight / 2;
@@ -103,7 +97,9 @@ export function addTableContent(
   const headers = Object.keys(data[0]);
   
   // Determine optimal table orientation - always use landscape for non-conformance full reports
-  const isLandscape = options?.forceLandscape || (data.length > 5 || headers.length > 5);
+  const isLandscape = options?.forceLandscape || 
+                      reportType === "Não Conformidades Completo" ||
+                      (data.length > 5 || headers.length > 5);
   
   if (isLandscape && doc.internal.pageSize.getWidth() < doc.internal.pageSize.getHeight()) {
     // Switch to landscape if not already
@@ -125,11 +121,17 @@ export function addTableContent(
   const margin = options?.margin || 15;
   const tableWidth = pageWidth - (margin * 2);
   
-  // Por padrão, incluímos todos os headers para relatórios completos
+  // Campos prioritários para mostrar na tabela
   const priorityHeaders = [
-    'codigo', 'id', 'titulo', 'departamento', 'responsavel', 'status',
-    'data_ocorrencia', 'data_encerramento', 'requisito_iso', 'descricao'
+    'codigo', 'id', 'titulo', 'departamento', 'responsavel', 'status', 
+    'data_ocorrencia', 'data_encerramento'
   ];
+  
+  // Para relatórios completos, tentamos incluir mais campos
+  if (options?.reportType === "Não Conformidades Completo" || 
+      options?.reportType === "Ações Corretivas") {
+    priorityHeaders.push('requisito_iso', 'descricao', 'acoes_imediatas', 'acao_corretiva');
+  }
   
   // Primeiro priorizamos os campos mais importantes
   let visibleHeaders = headers.filter(header => priorityHeaders.includes(header));
@@ -139,7 +141,7 @@ export function addTableContent(
     visibleHeaders = headers;
   }
   
-  // Calculate column widths based on content
+  // Calculate column widths based on content - improved algorithm
   const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
   
   // Draw table header with brand color background
@@ -152,10 +154,14 @@ export function addTableContent(
   doc.setFont("helvetica", "bold");
   
   // Draw header cells
-  let xPos = margin + 5;
+  let xPos = margin + 3;
   visibleHeaders.forEach((header, i) => {
     const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
-    doc.text(formattedHeader, xPos, y + 7);
+    // Limitar o texto do cabeçalho
+    const truncatedHeader = formattedHeader.length > 15 ? 
+                          formattedHeader.substring(0, 15) + '...' : 
+                          formattedHeader;
+    doc.text(truncatedHeader, xPos, y + 7);
     xPos += colWidths[i];
   });
   
@@ -170,18 +176,18 @@ export function addTableContent(
   for (let i = 0; i < data.length; i++) {
     const item = data[i];
     
-    // Check if we need a new page
+    // Verificar necessidade de nova página
     if (y > pageHeight - 40) {
       if (options?.showFooter !== false) {
-        addFooterToPDF(doc, "Relatório de Não Conformidades", doc.getNumberOfPages(), doc.getNumberOfPages());
+        addFooterToPDF(doc, options?.reportType || "Relatório", doc.getNumberOfPages(), doc.getNumberOfPages());
       }
       doc.addPage(isLandscape ? 'landscape' : 'portrait');
       if (options?.showHeader !== false) {
-        addHeaderToPDF(doc, "Relatório de Não Conformidades");
+        addHeaderToPDF(doc, options?.reportType || "Relatório");
       }
       y = 40;
       
-      // Redraw header on new page
+      // Redesenhar cabeçalho na nova página
       doc.setFillColor(41, 65, 148);
       doc.rect(margin, y, tableWidth, lineHeight + 2, 'F');
       
@@ -189,10 +195,13 @@ export function addTableContent(
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       
-      xPos = margin + 5;
+      xPos = margin + 3;
       visibleHeaders.forEach((header, j) => {
         const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
-        doc.text(formattedHeader, xPos, y + 7);
+        const truncatedHeader = formattedHeader.length > 15 ? 
+                              formattedHeader.substring(0, 15) + '...' : 
+                              formattedHeader;
+        doc.text(truncatedHeader, xPos, y + 7);
         xPos += colWidths[j];
       });
       
@@ -215,8 +224,10 @@ export function addTableContent(
     visibleHeaders.forEach((header, j) => {
       const text = String(item[header] || '');
       const colWidth = colWidths[j] - 10; // Padding
-      if (text.length > 15) {
-        const wrapped = doc.splitTextToSize(text, colWidth);
+      
+      // Calcular altura para textos que precisam de quebra de linha
+      if (text.length > 12) { // Reduzido para detectar mais textos que precisam de quebra
+        const wrapped = doc.splitTextToSize(text, colWidth - 4); // Margem extra para evitar sobreposição
         const contentHeight = wrapped.length * (lineHeight * 0.7);
         rowContentHeights.push(contentHeight);
         maxRowHeight = Math.max(maxRowHeight, contentHeight + 2);
@@ -232,22 +243,19 @@ export function addTableContent(
     }
     
     // Add cell content with proper wrapping
-    xPos = margin + 5;
+    xPos = margin + 3;
     visibleHeaders.forEach((header, j) => {
       const text = String(item[header] || '');
-      const colWidth = colWidths[j] - 10;
+      const colWidth = colWidths[j] - 6; // Margem reduzida para evitar sobreposição
       
-      if (text.length > 15) {
-        const wrapped = doc.splitTextToSize(text, colWidth);
-        doc.text(wrapped, xPos, y + 2);
-      } else {
-        doc.text(text, xPos, y + 2);
-      }
+      // Sempre usar quebra de linha para garantir que o texto não ultrapasse a coluna
+      const wrapped = doc.splitTextToSize(text, colWidth);
+      doc.text(wrapped, xPos, y + 2);
       
       xPos += colWidths[j];
     });
     
-    y += maxRowHeight;
+    y += maxRowHeight + 1; // Adicionar margem extra entre linhas
   }
   
   return y;
