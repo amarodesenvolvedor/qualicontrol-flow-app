@@ -7,11 +7,12 @@ import {
   addTextContent, 
   addFooterToPdf, 
   generateFilename 
-} from "./utils/pdfGenerationUtils";
+} from "./utils";
 import { 
   addNonConformanceHeader, 
   addBasicInformationSection 
 } from "./utils/nonConformanceUtils";
+import { format } from "date-fns";
 
 /**
  * Exports ACAC (Action Corrective Action Containment) data to PDF with proper page break handling
@@ -155,6 +156,3 @@ export const exportAcacToPDF = async (acacData: NonConformance): Promise<void> =
     throw error;
   }
 };
-
-// Add the missing import
-import { format } from "date-fns";

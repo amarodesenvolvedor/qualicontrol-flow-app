@@ -2,7 +2,7 @@
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
 import { NonConformance } from "@/types/nonConformance";
-import { PdfStylingOptions } from "./pdfGenerationUtils";
+import { PdfStylingOptions } from "./core/stylingUtils";
 
 /**
  * Add two-column basic information section

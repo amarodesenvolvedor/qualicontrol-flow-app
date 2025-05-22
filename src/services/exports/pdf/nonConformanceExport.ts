@@ -8,7 +8,7 @@ import {
   addSectionTitle, 
   addTextContent, 
   addFooterToPdf 
-} from "./utils/pdfGenerationUtils";
+} from "./utils";
 import { 
   addNonConformanceHeader, 
   addBasicInformationSection, 

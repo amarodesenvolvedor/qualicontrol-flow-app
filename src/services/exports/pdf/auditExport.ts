@@ -9,7 +9,7 @@ import {
   updatePageNumbers,
   generateFilename,
   addFooterToPdf
-} from "./utils/pdfGenerationUtils";
+} from "./utils";
 
 /**
  * Exports audit report data to PDF format
