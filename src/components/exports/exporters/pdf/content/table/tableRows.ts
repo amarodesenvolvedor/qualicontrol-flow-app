@@ -25,17 +25,75 @@ export function renderTableRow(
   
   // Pre-process all cell contents and determine max lines needed
   headers.forEach((header, colIndex) => {
-    const cellValue = String(item[header] || '').trim();
+    // Get cell value with proper field mapping
+    let cellValue = '';
+    
+    // Handle different field name variations
+    if (header === 'descricao' || header === 'description') {
+      cellValue = item.descricao || item.description || '';
+    } else if (header === 'codigo' || header === 'code') {
+      cellValue = item.codigo || item.code || '';
+    } else if (header === 'titulo' || header === 'title') {
+      cellValue = item.titulo || item.title || '';
+    } else if (header === 'departamento' || header === 'department') {
+      // Handle department object or string
+      if (typeof item.departamento === 'object' && item.departamento?.name) {
+        cellValue = item.departamento.name;
+      } else if (typeof item.department === 'object' && item.department?.name) {
+        cellValue = item.department.name;
+      } else {
+        cellValue = item.departamento || item.department || '';
+      }
+    } else if (header === 'responsavel' || header === 'responsible_name') {
+      cellValue = item.responsavel || item.responsible_name || '';
+    } else if (header === 'data_ocorrencia' || header === 'occurrence_date') {
+      cellValue = item.data_ocorrencia || item.occurrence_date || '';
+    } else {
+      cellValue = item[header] || '';
+    }
+    
+    // Convert to string and trim
+    cellValue = String(cellValue).trim();
+    
+    // Debug log for description field specifically
+    if (header === 'descricao' || header === 'description') {
+      console.log(`Description for item:`, {
+        header,
+        originalDescricao: item.descricao,
+        originalDescription: item.description,
+        finalValue: cellValue,
+        valueLength: cellValue.length
+      });
+    }
+    
+    // If cell is empty, show a placeholder
+    if (!cellValue) {
+      cellValue = '-';
+    }
+    
     const availableWidth = colWidths[colIndex] - 10; // 5px padding on each side
     
-    // Wrap text to fit within column width
-    const wrappedLines = wrapTextToFit(doc, cellValue, availableWidth);
+    // Wrap text to fit within column width with enhanced handling for long descriptions
+    let wrappedLines: string[];
+    if (header === 'descricao' || header === 'description') {
+      // For descriptions, ensure we break long text appropriately
+      wrappedLines = wrapTextToFit(doc, cellValue, availableWidth);
+      // Ensure description gets at least minimum space if it has content
+      if (cellValue !== '-' && wrappedLines.length === 0) {
+        wrappedLines = [cellValue.substring(0, 50) + '...']; // Fallback
+      }
+    } else {
+      wrappedLines = wrapTextToFit(doc, cellValue, availableWidth);
+    }
+    
     cellContents.push(wrappedLines);
     maxLines = Math.max(maxLines, wrappedLines.length);
   });
   
-  // Calculate actual row height based on content
-  const rowHeight = Math.max(minLineHeight + 4, (maxLines * minLineHeight) + 8); // Extra padding for readability
+  // Calculate actual row height based on content with minimum height for descriptions
+  const minRowHeight = minLineHeight + 8;
+  const contentBasedHeight = (maxLines * minLineHeight) + 12; // Extra padding for readability
+  const rowHeight = Math.max(minRowHeight, contentBasedHeight);
   
   // Draw row background (alternating colors)
   if (isEvenRow) {
@@ -67,8 +125,8 @@ export function renderTableRow(
     
     // Render each line of text in the cell
     lines.forEach((line, lineIndex) => {
-      if (line.trim()) { // Only render non-empty lines
-        const textY = y + 6 + (lineIndex * minLineHeight); // Start with top padding
+      if (line && line.trim()) { // Only render non-empty lines
+        const textY = y + 8 + (lineIndex * minLineHeight); // Start with top padding
         
         // Handle special formatting for certain columns
         if (header === 'status') {

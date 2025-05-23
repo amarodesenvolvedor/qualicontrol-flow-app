@@ -26,18 +26,43 @@ export function renderSimpleTable(
   // Extract headers from data
   const headers = Object.keys(data[0]);
   
-  // Primeiro priorizamos os campos mais importantes, excluindo explicitamente 'id'
+  // Priority headers including description field with proper mapping
   const priorityHeaders = [
-    'codigo', 'titulo', 'departamento', 'status', 
+    'codigo', 'titulo', 'descricao', 'departamento', 'status', 
     'responsavel', 'data_ocorrencia'
   ];
   
-  let visibleHeaders = headers.filter(header => 
-    priorityHeaders.includes(header) && header !== 'id'
-  );
+  // Map field names to ensure we capture description correctly
+  const fieldMapping: Record<string, string[]> = {
+    'codigo': ['codigo', 'code'],
+    'titulo': ['titulo', 'title'],
+    'descricao': ['descricao', 'description'], // Include both possible field names
+    'departamento': ['departamento', 'department'],
+    'status': ['status'],
+    'responsavel': ['responsavel', 'responsible_name'],
+    'data_ocorrencia': ['data_ocorrencia', 'occurrence_date']
+  };
   
-  // Se há poucos headers prioritários, incluímos outros disponíveis exceto 'id'
-  if (visibleHeaders.length < 4) {
+  // Find the best matching headers from available data
+  let visibleHeaders: string[] = [];
+  priorityHeaders.forEach(priorityField => {
+    const possibleFields = fieldMapping[priorityField] || [priorityField];
+    const matchingField = possibleFields.find(field => headers.includes(field));
+    if (matchingField) {
+      visibleHeaders.push(matchingField);
+    }
+  });
+  
+  // Ensure we always include description if it exists in any form
+  if (!visibleHeaders.some(h => ['descricao', 'description'].includes(h))) {
+    const descField = headers.find(h => ['descricao', 'description'].includes(h.toLowerCase()));
+    if (descField) {
+      visibleHeaders.splice(2, 0, descField); // Insert after title
+    }
+  }
+  
+  // If no priority headers found, use all available headers except 'id'
+  if (visibleHeaders.length < 3) {
     visibleHeaders = headers.filter(header => header !== 'id');
   }
   
@@ -57,14 +82,30 @@ export function renderSimpleTable(
   // Draw header cells with centered text
   let xPos = safeMargin + 3;
   visibleHeaders.forEach((header, i) => {
-    const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
+    const headerDisplayNames: Record<string, string> = {
+      'codigo': 'Código',
+      'code': 'Código',
+      'titulo': 'Título',
+      'title': 'Título',
+      'descricao': 'Descrição',
+      'description': 'Descrição',
+      'departamento': 'Departamento',
+      'department': 'Departamento',
+      'status': 'Status',
+      'responsavel': 'Responsável',
+      'responsible_name': 'Responsável',
+      'data_ocorrencia': 'Data Ocorrência',
+      'occurrence_date': 'Data Ocorrência'
+    };
     
-    // Centralizar o texto do cabeçalho
+    const formattedHeader = headerDisplayNames[header] || 
+                           header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
+    
+    // Center the header text
     const headerWidth = colWidths[i];
     const textWidth = doc.getTextWidth(formattedHeader);
     const centeredX = xPos + (headerWidth - textWidth) / 2;
     
-    // Ajustar alinhamento vertical
     doc.text(formattedHeader, centeredX, y + 7);
     xPos += headerWidth;
   });
@@ -82,6 +123,14 @@ export function renderSimpleTable(
   // Show ALL rows with pagination
   for (let i = 0; i < data.length; i++) {
     const item = data[i];
+    
+    // Debug: Log the item to check description content
+    console.log(`Row ${i} data:`, {
+      codigo: item.codigo || item.code,
+      titulo: item.titulo || item.title,
+      descricao: item.descricao || item.description,
+      hasDescription: !!(item.descricao || item.description)
+    });
     
     // Check if we need a new page
     y = handleSimpleTablePagination(
