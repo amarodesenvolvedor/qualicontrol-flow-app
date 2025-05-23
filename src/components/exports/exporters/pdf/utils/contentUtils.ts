@@ -38,94 +38,100 @@ export function estimateContentHeight(doc: jsPDF, item: Record<string, any>): nu
 
 /**
  * Split text to fit within available width and return the resulting lines
- * with improved line breaking that preserves complete content
+ * Enhanced version with improved word breaking and strict width compliance
  */
 export function wrapTextToFit(doc: jsPDF, text: string, maxWidth: number): string[] {
-  if (!text) return [''];
+  if (!text || !text.trim()) return [''];
   
-  // For very short text, no need to process
+  // Ensure maxWidth is positive and reasonable
+  if (maxWidth <= 10) return [text.substring(0, 10) + '...'];
+  
+  // For very short text, check if it fits as-is
   if (doc.getTextWidth(text) <= maxWidth) return [text];
   
-  // Process text with special characters to improve wrapping
-  const processedText = text.replace(/([\/\-\–\—\(\)])/g, '$1\u200B');
-  
   // Split text into words, preserving spaces
-  const words = processedText.split(/\s+/);
+  const words = text.split(/\s+/).filter(word => word.length > 0);
+  if (words.length === 0) return [''];
+  
   const lines: string[] = [];
   let currentLine = '';
   
-  // Function to break very long words
+  // Function to break very long words that don't fit in available width
   const breakLongWord = (word: string): string[] => {
     if (doc.getTextWidth(word) <= maxWidth) return [word];
     
     const parts: string[] = [];
     let currentPart = '';
     
-    // Try natural break points first
-    const naturalBreakPoints = word.split(/(?=[\/\-\–\—\(\)])/);
+    // Try to break at natural points first (hyphens, slashes, etc.)
+    const naturalBreaks = word.split(/([\/\-\–\—\(\)\.])/);
     
-    if (naturalBreakPoints.length > 1) {
-      for (const part of naturalBreakPoints) {
-        if (doc.getTextWidth(currentPart + part) <= maxWidth) {
-          currentPart += part;
-        } else {
-          if (currentPart) parts.push(currentPart);
-          currentPart = part;
-        }
-      }
-      if (currentPart) parts.push(currentPart);
-      return parts;
-    } else {
-      // Break by characters if no natural break points
-      for (let i = 0; i < word.length; i++) {
-        const nextChar = word[i];
-        if (doc.getTextWidth(currentPart + nextChar) <= maxWidth) {
-          currentPart += nextChar;
-        } else {
+    for (const segment of naturalBreaks) {
+      if (!segment) continue;
+      
+      if (doc.getTextWidth(currentPart + segment) <= maxWidth) {
+        currentPart += segment;
+      } else {
+        if (currentPart) {
           parts.push(currentPart);
-          currentPart = nextChar;
+          currentPart = segment;
+        } else {
+          // Even the segment alone is too long, break it character by character
+          for (let i = 0; i < segment.length; i++) {
+            const char = segment[i];
+            if (doc.getTextWidth(currentPart + char) <= maxWidth) {
+              currentPart += char;
+            } else {
+              if (currentPart) parts.push(currentPart);
+              currentPart = char;
+            }
+          }
         }
       }
-      if (currentPart) parts.push(currentPart);
-      return parts;
     }
+    
+    if (currentPart) parts.push(currentPart);
+    return parts.length > 0 ? parts : [word.substring(0, 1)]; // Fallback
   };
   
   // Process each word
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    // Check if adding this word exceeds maximum width
+  for (const word of words) {
     const testLine = currentLine ? `${currentLine} ${word}` : word;
     
     if (doc.getTextWidth(testLine) <= maxWidth) {
       // Word fits on current line
       currentLine = testLine;
     } else {
-      // Word doesn't fit, check if it's a very long word
-      if (doc.getTextWidth(word) > maxWidth * 0.7) { // Reduced threshold to catch more long words
-        // Very long word needs to be broken
-        if (currentLine) lines.push(currentLine);
+      // Word doesn't fit
+      if (doc.getTextWidth(word) > maxWidth * 0.8) {
+        // Word is too long, needs to be broken
+        if (currentLine) {
+          lines.push(currentLine);
+          currentLine = '';
+        }
         
         const wordParts = breakLongWord(word);
-        // Add all parts except the last one
-        for (let j = 0; j < wordParts.length - 1; j++) {
-          lines.push(wordParts[j]);
+        // Add all parts except the last one as complete lines
+        for (let i = 0; i < wordParts.length - 1; i++) {
+          lines.push(wordParts[i]);
         }
-        // Keep last part as start of new line
-        currentLine = wordParts[wordParts.length - 1];
+        // Use the last part as the start of the new line
+        currentLine = wordParts[wordParts.length - 1] || '';
       } else {
-        // Normal word, start a new line
-        if (currentLine) lines.push(currentLine);
+        // Normal case: start a new line with this word
+        if (currentLine) {
+          lines.push(currentLine);
+        }
         currentLine = word;
       }
     }
   }
   
-  // Add the last line
+  // Add the last line if it has content
   if (currentLine) {
     lines.push(currentLine);
   }
   
-  // Remove invisible break characters from final result
-  return lines.map(line => line.replace(/\u200B/g, ''));
+  // Ensure we always return at least one line
+  return lines.length > 0 ? lines : [''];
 }
