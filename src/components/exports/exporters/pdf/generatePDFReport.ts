@@ -62,7 +62,7 @@ export const generatePDFReport = async (
     
     console.log(`PDF Dimensions: ${pageWidth}x${pageHeight}mm, margins: ${margin}mm, content width: ${contentWidth}mm`);
     
-    // Start content immediately on first page without unnecessary spacing
+    // Start content immediately on first page
     let y = 20; // Start at top margin
     
     // Add header only if enabled
@@ -71,16 +71,16 @@ export const generatePDFReport = async (
       y = 30; // Start after header
     }
     
-    // Add title section with minimal spacing
+    // Add title section directly without extra spacing
     doc.setFontSize(14);
     doc.setTextColor(41, 65, 148); // Corporate blue
     doc.setFont("helvetica", "bold");
     doc.text(reportType, pageWidth / 2, y, { align: 'center' });
-    y += 8; // Reduced spacing
+    y += 8; // Minimal spacing
     
     // Add date and record count info in a compact styled box
     doc.setFillColor(245, 245, 250); // Light background
-    doc.rect(margin, y, contentWidth, 10, 'F'); // Reduced height
+    doc.rect(margin, y, contentWidth, 10, 'F'); // Compact height
     doc.setDrawColor(200, 200, 200);
     doc.rect(margin, y, contentWidth, 10, 'S');
     
@@ -94,7 +94,7 @@ export const generatePDFReport = async (
       doc.setFont("helvetica", "bold");
       doc.text(`Total: ${data.length}`, pageWidth - margin - 3, y + 6, { align: 'right' });
     }
-    y += 12; // Move to start of content area with minimal spacing
+    y += 15; // Move to start of content area with minimal spacing
     
     // Render content based on data availability
     if (data.length > 0) {

@@ -68,21 +68,21 @@ export function renderSimpleTable(
   const totalColWidth = colWidths.reduce((sum, width) => sum + width, 0);
   if (totalColWidth > tableWidth) {
     console.warn(`Adjusting column widths: ${totalColWidth} > ${tableWidth}`);
-    const scaleFactor = (tableWidth * 0.98) / totalColWidth; // 98% to ensure safety
+    const scaleFactor = (tableWidth * 0.95) / totalColWidth; // 95% to ensure safety
     colWidths.forEach((width, index) => {
-      colWidths[index] = width * scaleFactor;
+      colWidths[index] = Math.max(20, width * scaleFactor); // Minimum 20mm per column
     });
   }
   
-  // Final verification
+  // Final verification and ensure table is centered within margins
   const finalTotalWidth = colWidths.reduce((sum, width) => sum + width, 0);
   console.log('Final column configuration:', {
     headers: visibleHeaders,
-    widths: colWidths.map(w => Math.round(w * 100) / 100), // Round for display
+    widths: colWidths.map(w => Math.round(w * 100) / 100),
     totalWidth: Math.round(finalTotalWidth * 100) / 100,
     availableWidth: tableWidth,
-    marginLeft: safeMargin,
-    marginRight: pageWidth - safeMargin - finalTotalWidth
+    tableStartX: safeMargin,
+    tableEndX: safeMargin + finalTotalWidth
   });
   
   // Draw table header with proper alignment and sizing
@@ -154,13 +154,6 @@ export function renderSimpleTable(
   // Render all data rows with improved formatting
   for (let i = 0; i < data.length; i++) {
     const item = data[i];
-    
-    // Log item data for debugging
-    console.log(`Processing row ${i}:`, {
-      codigo: item.codigo || item.code,
-      titulo: item.titulo || item.title,
-      departamento: item.departamento?.name || item.department?.name || item.departamento || item.department
-    });
     
     // Check if we need a new page
     y = handleSimpleTablePagination(
