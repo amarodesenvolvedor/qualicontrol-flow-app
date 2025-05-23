@@ -36,26 +36,29 @@ export const generatePDFReport = async (
       console.warn(`Nenhum dado disponível para gerar o relatório ${reportType}`);
     }
     
-    // Sempre usar orientação paisagem para relatórios completos
+    // For "Não Conformidades Completo", always use portrait orientation
+    // For other reports, use landscape conditionally
     const useLandscape = 
       reportType.includes("Cronograma de Auditorias") || 
-      reportType === "Não Conformidades Completo" ||
-      reportType === "Ações Corretivas" ||
-      (data.length > 0 && Object.keys(data[0]).length > 4) ||
-      options?.forceLandscape;
+      (reportType === "Ações Corretivas" && options?.forceLandscape) ||
+      (data.length > 0 && Object.keys(data[0]).length > 5 && reportType !== "Não Conformidades Completo") ||
+      (options?.forceLandscape && reportType !== "Não Conformidades Completo");
     
     console.log(`Using ${useLandscape ? 'landscape' : 'portrait'} orientation for PDF`);
     
     // Create PDF document with appropriate orientation
     const doc = new jsPDF({
       orientation: useLandscape ? 'landscape' : 'portrait',
-      unit: 'mm'
+      unit: 'mm',
+      format: 'a4'
     });
     
-    // Passa o tipo de relatório como parte das opções
+    // Pass the report type as part of the options
     const updatedOptions: PDFExportOptions = {
       ...options,
-      reportType
+      reportType,
+      // Force landscape to false for "Não Conformidades Completo"
+      forceLandscape: reportType === "Não Conformidades Completo" ? false : options?.forceLandscape
     };
     
     if (updatedOptions?.showHeader !== false) {
@@ -64,9 +67,9 @@ export const generatePDFReport = async (
     
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 25; // Margem mínima aumentada para 25px
-    const contentWidth = pageWidth - (margin * 2); // Largura útil do conteúdo
-    const lineHeight = 6; // Espaçamento entre linhas
+    const margin = 25; // Minimum margin increased to 25px
+    const contentWidth = pageWidth - (margin * 2); // Usable content width
+    const lineHeight = 6; // Line spacing
     let y = 30; // Start closer to header
     
     // Add title
@@ -97,7 +100,7 @@ export const generatePDFReport = async (
     if (data.length > 0) {
       console.log(`Rendering ${data.length} records to PDF`);
       
-      // Para relatórios completos ou com muitos campos, sempre usar tabela
+      // For detailed reports or reports with many fields, always use table format
       if (reportType === "Não Conformidades Completo" || 
           reportType === "Ações Corretivas" ||
           Object.keys(data[0]).length > 3) {
@@ -105,11 +108,11 @@ export const generatePDFReport = async (
         console.log('Using table format for PDF content');
         y = addTableContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
       } else if (reportType === "Indicadores de Desempenho") {
-        // Para indicadores, usar lista simples
+        // For indicators, use simple list format
         console.log('Using simple list format for indicators');
         y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
       } else {
-        // Determine se usamos tabela ou lista baseado na quantidade de registros
+        // Determine whether to use table or list based on record count
         if (data.length <= 5) {
           console.log('Using simple list format for PDF content (small dataset)');
           y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);

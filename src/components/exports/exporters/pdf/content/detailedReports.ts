@@ -63,7 +63,7 @@ export function addDetailedReports(
     const startY = y + 6;
     wrappedHeaderLines.forEach((line: string, lineIndex: number) => {
       const lineY = startY + (lineIndex * 6);
-      doc.text(line, pageWidth / 2, lineY, { align: 'center' });
+      doc.text(line, margin + 5, lineY);
     });
     
     y += headerHeight + 10;
@@ -116,12 +116,38 @@ export function addDetailedReports(
       
       console.log(`Section "${sectionTitle}" wrapped into ${wrappedText.length} lines`);
       
+      // Check if entire section content would fit on current page
+      const totalTextHeight = wrappedText.length * lineHeight + 10;
+      
+      // If content is very large and won't fit on this page, better to start on a new page
+      // to avoid awkward splits between title and first few lines only
+      if (currentY + 30 > pageHeight - 40 || (currentY + totalTextHeight > pageHeight - 40 && wrappedText.length > 15)) {
+        if (options?.showFooter !== false) {
+          addFooterToPDF(doc, currentReportType, doc.getNumberOfPages(), doc.getNumberOfPages() + 1);
+        }
+        doc.addPage();
+        if (options?.showHeader !== false) {
+          addHeaderToPDF(doc, `${currentReportType} - Detalhe #${index + 1}`);
+        }
+        
+        // Re-add section title on new page to maintain context
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, 35, contentWidth, 8, 'F');
+        
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(11);
+        doc.text(sectionTitle, margin + 5, 35 + 5.5);
+        
+        currentY = 35 + 12;
+      }
+      
       // Process all lines ensuring no truncation
       let linesProcessed = 0;
       
       for (let i = 0; i < wrappedText.length; i++) {
         // Check if we need a new page
-        if (currentY + ((i - linesProcessed) * lineHeight) + 15 > pageHeight - 30) {
+        if (currentY + ((i - linesProcessed) * lineHeight) + 10 > pageHeight - 40) {
           if (options?.showFooter !== false) {
             addFooterToPDF(doc, currentReportType, doc.getNumberOfPages(), doc.getNumberOfPages() + 1);
           }
@@ -129,8 +155,22 @@ export function addDetailedReports(
           if (options?.showHeader !== false) {
             addHeaderToPDF(doc, `${currentReportType} - Detalhe #${index + 1}`);
           }
-          currentY = 35;
+          
+          // Reset position on new page
+          currentY = 40;
           linesProcessed = i;
+          
+          // Only add a continuation note if we're breaking a section mid-content
+          // and not at the start of a new section
+          if (i > 0) {
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text("(continuação)", margin + 5, currentY - 5);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+          }
         }
         
         // Render the current line
@@ -140,7 +180,7 @@ export function addDetailedReports(
         }
       }
       
-      return currentY + ((wrappedText.length - linesProcessed) * lineHeight) + 10;
+      return currentY + ((wrappedText.length - linesProcessed) * lineHeight) + 15;
     };
     
     // Add basic information section with improved margins
@@ -203,7 +243,8 @@ export function addDetailedReports(
       descricao: item.descricao,
       description: item.description,
       finalContent: descriptionContent,
-      hasContent: !!descriptionContent && descriptionContent.trim() !== ''
+      hasContent: !!descriptionContent && descriptionContent.trim() !== '',
+      length: descriptionContent.length
     });
     
     // Add content sections with enhanced content extraction

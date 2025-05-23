@@ -57,7 +57,7 @@ export function renderTableRow(
     
     // Debug log for description field specifically
     if (header === 'descricao' || header === 'description') {
-      console.log(`Description for item:`, {
+      console.log(`Description for item ${item.codigo || item.code}:`, {
         header,
         originalDescricao: item.descricao,
         originalDescription: item.description,
@@ -73,14 +73,20 @@ export function renderTableRow(
     
     const availableWidth = colWidths[colIndex] - 10; // 5px padding on each side
     
-    // Wrap text to fit within column width with enhanced handling for long descriptions
+    // Wrap text to fit within column width with enhanced handling
     let wrappedLines: string[];
+    
+    // For descriptions, ensure proper text wrapping and display more content
     if (header === 'descricao' || header === 'description') {
-      // For descriptions, ensure we break long text appropriately
-      wrappedLines = wrapTextToFit(doc, cellValue, availableWidth);
-      // Ensure description gets at least minimum space if it has content
-      if (cellValue !== '-' && wrappedLines.length === 0) {
-        wrappedLines = [cellValue.substring(0, 50) + '...']; // Fallback
+      wrappedLines = doc.splitTextToSize(cellValue, availableWidth);
+      
+      // Limit to a reasonable number of lines in the table view
+      // (detailed view will show the full content)
+      const maxDisplayLines = 7;
+      if (wrappedLines.length > maxDisplayLines) {
+        const truncatedLines = wrappedLines.slice(0, maxDisplayLines - 1);
+        truncatedLines.push('...');
+        wrappedLines = truncatedLines;
       }
     } else {
       wrappedLines = wrapTextToFit(doc, cellValue, availableWidth);
@@ -90,7 +96,7 @@ export function renderTableRow(
     maxLines = Math.max(maxLines, wrappedLines.length);
   });
   
-  // Calculate actual row height based on content with minimum height for descriptions
+  // Calculate actual row height based on content with minimum height for readability
   const minRowHeight = minLineHeight + 8;
   const contentBasedHeight = (maxLines * minLineHeight) + 12; // Extra padding for readability
   const rowHeight = Math.max(minRowHeight, contentBasedHeight);

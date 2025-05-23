@@ -32,8 +32,15 @@ export function estimateContentHeight(doc: jsPDF, item: Record<string, any>): nu
   doc.setFontSize(defaultFontSize);
   doc.setFont(defaultFont.fontName);
   
+  // Add extra safety margin for description fields
+  if (item.descricao || item.description) {
+    const descText = item.descricao || item.description || '';
+    const descriptionEstimate = Math.max(100, descText.length / 5); // Conservative estimate for description
+    estimatedHeight += descriptionEstimate;
+  }
+  
   // Add safety margin
-  return estimatedHeight * 1.3;
+  return estimatedHeight * 1.5;
 }
 
 /**

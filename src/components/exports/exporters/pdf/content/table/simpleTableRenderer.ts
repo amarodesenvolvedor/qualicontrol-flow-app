@@ -57,7 +57,13 @@ export function renderSimpleTable(
   if (!visibleHeaders.some(h => ['descricao', 'description'].includes(h))) {
     const descField = headers.find(h => ['descricao', 'description'].includes(h.toLowerCase()));
     if (descField) {
-      visibleHeaders.splice(2, 0, descField);
+      // Always insert description after title for better readability
+      const titleIndex = visibleHeaders.findIndex(h => ['titulo', 'title'].includes(h));
+      if (titleIndex !== -1) {
+        visibleHeaders.splice(titleIndex + 1, 0, descField);
+      } else {
+        visibleHeaders.splice(2, 0, descField);
+      }
     }
   }
   
@@ -69,6 +75,33 @@ export function renderSimpleTable(
   // Calculate column widths with enhanced allocation for description
   const tableWidth = pageWidth - (safeMargin * 2);
   const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
+  
+  // Adjust column widths to ensure description gets enough space
+  // Find description column index
+  const descriptionIndex = visibleHeaders.findIndex(h => 
+    ['descricao', 'description'].includes(h.toLowerCase())
+  );
+  
+  if (descriptionIndex !== -1) {
+    // Give description column at least 40% of the table width
+    const minDescriptionWidth = tableWidth * 0.4;
+    if (colWidths[descriptionIndex] < minDescriptionWidth) {
+      // Calculate how much width we need to redistribute
+      const additionalWidth = minDescriptionWidth - colWidths[descriptionIndex];
+      colWidths[descriptionIndex] = minDescriptionWidth;
+      
+      // Redistribute width from other columns proportionally
+      const otherColumns = colWidths.filter((_, i) => i !== descriptionIndex);
+      const totalOtherWidth = otherColumns.reduce((sum, w) => sum + w, 0);
+      
+      colWidths.forEach((width, i) => {
+        if (i !== descriptionIndex) {
+          // Reduce width proportionally
+          colWidths[i] = width - (additionalWidth * (width / totalOtherWidth));
+        }
+      });
+    }
+  }
   
   // Verify total width compliance and log for debugging
   const totalColWidth = colWidths.reduce((sum, width) => sum + width, 0);
