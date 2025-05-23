@@ -15,27 +15,30 @@ export function calculateColumnWidths(
   if (headers.length === 0) return [];
   
   // Minimum column width - ensuring readability
-  const minColWidth = 30;
+  const minColWidth = 25; // Reduced minimum for better fit
   
   // Define weights for specific columns - optimized for content importance
   const columnWeights: Record<string, number> = {
-    'codigo': 0.8,         // Code can be compact
-    'code': 0.8,
-    'titulo': 3.5,         // Title needs good space
-    'title': 3.5,
-    'descricao': 5.0,      // Description needs the most space
-    'description': 5.0,
-    'departamento': 2.0,   // Department names
-    'department': 2.0,
-    'responsavel': 1.8,    // Responsible person names
-    'responsible_name': 1.8,
-    'status': 0.9,         // Status is usually short
-    'data_ocorrencia': 1.2, // Date formatting
-    'occurrence_date': 1.2,
+    'codigo': 1.0,         // Code needs adequate space
+    'code': 1.0,
+    'titulo': 3.0,         // Title needs good space
+    'title': 3.0,
+    'descricao': 4.0,      // Description needs the most space
+    'description': 4.0,
+    'departamento': 2.2,   // Department names
+    'department': 2.2,
+    'responsavel': 2.0,    // Responsible person names
+    'responsible_name': 2.0,
+    'status': 1.2,         // Status needs some space for proper display
+    'data_ocorrencia': 1.5, // Date formatting
+    'occurrence_date': 1.5,
   };
   
   // If we have the PDF document and data, use them for better column width estimation
   if (doc && data && data.length > 0) {
+    // Get current font size for accurate text width calculations
+    const currentFontSize = doc.getFontSize();
+    
     // Get text widths for headers
     const headerWidths = headers.map(header => {
       const headerDisplayNames: Record<string, string> = {
@@ -56,13 +59,13 @@ export function calculateColumnWidths(
       
       const formattedHeader = headerDisplayNames[header] || 
                              header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
-      return doc.getTextWidth(formattedHeader) + 20; // Padding for header
+      return doc.getTextWidth(formattedHeader) + 8; // Padding for header
     });
     
     // Calculate content widths for each column with improved sampling
     const contentWidths = headers.map((header, index) => {
-      // Sample up to 10 rows for performance while maintaining accuracy
-      const sampleSize = Math.min(10, data.length);
+      // Sample up to 5 rows for performance while maintaining accuracy
+      const sampleSize = Math.min(5, data.length);
       let maxWidth = 0;
       let totalWidth = 0;
       
@@ -92,18 +95,15 @@ export function calculateColumnWidths(
         // For long texts, estimate width considering word wrapping
         let textWidth = 0;
         
-        if (text.length > 30) {
-          // For very long texts, calculate based on average word length
-          const words = text.split(' ');
-          const avgWordLength = text.length / Math.max(words.length, 1);
-          
-          // Use a more conservative width calculation for long texts
+        if (text.length > 20) {
+          // For longer texts, calculate based on average character width
+          const avgCharWidth = doc.getTextWidth('M'); // Use 'M' as reference
           textWidth = Math.min(
-            doc.getTextWidth(text.substring(0, 50)) + 15,
-            avgWordLength * 10 + 25
+            doc.getTextWidth(text.substring(0, 30)) + 6,
+            avgCharWidth * 20 + 10 // Conservative estimate
           );
         } else {
-          textWidth = doc.getTextWidth(text) + 15; // Standard padding
+          textWidth = doc.getTextWidth(text) + 6; // Standard padding
         }
         
         totalWidth += textWidth;
@@ -112,7 +112,7 @@ export function calculateColumnWidths(
       
       // Use weighted average of max and average widths
       const avgWidth = totalWidth / sampleSize;
-      const estimatedWidth = (maxWidth * 0.4 + avgWidth * 0.6);
+      const estimatedWidth = (maxWidth * 0.3 + avgWidth * 0.7); // Favor average over max
       const weight = columnWeights[header] || 1;
       
       return Math.max(headerWidths[index], estimatedWidth * weight);
@@ -124,8 +124,8 @@ export function calculateColumnWidths(
     // Calculate scale factor to fit within available width
     const totalCalculatedWidth = adjustedWidths.reduce((sum, width) => sum + width, 0);
     
-    // Apply scaling with strict margin compliance (use 96% to ensure we stay within bounds)
-    const scaleFactor = totalCalculatedWidth > totalWidth ? (totalWidth * 0.96) / totalCalculatedWidth : 0.96;
+    // Apply scaling with strict margin compliance (use 95% to ensure we stay within bounds)
+    const scaleFactor = totalCalculatedWidth > totalWidth ? (totalWidth * 0.95) / totalCalculatedWidth : 0.95;
     
     // Return scaled column widths ensuring minimum width compliance
     const finalWidths = adjustedWidths.map(width => Math.max(minColWidth, width * scaleFactor));
@@ -133,7 +133,7 @@ export function calculateColumnWidths(
     // Final check to ensure total width doesn't exceed available space
     const finalTotal = finalWidths.reduce((sum, width) => sum + width, 0);
     if (finalTotal > totalWidth) {
-      const finalScale = (totalWidth * 0.94) / finalTotal;
+      const finalScale = (totalWidth * 0.92) / finalTotal; // Even more conservative
       return finalWidths.map(width => Math.max(minColWidth, width * finalScale));
     }
     
@@ -146,6 +146,6 @@ export function calculateColumnWidths(
   return headers.map(header => {
     const weight = columnWeights[header] || 1;
     const proportion = weight / totalWeights;
-    return Math.max(minColWidth, Math.floor(proportion * totalWidth * 0.94)); // 6% safety margin
+    return Math.max(minColWidth, Math.floor(proportion * totalWidth * 0.92)); // 8% safety margin
   });
 }

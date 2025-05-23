@@ -36,12 +36,10 @@ export const generatePDFReport = async (
       console.warn(`Nenhum dado disponível para gerar o relatório ${reportType}`);
     }
     
-    // Always use portrait orientation for "Não Conformidades Completo"
-    const useLandscape = false; // Force portrait for better readability
-    
+    // Always use portrait orientation - this is critical for proper layout
     console.log(`Using portrait orientation for PDF`);
     
-    // Create PDF document in portrait orientation
+    // Create PDF document in portrait orientation with precise A4 dimensions
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -55,44 +53,52 @@ export const generatePDFReport = async (
       forceLandscape: false // Always use portrait
     };
     
+    // Get precise page dimensions
+    const pageWidth = doc.internal.pageSize.getWidth(); // Should be 210mm for A4
+    const pageHeight = doc.internal.pageSize.getHeight(); // Should be 297mm for A4
+    const margin = 20; // Standard 20mm margins for A4
+    const contentWidth = pageWidth - (margin * 2); // 170mm usable width
+    const lineHeight = 6;
+    
+    console.log(`PDF Dimensions: ${pageWidth}x${pageHeight}mm, margins: ${margin}mm, content width: ${contentWidth}mm`);
+    
+    // Start content immediately on first page without unnecessary spacing
+    let y = 20; // Start at top margin
+    
+    // Add header only if enabled
     if (updatedOptions?.showHeader !== false) {
       addHeaderToPDF(doc, reportType);
+      y = 30; // Start after header
     }
     
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20; // Standard 20mm margins for A4
-    const contentWidth = pageWidth - (margin * 2);
-    const lineHeight = 6;
-    let y = 30; // Start position after header
-    
-    // Add title section
-    doc.setFontSize(16);
+    // Add title section with minimal spacing
+    doc.setFontSize(14);
     doc.setTextColor(41, 65, 148); // Corporate blue
+    doc.setFont("helvetica", "bold");
     doc.text(reportType, pageWidth / 2, y, { align: 'center' });
-    y += 12;
+    y += 8; // Reduced spacing
     
-    // Add date and record count info in a styled box
+    // Add date and record count info in a compact styled box
     doc.setFillColor(245, 245, 250); // Light background
-    doc.rect(margin, y - 3, contentWidth, 12, 'F');
+    doc.rect(margin, y, contentWidth, 10, 'F'); // Reduced height
     doc.setDrawColor(200, 200, 200);
-    doc.rect(margin, y - 3, contentWidth, 12, 'S');
+    doc.rect(margin, y, contentWidth, 10, 'S');
     
-    doc.setFontSize(10);
+    doc.setFontSize(9); // Smaller font
     doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
-    doc.text(`Data de geração: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, margin + 5, y + 3);
+    doc.text(`Data: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, margin + 3, y + 6);
     
     // Add record count to the right
     if (data.length > 0) {
       doc.setFont("helvetica", "bold");
-      doc.text(`Total de registros: ${data.length}`, pageWidth - margin - 5, y + 3, { align: 'right' });
+      doc.text(`Total: ${data.length}`, pageWidth - margin - 3, y + 6, { align: 'right' });
     }
-    y += 18; // Move to start of content area
+    y += 12; // Move to start of content area with minimal spacing
     
     // Render content based on data availability
     if (data.length > 0) {
-      console.log(`Rendering ${data.length} records to PDF`);
+      console.log(`Rendering ${data.length} records to PDF starting at y=${y}`);
       
       // Always use table format for this report type
       console.log('Using table format for PDF content');

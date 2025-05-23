@@ -26,7 +26,7 @@ export function handleTablePagination(
     if (options?.showHeader !== false) {
       addHeaderToPDF(doc, options?.reportType || "Relatório");
     }
-    y = 40;
+    y = 30;
     
     // Redraw header on new page
     const headerHeight = lineHeight + 5;
@@ -35,7 +35,7 @@ export function handleTablePagination(
     y += headerHeight + 2;
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8); // Consistent font size
+    doc.setFontSize(7); // Consistent font size
   }
   
   return y;
@@ -63,10 +63,10 @@ export function handleSimpleTablePagination(
     if (options?.showHeader !== false) {
       addHeaderToPDF(doc, options?.reportType || "Relatório");
     }
-    y = 40;
+    y = 30;
     
     // Recreate header on new page with proper styling
-    const headerHeight = 12;
+    const headerHeight = 10; // Consistent with main renderer
     const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
     
     // Draw header background
@@ -75,7 +75,7 @@ export function handleSimpleTablePagination(
     
     // Header text styling
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(9);
+    doc.setFontSize(8); // Consistent with main renderer
     doc.setFont("helvetica", "bold");
     
     // Draw header texts
@@ -108,12 +108,12 @@ export function handleSimpleTablePagination(
       xPos += columnWidth;
     });
     
-    y += headerHeight + 2;
+    y += headerHeight;
     
     // Reset text styling for data rows
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
+    doc.setFontSize(7); // Consistent with main renderer
   }
   
   return y;

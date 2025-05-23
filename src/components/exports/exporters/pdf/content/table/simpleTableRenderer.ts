@@ -6,7 +6,7 @@ import { renderTableRow } from "./tableRows";
 import { handleSimpleTablePagination } from "./paginationUtils";
 
 /**
- * Render a simplified table for basic reports
+ * Render a simplified table for basic reports with strict margin compliance
  */
 export function renderSimpleTable(
   doc: jsPDF,
@@ -17,13 +17,12 @@ export function renderSimpleTable(
   margin: number,
   options?: PDFExportOptions
 ): number {
-  // Ensure strict margin compliance - use 20mm margins for A4 portrait
-  const safeMargin = 20; // 20mm margins for proper A4 formatting
+  // Ensure strict margin compliance - use exactly 20mm margins for A4 portrait
+  const safeMargin = 20;
   
-  // Start immediately after the title section without unnecessary spacing
-  if (y < 50) y = 50;
+  console.log(`Starting table render at y=${y}, pageWidth=${pageWidth}, margin=${safeMargin}`);
   
-  // Extract headers from data
+  // Extract headers from data and apply field mapping
   const headers = Object.keys(data[0]);
   
   // Priority headers for better display
@@ -58,10 +57,11 @@ export function renderSimpleTable(
   }
   
   // Calculate available table width with strict margin compliance
-  const tableWidth = pageWidth - (safeMargin * 2); // Total usable width
+  const tableWidth = pageWidth - (safeMargin * 2); // Total usable width: 170mm for A4
   console.log(`Table width calculation: pageWidth=${pageWidth}, margins=${safeMargin}, tableWidth=${tableWidth}`);
   
-  // Calculate column widths with improved distribution
+  // Calculate column widths with improved distribution and font size consideration
+  doc.setFontSize(8); // Set font size before calculating widths
   const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
   
   // Verify and adjust column widths to ensure they fit perfectly
@@ -74,24 +74,32 @@ export function renderSimpleTable(
     });
   }
   
-  // Log final column configuration
+  // Final verification
+  const finalTotalWidth = colWidths.reduce((sum, width) => sum + width, 0);
   console.log('Final column configuration:', {
     headers: visibleHeaders,
-    widths: colWidths,
-    totalWidth: colWidths.reduce((sum, width) => sum + width, 0),
-    availableWidth: tableWidth
+    widths: colWidths.map(w => Math.round(w * 100) / 100), // Round for display
+    totalWidth: Math.round(finalTotalWidth * 100) / 100,
+    availableWidth: tableWidth,
+    marginLeft: safeMargin,
+    marginRight: pageWidth - safeMargin - finalTotalWidth
   });
   
   // Draw table header with proper alignment and sizing
-  const headerHeight = 12; // Slightly larger header for better readability
+  const headerHeight = 10; // Compact header height
   
-  // Ensure header background is properly sized and positioned
+  // Ensure header background is properly sized and positioned within margins
   doc.setFillColor(41, 65, 148); // Corporate blue
-  doc.rect(safeMargin, y, tableWidth, headerHeight, 'F');
+  doc.rect(safeMargin, y, finalTotalWidth, headerHeight, 'F'); // Use exact table width
+  
+  // Add border for visual clarity
+  doc.setDrawColor(41, 65, 148);
+  doc.setLineWidth(0.5);
+  doc.rect(safeMargin, y, finalTotalWidth, headerHeight, 'S');
   
   // Header text styling
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9); // Reduced font size to fit better
+  doc.setFontSize(8); // Reduced font size to fit better
   doc.setFont("helvetica", "bold");
   
   // Draw header cells with proper text positioning
@@ -122,7 +130,7 @@ export function renderSimpleTable(
     const headerLines = doc.splitTextToSize(formattedHeader, maxHeaderWidth);
     const headerText = headerLines[0]; // Use first line only for headers
     
-    // Center the header text horizontally
+    // Center the header text horizontally within the column
     const textWidth = doc.getTextWidth(headerText);
     const centeredX = xPos + (columnWidth / 2) - (textWidth / 2);
     
@@ -133,12 +141,12 @@ export function renderSimpleTable(
     xPos += columnWidth;
   });
   
-  y += headerHeight + 2;
+  y += headerHeight;
   
   // Setup data row styling
   doc.setTextColor(0, 0, 0);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8); // Smaller font size for data to fit better
+  doc.setFontSize(7); // Smaller font size for data to fit better
   
   // Calculate page height for pagination
   const pageHeight = doc.internal.pageSize.getHeight();

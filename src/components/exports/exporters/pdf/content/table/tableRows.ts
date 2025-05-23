@@ -16,7 +16,7 @@ export function renderTableRow(
   isEvenRow: boolean = false
 ): number {
   // Minimum line height for readability
-  const minLineHeight = Math.max(lineHeight, 5);
+  const minLineHeight = Math.max(lineHeight, 4);
   
   // Pre-process all cell contents and determine max lines needed
   let maxLines = 1;
@@ -58,7 +58,7 @@ export function renderTableRow(
     }
     
     // Calculate available width for text (with proper padding)
-    const availableWidth = colWidths[colIndex] - 6; // 3px padding on each side
+    const availableWidth = colWidths[colIndex] - 4; // 2px padding on each side
     
     // Wrap text to fit within column width
     let wrappedLines: string[];
@@ -73,14 +73,14 @@ export function renderTableRow(
       }
       
       // Limit lines to prevent excessive row height
-      const maxLinesPerCell = 4;
+      const maxLinesPerCell = 3; // Reduced to keep rows compact
       if (wrappedLines.length > maxLinesPerCell) {
         wrappedLines = wrappedLines.slice(0, maxLinesPerCell - 1);
         wrappedLines.push('...');
       }
     } catch (error) {
       console.warn(`Error wrapping text for ${header}:`, error);
-      wrappedLines = [cellValue.substring(0, 30) + (cellValue.length > 30 ? '...' : '')];
+      wrappedLines = [cellValue.substring(0, 25) + (cellValue.length > 25 ? '...' : '')];
     }
     
     cellContents.push(wrappedLines);
@@ -88,8 +88,8 @@ export function renderTableRow(
   });
   
   // Calculate row height based on content
-  const minRowHeight = 15; // Minimum row height for readability
-  const contentBasedHeight = (maxLines * minLineHeight) + 8; // 4px top + 4px bottom padding
+  const minRowHeight = 12; // Minimum row height for readability
+  const contentBasedHeight = (maxLines * minLineHeight) + 6; // 3px top + 3px bottom padding
   const rowHeight = Math.max(minRowHeight, contentBasedHeight);
   
   // Draw row background for alternating colors
@@ -118,22 +118,22 @@ export function renderTableRow(
     // Render each line of text in the cell
     lines.forEach((line, lineIndex) => {
       if (line && line.trim()) {
-        const textY = y + 6 + (lineIndex * minLineHeight); // Top padding + line spacing
+        const textY = y + 4 + (lineIndex * minLineHeight); // Top padding + line spacing
         
         // Apply different alignment based on content type
         if (header === 'status') {
           // Center status text
           const textWidth = doc.getTextWidth(line);
           const centeredX = xPos + (cellWidth / 2) - (textWidth / 2);
-          doc.text(line, Math.max(xPos + 3, centeredX), textY);
+          doc.text(line, Math.max(xPos + 2, centeredX), textY);
         } else if (header === 'codigo' || header === 'code') {
           // Center code text
           const textWidth = doc.getTextWidth(line);
           const centeredX = xPos + (cellWidth / 2) - (textWidth / 2);
-          doc.text(line, Math.max(xPos + 3, centeredX), textY);
+          doc.text(line, Math.max(xPos + 2, centeredX), textY);
         } else {
           // Left-align other text with proper padding
-          doc.text(line, xPos + 3, textY);
+          doc.text(line, xPos + 2, textY);
         }
       }
     });
