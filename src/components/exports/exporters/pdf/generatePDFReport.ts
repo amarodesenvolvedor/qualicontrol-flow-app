@@ -36,19 +36,14 @@ export const generatePDFReport = async (
       console.warn(`Nenhum dado disponível para gerar o relatório ${reportType}`);
     }
     
-    // For "Não Conformidades Completo", always use portrait orientation
-    // For other reports, use landscape conditionally
-    const useLandscape = 
-      reportType.includes("Cronograma de Auditorias") || 
-      (reportType === "Ações Corretivas" && options?.forceLandscape) ||
-      (data.length > 0 && Object.keys(data[0]).length > 5 && reportType !== "Não Conformidades Completo") ||
-      (options?.forceLandscape && reportType !== "Não Conformidades Completo");
+    // Always use portrait orientation for "Não Conformidades Completo"
+    const useLandscape = false; // Force portrait for better readability
     
-    console.log(`Using ${useLandscape ? 'landscape' : 'portrait'} orientation for PDF`);
+    console.log(`Using portrait orientation for PDF`);
     
-    // Create PDF document with appropriate orientation
+    // Create PDF document in portrait orientation
     const doc = new jsPDF({
-      orientation: useLandscape ? 'landscape' : 'portrait',
+      orientation: 'portrait',
       unit: 'mm',
       format: 'a4'
     });
@@ -57,8 +52,7 @@ export const generatePDFReport = async (
     const updatedOptions: PDFExportOptions = {
       ...options,
       reportType,
-      // Force landscape to false for "Não Conformidades Completo"
-      forceLandscape: reportType === "Não Conformidades Completo" ? false : options?.forceLandscape
+      forceLandscape: false // Always use portrait
     };
     
     if (updatedOptions?.showHeader !== false) {
@@ -67,60 +61,42 @@ export const generatePDFReport = async (
     
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 25; // Minimum margin increased to 25px
-    const contentWidth = pageWidth - (margin * 2); // Usable content width
-    const lineHeight = 6; // Line spacing
-    let y = 30; // Start closer to header
+    const margin = 20; // Standard 20mm margins for A4
+    const contentWidth = pageWidth - (margin * 2);
+    const lineHeight = 6;
+    let y = 30; // Start position after header
     
-    // Add title
+    // Add title section
     doc.setFontSize(16);
     doc.setTextColor(41, 65, 148); // Corporate blue
     doc.text(reportType, pageWidth / 2, y, { align: 'center' });
-    y += lineHeight * 1.5;
+    y += 12;
     
-    // Add date info with styled box
+    // Add date and record count info in a styled box
     doc.setFillColor(245, 245, 250); // Light background
-    doc.rect(margin, y - 3, contentWidth, lineHeight + 6, 'F');
+    doc.rect(margin, y - 3, contentWidth, 12, 'F');
     doc.setDrawColor(200, 200, 200);
-    doc.rect(margin, y - 3, contentWidth, lineHeight + 6, 'S');
+    doc.rect(margin, y - 3, contentWidth, 12, 'S');
     
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
     doc.text(`Data de geração: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, margin + 5, y + 3);
     
-    // Add record count to the right of the date
+    // Add record count to the right
     if (data.length > 0) {
       doc.setFont("helvetica", "bold");
       doc.text(`Total de registros: ${data.length}`, pageWidth - margin - 5, y + 3, { align: 'right' });
     }
-    y += lineHeight * 2;
+    y += 18; // Move to start of content area
     
-    // If data exists
+    // Render content based on data availability
     if (data.length > 0) {
       console.log(`Rendering ${data.length} records to PDF`);
       
-      // For detailed reports or reports with many fields, always use table format
-      if (reportType === "Não Conformidades Completo" || 
-          reportType === "Ações Corretivas" ||
-          Object.keys(data[0]).length > 3) {
-        
-        console.log('Using table format for PDF content');
-        y = addTableContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
-      } else if (reportType === "Indicadores de Desempenho") {
-        // For indicators, use simple list format
-        console.log('Using simple list format for indicators');
-        y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
-      } else {
-        // Determine whether to use table or list based on record count
-        if (data.length <= 5) {
-          console.log('Using simple list format for PDF content (small dataset)');
-          y = addSimpleListContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
-        } else {
-          console.log('Using table format for PDF content (larger dataset)');
-          y = addTableContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
-        }
-      }
+      // Always use table format for this report type
+      console.log('Using table format for PDF content');
+      y = addTableContent(doc, data, y, pageWidth, lineHeight, margin, updatedOptions);
     } else {
       // No data message
       console.warn('No data available for PDF report, showing empty state');
@@ -136,7 +112,7 @@ export const generatePDFReport = async (
         if (updatedOptions?.showFooter !== false) {
           addFooterToPDF(doc, reportType, doc.getNumberOfPages(), doc.getNumberOfPages() + 1);
         }
-        doc.addPage(useLandscape ? 'landscape' : 'portrait');
+        doc.addPage('portrait');
         if (updatedOptions?.showHeader !== false) {
           addHeaderToPDF(doc, reportType);
         }

@@ -17,26 +17,25 @@ export function renderSimpleTable(
   margin: number,
   options?: PDFExportOptions
 ): number {
-  // Ensure minimum margin of 20px
-  const safeMargin = Math.max(margin, 20);
+  // Ensure strict margin compliance - use 20mm margins for A4 portrait
+  const safeMargin = 20; // 20mm margins for proper A4 formatting
   
-  // Increased initial Y position for better page usage
-  if (y < 45) y = 45;
+  // Start immediately after the title section without unnecessary spacing
+  if (y < 50) y = 50;
   
   // Extract headers from data
   const headers = Object.keys(data[0]);
   
-  // Priority headers including description field with proper mapping
+  // Priority headers for better display
   const priorityHeaders = [
-    'codigo', 'titulo', 'descricao', 'departamento', 'status', 
+    'codigo', 'titulo', 'departamento', 'status', 
     'responsavel', 'data_ocorrencia'
   ];
   
-  // Map field names to ensure we capture description correctly
+  // Map field names to ensure proper data extraction
   const fieldMapping: Record<string, string[]> = {
     'codigo': ['codigo', 'code'],
     'titulo': ['titulo', 'title'],
-    'descricao': ['descricao', 'description'],
     'departamento': ['departamento', 'department'],
     'status': ['status'],
     'responsavel': ['responsavel', 'responsible_name'],
@@ -53,93 +52,56 @@ export function renderSimpleTable(
     }
   });
   
-  // Ensure we always include description if it exists in any form
-  if (!visibleHeaders.some(h => ['descricao', 'description'].includes(h))) {
-    const descField = headers.find(h => ['descricao', 'description'].includes(h.toLowerCase()));
-    if (descField) {
-      // Always insert description after title for better readability
-      const titleIndex = visibleHeaders.findIndex(h => ['titulo', 'title'].includes(h));
-      if (titleIndex !== -1) {
-        visibleHeaders.splice(titleIndex + 1, 0, descField);
-      } else {
-        visibleHeaders.splice(2, 0, descField);
-      }
-    }
-  }
-  
   // If no priority headers found, use all available headers except 'id'
   if (visibleHeaders.length < 3) {
     visibleHeaders = headers.filter(header => header !== 'id');
   }
   
-  // Calculate column widths with enhanced allocation for description
-  const tableWidth = pageWidth - (safeMargin * 2);
+  // Calculate available table width with strict margin compliance
+  const tableWidth = pageWidth - (safeMargin * 2); // Total usable width
+  console.log(`Table width calculation: pageWidth=${pageWidth}, margins=${safeMargin}, tableWidth=${tableWidth}`);
+  
+  // Calculate column widths with improved distribution
   const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
   
-  // Adjust column widths to ensure description gets enough space
-  // Find description column index
-  const descriptionIndex = visibleHeaders.findIndex(h => 
-    ['descricao', 'description'].includes(h.toLowerCase())
-  );
-  
-  if (descriptionIndex !== -1) {
-    // Give description column at least 40% of the table width
-    const minDescriptionWidth = tableWidth * 0.4;
-    if (colWidths[descriptionIndex] < minDescriptionWidth) {
-      // Calculate how much width we need to redistribute
-      const additionalWidth = minDescriptionWidth - colWidths[descriptionIndex];
-      colWidths[descriptionIndex] = minDescriptionWidth;
-      
-      // Redistribute width from other columns proportionally
-      const otherColumns = colWidths.filter((_, i) => i !== descriptionIndex);
-      const totalOtherWidth = otherColumns.reduce((sum, w) => sum + w, 0);
-      
-      colWidths.forEach((width, i) => {
-        if (i !== descriptionIndex) {
-          // Reduce width proportionally
-          colWidths[i] = width - (additionalWidth * (width / totalOtherWidth));
-        }
-      });
-    }
-  }
-  
-  // Verify total width compliance and log for debugging
+  // Verify and adjust column widths to ensure they fit perfectly
   const totalColWidth = colWidths.reduce((sum, width) => sum + width, 0);
-  console.log(`Table width calculation:`, {
-    availableWidth: tableWidth,
-    totalColWidth,
-    exceedsWidth: totalColWidth > tableWidth,
-    columns: visibleHeaders.map((header, i) => ({ header, width: colWidths[i] }))
-  });
-  
-  // Emergency width adjustment if needed
   if (totalColWidth > tableWidth) {
-    const scaleFactor = (tableWidth * 0.95) / totalColWidth;
+    console.warn(`Adjusting column widths: ${totalColWidth} > ${tableWidth}`);
+    const scaleFactor = (tableWidth * 0.98) / totalColWidth; // 98% to ensure safety
     colWidths.forEach((width, index) => {
       colWidths[index] = width * scaleFactor;
     });
-    console.log(`Applied emergency scaling factor: ${scaleFactor}`);
   }
   
-  // Draw table header with brand color background
-  doc.setFillColor(41, 65, 148);
-  doc.rect(safeMargin, y, tableWidth, lineHeight + 2, 'F');
+  // Log final column configuration
+  console.log('Final column configuration:', {
+    headers: visibleHeaders,
+    widths: colWidths,
+    totalWidth: colWidths.reduce((sum, width) => sum + width, 0),
+    availableWidth: tableWidth
+  });
   
-  // Header text
+  // Draw table header with proper alignment and sizing
+  const headerHeight = 12; // Slightly larger header for better readability
+  
+  // Ensure header background is properly sized and positioned
+  doc.setFillColor(41, 65, 148); // Corporate blue
+  doc.rect(safeMargin, y, tableWidth, headerHeight, 'F');
+  
+  // Header text styling
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
+  doc.setFontSize(9); // Reduced font size to fit better
   doc.setFont("helvetica", "bold");
   
-  // Draw header cells with wrapped text if necessary
-  let xPos = safeMargin + 3;
+  // Draw header cells with proper text positioning
+  let xPos = safeMargin;
   visibleHeaders.forEach((header, i) => {
     const headerDisplayNames: Record<string, string> = {
       'codigo': 'Código',
       'code': 'Código',
       'titulo': 'Título',
       'title': 'Título',
-      'descricao': 'Descrição',
-      'description': 'Descrição',
       'departamento': 'Departamento',
       'department': 'Departamento',
       'status': 'Status',
@@ -152,42 +114,44 @@ export function renderSimpleTable(
     const formattedHeader = headerDisplayNames[header] || 
                            header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
     
-    // Check if header text fits, if not wrap it
-    const headerWidth = colWidths[i] - 6; // Account for padding
-    const headerLines = doc.splitTextToSize(formattedHeader, headerWidth);
+    // Calculate column width and text positioning
+    const columnWidth = colWidths[i];
+    const maxHeaderWidth = columnWidth - 4; // 2px padding on each side
     
-    // Center the header text (use first line for centering calculation)
-    const textWidth = doc.getTextWidth(headerLines[0]);
-    const centeredX = xPos + (colWidths[i] - textWidth) / 2;
+    // Wrap header text if necessary
+    const headerLines = doc.splitTextToSize(formattedHeader, maxHeaderWidth);
+    const headerText = headerLines[0]; // Use first line only for headers
     
-    // Render header text (use only first line if wrapped)
-    doc.text(headerLines[0], centeredX, y + 7);
+    // Center the header text horizontally
+    const textWidth = doc.getTextWidth(headerText);
+    const centeredX = xPos + (columnWidth / 2) - (textWidth / 2);
     
-    xPos += colWidths[i];
+    // Position text vertically centered
+    const verticalCenter = y + (headerHeight / 2) + 1;
+    
+    doc.text(headerText, centeredX, verticalCenter);
+    xPos += columnWidth;
   });
   
-  y += lineHeight + 4;
+  y += headerHeight + 2;
   
-  // Draw data rows with improved styling
+  // Setup data row styling
   doc.setTextColor(0, 0, 0);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
+  doc.setFontSize(8); // Smaller font size for data to fit better
   
-  // Calculate page height for easier reference
+  // Calculate page height for pagination
   const pageHeight = doc.internal.pageSize.getHeight();
   
-  // Show ALL rows with pagination and enhanced content logging
+  // Render all data rows with improved formatting
   for (let i = 0; i < data.length; i++) {
     const item = data[i];
     
-    // Enhanced debug logging for content verification
-    console.log(`Processing row ${i} (${item.codigo || item.code}):`, {
+    // Log item data for debugging
+    console.log(`Processing row ${i}:`, {
       codigo: item.codigo || item.code,
       titulo: item.titulo || item.title,
-      descricao: item.descricao || item.description,
-      descricaoLength: (item.descricao || item.description || '').length,
-      hasDescription: !!(item.descricao || item.description),
-      allFields: Object.keys(item)
+      departamento: item.departamento?.name || item.department?.name || item.departamento || item.department
     });
     
     // Check if we need a new page
@@ -200,10 +164,10 @@ export function renderSimpleTable(
       safeMargin, 
       lineHeight, 
       options, 
-      options?.forceLandscape || false
+      false // Always use portrait for this report
     );
     
-    // Render the row and get its height
+    // Render the row with improved text handling
     const rowHeight = renderTableRow(
       doc,
       item,
@@ -212,7 +176,7 @@ export function renderSimpleTable(
       safeMargin,
       y,
       lineHeight,
-      i % 2 === 0
+      i % 2 === 0 // Alternating row colors
     );
     
     y += rowHeight;

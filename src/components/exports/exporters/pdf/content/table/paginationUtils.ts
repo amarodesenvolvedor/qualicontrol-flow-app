@@ -22,27 +22,27 @@ export function handleTablePagination(
     if (options?.showFooter !== false) {
       addFooterToPDF(doc, options?.reportType || "Relatório", doc.getNumberOfPages(), doc.getNumberOfPages());
     }
-    doc.addPage(isLandscape ? 'landscape' : 'portrait');
+    doc.addPage('portrait'); // Always use portrait
     if (options?.showHeader !== false) {
       addHeaderToPDF(doc, options?.reportType || "Relatório");
     }
     y = 40;
     
-    // Redesenhar cabeçalho na nova página
+    // Redraw header on new page
     const headerHeight = lineHeight + 5;
     renderTableHeaders(doc, headers, colWidths, margin, y, headerHeight);
     
     y += headerHeight + 2;
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(8); // Consistent font size
   }
   
   return y;
 }
 
 /**
- * Handle pagination for simplified tables
+ * Handle pagination for simplified tables with proper header recreation
  */
 export function handleSimpleTablePagination(
   doc: jsPDF,
@@ -59,41 +59,61 @@ export function handleSimpleTablePagination(
     if (options?.showFooter !== false) {
       addFooterToPDF(doc, options?.reportType || "Relatório", doc.getNumberOfPages(), doc.getNumberOfPages());
     }
-    doc.addPage(isLandscape ? 'landscape' : 'portrait');
+    doc.addPage('portrait'); // Always use portrait
     if (options?.showHeader !== false) {
       addHeaderToPDF(doc, options?.reportType || "Relatório");
     }
     y = 40;
     
-    // Redesenhar cabeçalho na nova página
-    const headerHeight = lineHeight + 2;
-    doc.setFillColor(41, 65, 148);
-    doc.rect(margin, y, colWidths.reduce((sum, width) => sum + width, 0), headerHeight, 'F');
+    // Recreate header on new page with proper styling
+    const headerHeight = 12;
+    const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
     
+    // Draw header background
+    doc.setFillColor(41, 65, 148);
+    doc.rect(margin, y, tableWidth, headerHeight, 'F');
+    
+    // Header text styling
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     
-    let xPos = margin + 3;
+    // Draw header texts
+    let xPos = margin;
     headers.forEach((header, j) => {
-      const formattedHeader = header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
-      const truncatedHeader = formattedHeader.length > 15 ? 
-                            formattedHeader.substring(0, 15) + '...' : 
-                            formattedHeader;
+      const headerDisplayNames: Record<string, string> = {
+        'codigo': 'Código',
+        'code': 'Código',
+        'titulo': 'Título',
+        'title': 'Título',
+        'departamento': 'Departamento',
+        'department': 'Departamento',
+        'status': 'Status',
+        'responsavel': 'Responsável',
+        'responsible_name': 'Responsável',
+        'data_ocorrencia': 'Data Ocorrência',
+        'occurrence_date': 'Data Ocorrência'
+      };
       
-      // Centralizar o texto do cabeçalho em cada página nova
-      const headerWidth = colWidths[j];
-      const textWidth = doc.getTextWidth(truncatedHeader);
-      const centeredX = xPos + (headerWidth - textWidth) / 2;
+      const formattedHeader = headerDisplayNames[header] || 
+                             header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
       
-      doc.text(truncatedHeader, centeredX, y + 7);
-      xPos += headerWidth;
+      // Center the header text
+      const columnWidth = colWidths[j];
+      const textWidth = doc.getTextWidth(formattedHeader);
+      const centeredX = xPos + (columnWidth / 2) - (textWidth / 2);
+      const verticalCenter = y + (headerHeight / 2) + 1;
+      
+      doc.text(formattedHeader, centeredX, verticalCenter);
+      xPos += columnWidth;
     });
     
-    y += lineHeight + 4;
+    y += headerHeight + 2;
+    
+    // Reset text styling for data rows
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(8);
   }
   
   return y;
