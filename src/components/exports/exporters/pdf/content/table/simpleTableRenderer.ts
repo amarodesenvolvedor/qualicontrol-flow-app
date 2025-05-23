@@ -2,7 +2,7 @@
 import { jsPDF } from "jspdf";
 import { PDFExportOptions } from "../../../../utils/types";
 import { calculateColumnWidths } from "../../utils/columnUtils";
-import { renderSimpleTableRow } from "./tableRows";
+import { renderTableRow } from "./tableRows";
 import { handleSimpleTablePagination } from "./paginationUtils";
 
 /**
@@ -28,7 +28,7 @@ export function renderSimpleTable(
   
   // Primeiro priorizamos os campos mais importantes, excluindo explicitamente 'id'
   const priorityHeaders = [
-    'codigo', 'titulo', 'departamento', 'requisito_iso', 'status', 
+    'codigo', 'titulo', 'departamento', 'status', 
     'responsavel', 'data_ocorrencia'
   ];
   
@@ -96,8 +96,8 @@ export function renderSimpleTable(
       options?.forceLandscape || false
     );
     
-    // Render the row and get its height
-    const rowHeight = renderSimpleTableRow(
+    // Render the row and get its height using the correct function name
+    const rowHeight = renderTableRow(
       doc,
       item,
       visibleHeaders,
