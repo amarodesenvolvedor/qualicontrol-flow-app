@@ -36,7 +36,7 @@ export function renderSimpleTable(
   const fieldMapping: Record<string, string[]> = {
     'codigo': ['codigo', 'code'],
     'titulo': ['titulo', 'title'],
-    'descricao': ['descricao', 'description'], // Include both possible field names
+    'descricao': ['descricao', 'description'],
     'departamento': ['departamento', 'department'],
     'status': ['status'],
     'responsavel': ['responsavel', 'responsible_name'],
@@ -57,7 +57,7 @@ export function renderSimpleTable(
   if (!visibleHeaders.some(h => ['descricao', 'description'].includes(h))) {
     const descField = headers.find(h => ['descricao', 'description'].includes(h.toLowerCase()));
     if (descField) {
-      visibleHeaders.splice(2, 0, descField); // Insert after title
+      visibleHeaders.splice(2, 0, descField);
     }
   }
   
@@ -66,9 +66,27 @@ export function renderSimpleTable(
     visibleHeaders = headers.filter(header => header !== 'id');
   }
   
-  // Calculate column widths based on content with proper margins
+  // Calculate column widths with enhanced allocation for description
   const tableWidth = pageWidth - (safeMargin * 2);
   const colWidths = calculateColumnWidths(visibleHeaders, tableWidth, doc, data);
+  
+  // Verify total width compliance and log for debugging
+  const totalColWidth = colWidths.reduce((sum, width) => sum + width, 0);
+  console.log(`Table width calculation:`, {
+    availableWidth: tableWidth,
+    totalColWidth,
+    exceedsWidth: totalColWidth > tableWidth,
+    columns: visibleHeaders.map((header, i) => ({ header, width: colWidths[i] }))
+  });
+  
+  // Emergency width adjustment if needed
+  if (totalColWidth > tableWidth) {
+    const scaleFactor = (tableWidth * 0.95) / totalColWidth;
+    colWidths.forEach((width, index) => {
+      colWidths[index] = width * scaleFactor;
+    });
+    console.log(`Applied emergency scaling factor: ${scaleFactor}`);
+  }
   
   // Draw table header with brand color background
   doc.setFillColor(41, 65, 148);
@@ -79,7 +97,7 @@ export function renderSimpleTable(
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   
-  // Draw header cells with centered text
+  // Draw header cells with wrapped text if necessary
   let xPos = safeMargin + 3;
   visibleHeaders.forEach((header, i) => {
     const headerDisplayNames: Record<string, string> = {
@@ -101,13 +119,18 @@ export function renderSimpleTable(
     const formattedHeader = headerDisplayNames[header] || 
                            header.charAt(0).toUpperCase() + header.slice(1).replace(/_/g, ' ');
     
-    // Center the header text
-    const headerWidth = colWidths[i];
-    const textWidth = doc.getTextWidth(formattedHeader);
-    const centeredX = xPos + (headerWidth - textWidth) / 2;
+    // Check if header text fits, if not wrap it
+    const headerWidth = colWidths[i] - 6; // Account for padding
+    const headerLines = doc.splitTextToSize(formattedHeader, headerWidth);
     
-    doc.text(formattedHeader, centeredX, y + 7);
-    xPos += headerWidth;
+    // Center the header text (use first line for centering calculation)
+    const textWidth = doc.getTextWidth(headerLines[0]);
+    const centeredX = xPos + (colWidths[i] - textWidth) / 2;
+    
+    // Render header text (use only first line if wrapped)
+    doc.text(headerLines[0], centeredX, y + 7);
+    
+    xPos += colWidths[i];
   });
   
   y += lineHeight + 4;
@@ -120,16 +143,18 @@ export function renderSimpleTable(
   // Calculate page height for easier reference
   const pageHeight = doc.internal.pageSize.getHeight();
   
-  // Show ALL rows with pagination
+  // Show ALL rows with pagination and enhanced content logging
   for (let i = 0; i < data.length; i++) {
     const item = data[i];
     
-    // Debug: Log the item to check description content
-    console.log(`Row ${i} data:`, {
+    // Enhanced debug logging for content verification
+    console.log(`Processing row ${i} (${item.codigo || item.code}):`, {
       codigo: item.codigo || item.code,
       titulo: item.titulo || item.title,
       descricao: item.descricao || item.description,
-      hasDescription: !!(item.descricao || item.description)
+      descricaoLength: (item.descricao || item.description || '').length,
+      hasDescription: !!(item.descricao || item.description),
+      allFields: Object.keys(item)
     });
     
     // Check if we need a new page
@@ -145,7 +170,7 @@ export function renderSimpleTable(
       options?.forceLandscape || false
     );
     
-    // Render the row and get its height using the correct function name
+    // Render the row and get its height
     const rowHeight = renderTableRow(
       doc,
       item,
