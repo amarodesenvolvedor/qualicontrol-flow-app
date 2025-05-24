@@ -86,7 +86,7 @@ export function renderSimpleTable(
   });
   
   // Draw table header with proper alignment and sizing
-  const headerHeight = 14; // Increased header height for better readability and multi-line text
+  const headerHeight = 16; // Increased header height for multi-line text
   
   // Ensure header background is properly sized and positioned within margins
   doc.setFillColor(41, 65, 148); // Corporate blue
@@ -134,9 +134,9 @@ export function renderSimpleTable(
       const centeredX = xPos + (columnWidth / 2) - (textWidth / 2);
       
       // Position text vertically centered, accounting for multiple lines
-      const totalLinesHeight = headerLines.length * 4; // 4mm per line
-      const startY = y + (headerHeight / 2) - (totalLinesHeight / 2) + 3;
-      const lineY = startY + (lineIndex * 4);
+      const totalLinesHeight = headerLines.length * 3; // 3mm per line
+      const startY = y + (headerHeight / 2) - (totalLinesHeight / 2) + 2;
+      const lineY = startY + (lineIndex * 3);
       
       doc.text(line, centeredX, lineY);
     });
