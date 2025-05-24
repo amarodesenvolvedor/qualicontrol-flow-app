@@ -62,39 +62,33 @@ export const generatePDFReport = async (
     
     console.log(`PDF Dimensions: ${pageWidth}x${pageHeight}mm, margins: ${margin}mm, content width: ${contentWidth}mm`);
     
-    // Start content immediately on first page
-    let y = 20; // Start at top margin
+    // Start content on first page - DON'T add header automatically
+    let y = 20; // Start at top margin on first page
     
-    // Add header only if enabled
-    if (updatedOptions?.showHeader !== false) {
-      addHeaderToPDF(doc, reportType);
-      y = 30; // Start after header
-    }
-    
-    // Add title section directly without extra spacing
-    doc.setFontSize(14);
+    // Add title section directly on first page
+    doc.setFontSize(16);
     doc.setTextColor(41, 65, 148); // Corporate blue
     doc.setFont("helvetica", "bold");
     doc.text(reportType, pageWidth / 2, y, { align: 'center' });
-    y += 10; // Reduced spacing
+    y += 12; // Space after title
     
     // Add date and record count info in a compact styled box
     doc.setFillColor(245, 245, 250); // Light background
-    doc.rect(margin, y, contentWidth, 10, 'F'); // Compact height
+    doc.rect(margin, y, contentWidth, 8, 'F'); // Compact height
     doc.setDrawColor(200, 200, 200);
-    doc.rect(margin, y, contentWidth, 10, 'S');
+    doc.rect(margin, y, contentWidth, 8, 'S');
     
     doc.setFontSize(9); // Smaller font
     doc.setFont("helvetica", "normal");
     doc.setTextColor(0, 0, 0);
-    doc.text(`Data: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, margin + 3, y + 6);
+    doc.text(`Data: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, margin + 3, y + 5);
     
     // Add record count to the right
     if (data.length > 0) {
       doc.setFont("helvetica", "bold");
-      doc.text(`Total: ${data.length}`, pageWidth - margin - 3, y + 6, { align: 'right' });
+      doc.text(`Total: ${data.length}`, pageWidth - margin - 3, y + 5, { align: 'right' });
     }
-    y += 15; // Reduced spacing to start table immediately
+    y += 15; // Start table immediately after info box
     
     // Render content based on data availability - START TABLE IMMEDIATELY
     if (data.length > 0) {

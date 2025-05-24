@@ -21,24 +21,8 @@ export function addTableContent(
     return y;
   }
   
-  // Determine optimal table orientation - always use landscape for non-conformance full reports
+  // Don't add header on first page since we're starting immediately
   const currentReportType = options?.reportType || "Relatório";
-  const isLandscape = options?.forceLandscape || 
-                      currentReportType === "Não Conformidades Completo" ||
-                      (data.length > 5 || Object.keys(data[0]).length > 5);
-  
-  if (isLandscape && doc.internal.pageSize.getWidth() < doc.internal.pageSize.getHeight()) {
-    // Switch to landscape if not already
-    if (options?.showFooter !== false) {
-      addFooterToPDF(doc, currentReportType, doc.getNumberOfPages(), doc.getNumberOfPages());
-    }
-    doc.addPage('landscape');
-    if (options?.showHeader !== false) {
-      addHeaderToPDF(doc, currentReportType);
-    }
-    y = 40;
-    pageWidth = doc.internal.pageSize.getWidth();
-  }
   
   // Configure table column settings
   const safeMargin = Math.max(margin, 20);

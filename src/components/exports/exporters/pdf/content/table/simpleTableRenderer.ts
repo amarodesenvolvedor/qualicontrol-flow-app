@@ -86,7 +86,7 @@ export function renderSimpleTable(
   });
   
   // Draw table header with proper alignment and sizing
-  const headerHeight = 12; // Increased header height for better readability
+  const headerHeight = 14; // Increased header height for better readability and multi-line text
   
   // Ensure header background is properly sized and positioned within margins
   doc.setFillColor(41, 65, 148); // Corporate blue
@@ -140,6 +140,13 @@ export function renderSimpleTable(
       
       doc.text(line, centeredX, lineY);
     });
+    
+    // Draw vertical lines between columns for better separation
+    if (i < visibleHeaders.length - 1) {
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.2);
+      doc.line(xPos + columnWidth, y, xPos + columnWidth, y + headerHeight);
+    }
     
     xPos += columnWidth;
   });
