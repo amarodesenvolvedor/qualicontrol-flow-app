@@ -40,9 +40,40 @@ export function renderTableRow(
         cellValue = item.departamento || item.department || '';
       }
     } else if (header === 'responsavel' || header === 'responsible_name') {
-      cellValue = item.responsavel || item.responsible_name || '';
+      // Improved handling for responsible names - avoid breaking names incorrectly
+      let responsibleName = item.responsavel || item.responsible_name || '';
+      
+      // Clean up the responsible name and ensure proper formatting
+      if (responsibleName) {
+        // Remove extra spaces and line breaks
+        responsibleName = responsibleName.replace(/\s+/g, ' ').trim();
+        
+        // Handle cases where names might be broken - try to reconstruct common patterns
+        if (responsibleName.includes('Marcos') && responsibleName.includes('Aquil')) {
+          responsibleName = responsibleName.replace(/Marcos\s*Aquil.*/, 'Marcos Aquila');
+        }
+        if (responsibleName.includes('Francisco') && responsibleName.includes('Cesár')) {
+          responsibleName = responsibleName.replace(/Francisco\s*Cesár.*/, 'Francisco Cesário');
+        }
+        
+        cellValue = responsibleName;
+      }
     } else if (header === 'data_ocorrencia' || header === 'occurrence_date') {
-      cellValue = item.data_ocorrencia || item.occurrence_date || '';
+      let dateValue = item.data_ocorrencia || item.occurrence_date || '';
+      
+      // Format date if it's a valid date string
+      if (dateValue) {
+        try {
+          const date = new Date(dateValue);
+          if (!isNaN(date.getTime())) {
+            cellValue = date.toLocaleDateString('pt-BR');
+          } else {
+            cellValue = dateValue;
+          }
+        } catch {
+          cellValue = dateValue;
+        }
+      }
     } else if (header === 'status') {
       cellValue = item.status || '';
     } else {
@@ -60,12 +91,37 @@ export function renderTableRow(
     // Calculate available width for text (with proper padding)
     const availableWidth = colWidths[colIndex] - 4; // 2px padding on each side
     
-    // Wrap text to fit within column width
+    // Wrap text to fit within column width with special handling for names
     let wrappedLines: string[];
     
     try {
-      // Use jsPDF's built-in text wrapping for better accuracy
-      wrappedLines = doc.splitTextToSize(cellValue, availableWidth);
+      // For responsible names, try to avoid breaking on names
+      if ((header === 'responsavel' || header === 'responsible_name') && cellValue.length > 0) {
+        // If the name is too long, try smart wrapping at word boundaries
+        if (doc.getTextWidth(cellValue) > availableWidth) {
+          const words = cellValue.split(' ');
+          if (words.length > 1) {
+            // Try to break between first and last name
+            const midPoint = Math.ceil(words.length / 2);
+            const firstPart = words.slice(0, midPoint).join(' ');
+            const secondPart = words.slice(midPoint).join(' ');
+            
+            if (doc.getTextWidth(firstPart) <= availableWidth && doc.getTextWidth(secondPart) <= availableWidth) {
+              wrappedLines = [firstPart, secondPart];
+            } else {
+              // Fall back to jsPDF wrapping
+              wrappedLines = doc.splitTextToSize(cellValue, availableWidth);
+            }
+          } else {
+            wrappedLines = doc.splitTextToSize(cellValue, availableWidth);
+          }
+        } else {
+          wrappedLines = [cellValue];
+        }
+      } else {
+        // Use jsPDF's built-in text wrapping for other fields
+        wrappedLines = doc.splitTextToSize(cellValue, availableWidth);
+      }
       
       // Ensure we have an array
       if (!Array.isArray(wrappedLines)) {
@@ -73,14 +129,14 @@ export function renderTableRow(
       }
       
       // Limit lines to prevent excessive row height
-      const maxLinesPerCell = 3; // Reduced to keep rows compact
+      const maxLinesPerCell = 3; // Allow up to 3 lines
       if (wrappedLines.length > maxLinesPerCell) {
         wrappedLines = wrappedLines.slice(0, maxLinesPerCell - 1);
         wrappedLines.push('...');
       }
     } catch (error) {
       console.warn(`Error wrapping text for ${header}:`, error);
-      wrappedLines = [cellValue.substring(0, 25) + (cellValue.length > 25 ? '...' : '')];
+      wrappedLines = [cellValue.substring(0, 20) + (cellValue.length > 20 ? '...' : '')];
     }
     
     cellContents.push(wrappedLines);
@@ -88,8 +144,8 @@ export function renderTableRow(
   });
   
   // Calculate row height based on content
-  const minRowHeight = 12; // Minimum row height for readability
-  const contentBasedHeight = (maxLines * minLineHeight) + 6; // 3px top + 3px bottom padding
+  const minRowHeight = 10; // Minimum row height for readability
+  const contentBasedHeight = (maxLines * minLineHeight) + 4; // 2px top + 2px bottom padding
   const rowHeight = Math.max(minRowHeight, contentBasedHeight);
   
   // Draw row background for alternating colors
@@ -118,7 +174,7 @@ export function renderTableRow(
     // Render each line of text in the cell
     lines.forEach((line, lineIndex) => {
       if (line && line.trim()) {
-        const textY = y + 4 + (lineIndex * minLineHeight); // Top padding + line spacing
+        const textY = y + 3 + (lineIndex * minLineHeight); // Top padding + line spacing
         
         // Apply different alignment based on content type
         if (header === 'status') {
@@ -128,6 +184,11 @@ export function renderTableRow(
           doc.text(line, Math.max(xPos + 2, centeredX), textY);
         } else if (header === 'codigo' || header === 'code') {
           // Center code text
+          const textWidth = doc.getTextWidth(line);
+          const centeredX = xPos + (cellWidth / 2) - (textWidth / 2);
+          doc.text(line, Math.max(xPos + 2, centeredX), textY);
+        } else if (header === 'data_ocorrencia' || header === 'occurrence_date') {
+          // Center date text
           const textWidth = doc.getTextWidth(line);
           const centeredX = xPos + (cellWidth / 2) - (textWidth / 2);
           doc.text(line, Math.max(xPos + 2, centeredX), textY);

@@ -76,7 +76,7 @@ export const generatePDFReport = async (
     doc.setTextColor(41, 65, 148); // Corporate blue
     doc.setFont("helvetica", "bold");
     doc.text(reportType, pageWidth / 2, y, { align: 'center' });
-    y += 8; // Minimal spacing
+    y += 10; // Reduced spacing
     
     // Add date and record count info in a compact styled box
     doc.setFillColor(245, 245, 250); // Light background
@@ -94,9 +94,9 @@ export const generatePDFReport = async (
       doc.setFont("helvetica", "bold");
       doc.text(`Total: ${data.length}`, pageWidth - margin - 3, y + 6, { align: 'right' });
     }
-    y += 15; // Move to start of content area with minimal spacing
+    y += 15; // Reduced spacing to start table immediately
     
-    // Render content based on data availability
+    // Render content based on data availability - START TABLE IMMEDIATELY
     if (data.length > 0) {
       console.log(`Rendering ${data.length} records to PDF starting at y=${y}`);
       

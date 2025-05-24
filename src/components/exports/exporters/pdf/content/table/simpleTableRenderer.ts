@@ -68,9 +68,9 @@ export function renderSimpleTable(
   const totalColWidth = colWidths.reduce((sum, width) => sum + width, 0);
   if (totalColWidth > tableWidth) {
     console.warn(`Adjusting column widths: ${totalColWidth} > ${tableWidth}`);
-    const scaleFactor = (tableWidth * 0.95) / totalColWidth; // 95% to ensure safety
+    const scaleFactor = (tableWidth * 0.98) / totalColWidth; // 98% to ensure safety
     colWidths.forEach((width, index) => {
-      colWidths[index] = Math.max(20, width * scaleFactor); // Minimum 20mm per column
+      colWidths[index] = Math.max(18, width * scaleFactor); // Minimum 18mm per column
     });
   }
   
@@ -86,7 +86,7 @@ export function renderSimpleTable(
   });
   
   // Draw table header with proper alignment and sizing
-  const headerHeight = 10; // Compact header height
+  const headerHeight = 12; // Increased header height for better readability
   
   // Ensure header background is properly sized and positioned within margins
   doc.setFillColor(41, 65, 148); // Corporate blue
@@ -99,10 +99,10 @@ export function renderSimpleTable(
   
   // Header text styling
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(8); // Reduced font size to fit better
+  doc.setFontSize(8); // Font size for headers
   doc.setFont("helvetica", "bold");
   
-  // Draw header cells with proper text positioning
+  // Draw header cells with proper text positioning and line breaks
   let xPos = safeMargin;
   visibleHeaders.forEach((header, i) => {
     const headerDisplayNames: Record<string, string> = {
@@ -115,8 +115,8 @@ export function renderSimpleTable(
       'status': 'Status',
       'responsavel': 'Responsável',
       'responsible_name': 'Responsável',
-      'data_ocorrencia': 'Data Ocorrência',
-      'occurrence_date': 'Data Ocorrência'
+      'data_ocorrencia': 'Data\nOcorrência', // Line break for better formatting
+      'occurrence_date': 'Data\nOcorrência'
     };
     
     const formattedHeader = headerDisplayNames[header] || 
@@ -124,20 +124,23 @@ export function renderSimpleTable(
     
     // Calculate column width and text positioning
     const columnWidth = colWidths[i];
-    const maxHeaderWidth = columnWidth - 4; // 2px padding on each side
     
-    // Wrap header text if necessary
-    const headerLines = doc.splitTextToSize(formattedHeader, maxHeaderWidth);
-    const headerText = headerLines[0]; // Use first line only for headers
+    // Handle multi-line headers (like "Data\nOcorrência")
+    const headerLines = formattedHeader.split('\n');
     
-    // Center the header text horizontally within the column
-    const textWidth = doc.getTextWidth(headerText);
-    const centeredX = xPos + (columnWidth / 2) - (textWidth / 2);
+    headerLines.forEach((line, lineIndex) => {
+      // Calculate text width for centering
+      const textWidth = doc.getTextWidth(line);
+      const centeredX = xPos + (columnWidth / 2) - (textWidth / 2);
+      
+      // Position text vertically centered, accounting for multiple lines
+      const totalLinesHeight = headerLines.length * 4; // 4mm per line
+      const startY = y + (headerHeight / 2) - (totalLinesHeight / 2) + 3;
+      const lineY = startY + (lineIndex * 4);
+      
+      doc.text(line, centeredX, lineY);
+    });
     
-    // Position text vertically centered
-    const verticalCenter = y + (headerHeight / 2) + 1;
-    
-    doc.text(headerText, centeredX, verticalCenter);
     xPos += columnWidth;
   });
   
